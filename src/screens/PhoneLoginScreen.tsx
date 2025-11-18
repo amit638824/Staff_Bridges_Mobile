@@ -1,0 +1,311 @@
+import React, { useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Modal,
+  FlatList,
+  TextInput,
+  Button,
+  SafeAreaView,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import CheckBox from '@react-native-community/checkbox';
+import axios from 'axios';
+import RBSheet from 'react-native-raw-bottom-sheet';
+
+type Language = {
+  code: string;
+  label: string;
+};
+
+const languages: Language[] = [
+  { code: 'en', label: 'English (English)' },
+  { code: 'hi', label: 'हिंदी (Hindi)' },
+];
+
+const PhoneLoginScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
+  const refRBSheet = useRef<any>(null);
+  const [phone, setPhone] = useState('');
+  const [isChecked, setIsChecked] = useState(true);
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [loading, setLoading] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [isOtpLoading, setIsOtpLoading] = useState(false);
+
+  const changeLanguage = (code: string) => {
+    setSelectedLanguage(code);
+    setLanguageModalVisible(false);
+  };
+
+  const handleSendOtp = async () => {
+    if (!phone || phone.length !== 10) {
+      Alert.alert('Invalid Phone', 'Please enter a valid 10-digit phone number.');
+      return;
+    }
+    if (!isChecked) {
+      Alert.alert('Terms Required', 'You must agree to the terms before proceeding.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await axios.post('https://app.elderlycare.life/api/api/v1/login_phone', {
+        phone,
+      });
+
+      if (response.data.status === true) {
+        Alert.alert('OTP Sent', 'Please check your phone for the OTP.');
+        refRBSheet.current?.open();
+      } else {
+        Alert.alert('Failed', response.data.message || 'Failed to send OTP.');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Something went wrong. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp || otp.length < 4) {
+      Alert.alert('Invalid OTP', 'Please enter the correct OTP.');
+      return;
+    }
+
+    setIsOtpLoading(true);
+    // Simulate verification
+    setTimeout(() => {
+      setIsOtpLoading(false);
+      refRBSheet.current?.close();
+      Alert.alert('Login Successful', 'Welcome!');
+      navigation.replace('AboutYourselfScreen'); // ✅ Fixed: Changed from 'Home' to 'HomeScreen'
+    }, 1500);
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Logo + Language Selector */}
+        <View style={styles.logoRow}>
+          <Image
+            source={require('../../assets/images/staff_bridges_logo.png')}
+            style={styles.logo}
+          />
+          <TouchableOpacity
+            style={styles.languageSelector}
+            onPress={() => setLanguageModalVisible(true)}
+          >
+            <Text>{selectedLanguage === 'hi' ? 'हिंदी' : 'English'}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Banner */}
+        <Image
+          source={require('../../assets/images/job_search_banner.png')}
+          style={styles.banner}
+          resizeMode="cover"
+        />
+
+        {/* Phone Input */}
+        <View style={styles.phoneForm}>
+          <Text style={styles.phoneLabel}>Enter your phone number</Text>
+          <View style={styles.phoneInputContainer}>
+            <Text style={styles.countryCode}>+91</Text>
+            <TextInput
+              style={styles.phoneInput}
+              placeholder="Enter phone number"
+              keyboardType="phone-pad"
+              maxLength={10}
+              value={phone}
+              onChangeText={setPhone}
+            />
+          </View>
+          <TouchableOpacity
+            style={styles.sendOtpButton}
+            onPress={handleSendOtp}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.sendOtpText}>Send OTP</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Terms & Conditions */}
+        <View style={styles.termsRow}>
+          <CheckBox value={isChecked} onValueChange={setIsChecked} />
+          <Text style={styles.termsText}>
+            By clicking agree, you accept our
+            <Text style={styles.linkText}> Terms of Service</Text> and
+            <Text style={styles.linkText}> Privacy Policy</Text>.
+          </Text>
+        </View>
+
+        {/* Language Modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={languageModalVisible}
+          onRequestClose={() => setLanguageModalVisible(false)}
+        >
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalTitle}>Choose Language</Text>
+              <FlatList
+                data={languages}
+                keyExtractor={(item) => item.code}
+                renderItem={({ item }) => {
+                  const selected = selectedLanguage === item.code;
+                  return (
+                    <TouchableOpacity
+                      style={[
+                        styles.languageCard,
+                        selected && styles.languageCardSelected,
+                      ]}
+                      onPress={() => changeLanguage(item.code)}
+                    >
+                      <Text style={styles.languageLabel}>{item.label}</Text>
+                      {selected && <View style={styles.selectedDot} />}
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+              <Button title="Next" onPress={() => setLanguageModalVisible(false)} />
+            </View>
+          </View>
+        </Modal>
+      </ScrollView>
+
+      {/* OTP Bottom Sheet */}
+      <RBSheet
+        ref={refRBSheet}
+        height={300}
+        openDuration={250}
+        draggable
+        customStyles={{
+          wrapper: { backgroundColor: 'rgba(0,0,0,0.5)' },
+          draggableIcon: { backgroundColor: '#000' },
+          container: { borderTopLeftRadius: 20, borderTopRightRadius: 20 },
+        }}
+      >
+        <Text style={styles.otpTitle}>Enter OTP</Text>
+        <Text style={styles.otpSubtitle}>
+          We have sent an OTP to +91 {phone}
+        </Text>
+        <TextInput
+          style={styles.otpInput}
+          placeholder="Enter 6-digit OTP"
+          keyboardType="number-pad"
+          maxLength={6}
+          value={otp}
+          onChangeText={setOtp}
+        />
+        <TouchableOpacity
+          style={styles.verifyOtpButton}
+          onPress={handleVerifyOtp}
+          disabled={isOtpLoading}
+        >
+          {isOtpLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.verifyOtpText}>Verify & Continue</Text>
+          )}
+        </TouchableOpacity>
+      </RBSheet>
+    </SafeAreaView>
+  );
+};
+
+export default PhoneLoginScreen;
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#fff' },
+  scrollContainer: { padding: 16 },
+  logoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  logo: { height: 40, width: 120, resizeMode: 'contain' },
+  languageSelector: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderRadius: 20,
+    borderColor: '#6200EE',
+  },
+  banner: { width: '100%', height: 220, marginVertical: 20 },
+  phoneForm: { marginVertical: 16 },
+  phoneLabel: { fontSize: 16, fontWeight: '600', marginBottom: 12 },
+  phoneInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#DDD',
+    borderRadius: 40,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    marginBottom: 16,
+  },
+  countryCode: { fontSize: 16, fontWeight: '600', marginRight: 8 },
+  phoneInput: { flex: 1, fontSize: 16 },
+  sendOtpButton: {
+    backgroundColor: '#6200EE',
+    borderRadius: 40,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sendOtpText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  termsRow: { flexDirection: 'row', alignItems: 'center', marginTop: 16 },
+  termsText: { flex: 1, marginLeft: 8, fontSize: 13, color: '#555' },
+  linkText: { color: '#6200EE', textDecorationLine: 'underline' },
+  modalBackground: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'flex-end' },
+  modalContainer: {
+    backgroundColor: '#fff',
+    borderTopRightRadius: 20,
+    borderTopLeftRadius: 20,
+    padding: 16,
+    maxHeight: '50%',
+  },
+  modalTitle: { fontSize: 16, fontWeight: '600', marginBottom: 12 },
+  languageCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderWidth: 2,
+    borderColor: '#6200EE',
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  languageCardSelected: { backgroundColor: 'rgba(98,0,238,0.15)' },
+  languageLabel: { fontSize: 15, fontWeight: '500' },
+  selectedDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#6200EE' },
+  otpTitle: { fontSize: 18, fontWeight: '700', textAlign: 'center', marginBottom: 8 },
+  otpSubtitle: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 },
+  otpInput: {
+    borderWidth: 1,
+    borderColor: '#DDD',
+    borderRadius: 10,
+    height: 50,
+    textAlign: 'center',
+    fontSize: 18,
+    letterSpacing: 6,
+    marginBottom: 20,
+  },
+  verifyOtpButton: {
+    backgroundColor: '#6200EE',
+    borderRadius: 40,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  verifyOtpText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+});

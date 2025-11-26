@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StatusBar } from "react-native";
 import {
   View,
@@ -12,6 +12,7 @@ import {
   Dimensions,
   ImageBackground,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -23,11 +24,13 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AppHeader from '../components/AppHeader';
 import JobSuggestionSection from '../components/JobSuggestionSection';
 import ViewedJobsSection from '../components/ViewedJobSection';
+import JobApplicationModal from '../components/JobApplicationModal';
+import { AppColors } from '../constants/AppColors';
+import App from '../../App';
 
 const { width } = Dimensions.get('window');
 
-// ---------------- IMAGE FIX ---------------- //
-
+// IMAGE CONSTANTS
 const IMAGES = {
   logo: require('../../assets/images/logo-removebg-preview.png'),
   designer: require('../../assets/images/depka.jpg'),
@@ -50,125 +53,125 @@ const IMAGES = {
   video3: require('../../assets/images/depka.jpg'),
 };
 
-const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+const HomeScreen: React.FC<{ navigation: any, route: any }> = ({ navigation, route }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showJobModal, setShowJobModal] = useState(false);
+  const isMountedRef = useRef(false);
 
   const handleFooterTap = (index: number) => {
     setCurrentIndex(index);
   };
 
+  useEffect(() => {
+    // Check if we're coming from JobInfo screen
+    const comingFromJobInfo = route?.params?.fromJobInfo === true;
+
+    if (comingFromJobInfo && !isMountedRef.current) {
+      // Show modal only if coming from JobInfo and this is first mount
+      setTimeout(() => {
+        setShowJobModal(true);
+      }, 500);
+    }
+
+    // Mark component as mounted
+    isMountedRef.current = true;
+
+    // Clean up: reset the flag when leaving the screen
+    return () => {
+      // Reset the flag when component unmounts
+      navigation.setParams({ fromJobInfo: false });
+    };
+  }, [route?.params?.fromJobInfo]);
+
   return (
-<SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-  <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+  <>
+    {/* Main Content */}
+    <SafeAreaView 
+      style={{ flex: 1, backgroundColor: "#fff" }} 
+      pointerEvents={showJobModal ? "none" : "auto"}
+    >
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
-  {/* Fixed Header */}
-  <View style={{ marginTop: 0, paddingTop: 0 }}>
-    <AppHeader 
-      location="Dewa Road"
-      onNotificationTap={() => console.log("Notifications tapped")}
-    />
-  </View>
+      {/* Fixed Header */}
+      <View style={{ marginTop: 0, paddingTop: 0 }}>
+        <AppHeader 
+          location="Dewa Road"
+          onNotificationTap={() => console.log("Notifications tapped")}
+        />
+      </View>
 
-  {/* Fixed Resume Card & Search Box */}
-  <View style={styles.fixedTopContainer}>
-    {/* 🔹 Resume Reminder Row */}
-    <View style={styles.resumeCard}>
-  <Ionicons name="information-circle-outline" size={22}  />
-  <View style={{ flex: 1, marginLeft: 8 }}>
-    <Text style={styles.resumeTitle}>Add Resume to boost your profile</Text>
-  </View>
-  <TouchableOpacity>
-    <Text style={styles.resumeLink}>Add Now</Text>
+      {/* Fixed Resume Card & Search Box */}
+      <View style={styles.fixedTopContainer}>
+        <View style={styles.resumeCard}>
+          <Ionicons name="information-circle-outline" size={22}  />
+          <View style={{ flex: 1, marginLeft: 8 }}>
+            <Text style={styles.resumeTitle}>Add Resume to boost your profile</Text>
+          </View>
+          <TouchableOpacity>
+            <Text style={styles.resumeLink}>Add Now</Text>
+          </TouchableOpacity>
+          <Ionicons name="close" size={18} color="#999" />
+        </View>
 
-  </TouchableOpacity>
-      <Ionicons name="close" size={18} color="#999" />
-</View>
+        <View style={styles.searchBox}>
+          <Ionicons name="search-outline" size={20} color="#999" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search jobs"
+            placeholderTextColor="#666"
+          />
+        </View>
+      </View>
 
-{/* 🔹 Search Box */}
-<View style={styles.searchBox}>
-  <Ionicons name="search-outline" size={20} color="#999" />
-  <TextInput
-    style={styles.searchInput}
-    placeholder="Search jobs"
-    placeholderTextColor="#666"
-  />
-</View>
-  </View>
-
-  {/* Scrollable Content */}
- <ScrollView
-  contentContainerStyle={{ paddingBottom: 20, paddingTop: 10 }}
-  style={{ flex: 1 }}
-  showsVerticalScrollIndicator={false}
->
-
-{/* 🔹 Greeting Line */}
-<View style={{ paddingHorizontal: 18, marginTop: 10 }}>
-  <Text style={styles.subGreetingText}>Hey Asmit </Text>
-  <Text style={styles.subGreetingText}>You have more jobs waiting...</Text>
-</View>
-
-        {/* Banner */}
-        <View style={styles.bannerCard}>
-          <View style={styles.bannerHeader}>
-            <Image source={IMAGES.logo} style={styles.bannerLogo} />
-            <Ionicons name="close" size={18} color="#999" />
+      {/* Scrollable Content */}
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 20, paddingTop: 10 }}
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
+          <View style={{ paddingHorizontal: 18, marginTop: 10 }}>
+            <Text style={styles.subGreetingText}>Hey Asmit </Text>
+            <Text style={styles.subGreetingText}>You have more jobs waiting...</Text>
           </View>
 
-          <View style={styles.bannerContent}>
-            <View style={styles.bannerTextSection}>
-              <Text style={styles.bannerSubtitle}>Get Job-ready in minutes</Text>
-              <Text style={styles.bannerTitle}>Learn about roles & responsibilities {"\n"}and how to master them.</Text>
-              <TouchableOpacity style={styles.bannerButton}>
-                <Text style={styles.bannerButtonText}>Apply now</Text>
-              </TouchableOpacity>
+          {/* Banner */}
+          <View style={styles.bannerCard}>
+            <View style={styles.bannerHeader}>
+              <Image source={IMAGES.logo} style={styles.bannerLogo} />
+              <Ionicons name="close" size={18} color="#999" />
             </View>
 
-            <Image source={IMAGES.designer} style={styles.bannerImage} />
-          </View>
-        </View>
-          <View style={styles.sectionHeader}>
-                      <Text style={{ marginStart:15, fontWeight: '500', fontSize: 14, marginBottom: 12 }}>Apply to these jobs</Text>
-
-                <TouchableOpacity style={{ flexDirection: 'row', marginEnd: 10 }}>
-                  <Text style={styles.viewAll}>View All </Text>
-                  <Ionicons name="ios-arrow-forward" size={14} style={{ marginRight: 10,}} color="#00A79D" />
-      
+            <View style={styles.bannerContent}>
+              <View style={styles.bannerTextSection}>
+                <Text style={styles.bannerSubtitle}>Get Job-ready in minutes</Text>
+                <Text style={styles.bannerTitle}>Learn about roles & responsibilities {"\n"}and how to master them.</Text>
+                <TouchableOpacity style={styles.bannerButton}>
+                  <Text style={styles.bannerButtonText}>Apply now</Text>
                 </TouchableOpacity>
               </View>
-        <JobSuggestionSection />
 
-        {/* Pagination Dots for Job Suggestions */}
-        <View style={styles.dotsContainerJobSuggestion}>
-          {[0, 1, 2].map((index) => (
-            <View
-              key={index}
-              style={[
-                styles.dotJobSuggestion,
-                {
-                  width: index === 0 ? 24 : 6,
-                },
-              ]}
-            />
-          ))}
-        </View>
-        
- <ViewedJobsSection />
-        {/* Need Cards */}
-        <View style={styles.gridContainer}>
-          <Text style={{ width: '100%', fontWeight: '500', fontSize: 14, marginBottom: 12 }}>Jobs for all your needs</Text>
-          {renderNeedCard(IMAGES.wallet, 'High Paying Jobs', 'View 188 jobs')}
-          {renderNeedCard(IMAGES.home, 'Work From Home', 'View 85 jobs')}
-          {renderNeedCard(IMAGES.books, 'Graduate Jobs', 'View 28 jobs')}
-          {renderNeedCard(IMAGES.bell, 'New Jobs', 'View 16 jobs')}
-          
-          {/* Pagination Dots for Jobs for all your needs */}
-          <View style={styles.dotsContainerNeeds}>
+              <Image source={IMAGES.designer} style={styles.bannerImage} />
+            </View>
+          </View>
+
+          <View style={styles.sectionHeader}>
+            <Text style={{ marginStart:15, fontWeight: '500', fontSize: 14, marginBottom: 12 }}>Apply to these jobs</Text>
+
+            <TouchableOpacity style={{ flexDirection: 'row', marginEnd: 10 }}>
+              <Text style={styles.viewAll}>View All </Text>
+              <Ionicons name="chevron-forward" size={15} style={{ marginRight: 10,}} color={AppColors.themeColor} />
+            </TouchableOpacity>
+          </View>
+
+          <JobSuggestionSection />
+
+          {/* Pagination Dots for Job Suggestions */}
+          <View style={styles.dotsContainerJobSuggestion}>
             {[0, 1, 2].map((index) => (
               <View
                 key={index}
                 style={[
-                  styles.dotNeeds,
+                  styles.dotJobSuggestion,
                   {
                     width: index === 0 ? 24 : 6,
                   },
@@ -176,39 +179,68 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               />
             ))}
           </View>
-        </View>
 
-        {/* Videos Section */}
-        <VideosSection />
+          <ViewedJobsSection />
 
-        {/* Refer a Friend Section */}
-<ReferFriendSection />
-        {/* Nearby Areas Section */}
-                  <Text style={{ width: '100%', fontWeight: '500', fontSize: 14, margin:14 }}>Jobs in near by areas</Text>
+          {/* Need Cards */}
+          <View style={styles.gridContainer}>
+            <Text style={{ width: '100%', fontWeight: '500', fontSize: 14, marginBottom: 12 }}>Jobs for all your needs</Text>
+            {renderNeedCard(IMAGES.wallet, 'High Paying Jobs', 'View 188 jobs')}
+            {renderNeedCard(IMAGES.home, 'Work From Home', 'View 85 jobs')}
+            {renderNeedCard(IMAGES.books, 'Graduate Jobs', 'View 28 jobs')}
+            {renderNeedCard(IMAGES.bell, 'New Jobs', 'View 16 jobs')}
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} >
-          <View style={{flexDirection:'row',padding:10}}>
-       <NearbyAreaCard distance="2.1 km away" area="Gurugram Sec 32" jobs="View 45 Jobs" />
-        <NearbyAreaCard distance="3.5 km away" area="Vibhuti Khand" jobs="View 30 Jobs" />
-        <NearbyAreaCard distance="3.5 km away" area="Hazratganj" jobs="View 30 Jobs" />
-        </View>
-</ScrollView>
-          {/* Rate Experience Section */}
+            <View style={styles.dotsContainerNeeds}>
+              {[0, 1, 2].map((index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.dotNeeds,
+                    {
+                      width: index === 0 ? 24 : 6,
+                    },
+                  ]}
+                />
+              ))}
+            </View>
+          </View>
+
+          <VideosSection />
+
+          <ReferFriendSection />
+      <Text style={videoStyles.sectionTitle}>Jobs in near by areas</Text>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} >
+            <View style={{flexDirection:'row',padding:10}}>
+              <NearbyAreaCard distance="2.1 km away" area="Gurugram Sec 32" jobs="View 45 Jobs" />
+              <NearbyAreaCard distance="3.5 km away" area="Vibhuti Khand" jobs="View 30 Jobs" />
+              <NearbyAreaCard distance="3.5 km away" area="Hazratganj" jobs="View 30 Jobs" />
+            </View>
+          </ScrollView>
+
           <RateExperienceSection />
 
-        <View style={styles.container}>
-          {SuccessStoriesSection()};
-              </View>
-                    
-      </ScrollView>
+          <View style={styles.container}>
+            {SuccessStoriesSection()}
+          </View>
+          </ScrollView>
 
-      <AppFooter currentIndex={currentIndex} onTap={handleFooterTap} />
+        {/* Footer - Hidden when modal is visible */}
+      {!showJobModal && <AppFooter currentIndex={currentIndex} onTap={handleFooterTap} />}
     </SafeAreaView>
-  );
+    {/* MODAL OUTSIDE SafeAreaView - Positioned to cover entire screen including footer */}
+    {showJobModal && (
+      <JobApplicationModal
+        visible={showJobModal}
+        onClose={() => setShowJobModal(false)}
+        onApplyNow={() => setShowJobModal(false)}
+        onNotNow={() => setShowJobModal(false)}
+      />
+    )}
+  </>
+);
 };
-
-// --------- UI Helper Component --------- //
-
+// UI HELPER COMPONENTS
 const renderNeedCard = (image: any, title: string, subtitle: string, highlight = false) => (
   <View style={[styles.needCard, highlight && styles.highlightCard]}>
     <Image source={image} style={styles.needImage} />
@@ -243,16 +275,15 @@ const VideosSection = () => {
 
   const buildCategoryCard = (item: any) => (
     <TouchableOpacity key={item.id} style={videoStyles.categoryCard}>
-      {/* Image with custom border radius */}
       <View style={videoStyles.imageContainer}>
         <Image source={item.image} style={videoStyles.categoryImage} />
       </View>
 
-      {/* Content */}
       <View style={videoStyles.categoryContent}>
         <View style={videoStyles.jobsRow}>
           <Text style={videoStyles.jobsText}>{item.jobs}</Text>
-          <Icon name="chevron-forward-outline" size={10} color="#009ca4" />
+      <Icon name="chevron-forward-outline" size={10} color={AppColors.buttons} />
+
         </View>
         <Text style={videoStyles.categoryTitle} numberOfLines={2}>
           {item.title}
@@ -275,7 +306,6 @@ const VideosSection = () => {
         </ScrollView>
       </View>
 
-      {/* Pagination Dots */}
       <View style={videoStyles.dotsContainer}>
         {[0, 1, 2].map((index) => (
           <View
@@ -301,8 +331,6 @@ const SuccessStoriesSection = () => {
       style={styles.containerImage}
       resizeMode="cover"
     >
-      {/* Circular Top Icon */}
-      
       <View style={styles.iconBorder}>
         <Image
           source={require('../../assets/images/clapping.png')}
@@ -310,20 +338,17 @@ const SuccessStoriesSection = () => {
         />
       </View>
 
-      {/* Title */}
       <Text style={styles.title}>
         <Text style={styles.titleBlack}># Staff Bridges </Text>
         <Text style={styles.titleTeal}>Success Stories</Text>
       </Text>
 
-      {/* Avatar Row */}
       <View style={styles.avatarRow}>
         <Image source={require('../../assets/images/depka.jpg')} style={styles.avatar} />
         <Image source={require('../../assets/images/mikes.jpg')} style={styles.avatar} />
         <Image source={require('../../assets/images/soni.jpg')} style={styles.avatar} />
       </View>
 
-      {/* Description */}
       <Text style={styles.description}>
         Deepak, Mohit, Soni and many {"\n"}got <Text style={styles.titleTeal}>invited for interview</Text> by HR for {"\n"}a new job!
       </Text>
@@ -339,17 +364,14 @@ interface NearbyAreaCardProps {
 }
 
 const NearbyAreaCard: React.FC<NearbyAreaCardProps> = ({ distance, area, jobs }) => {
-
   return (
+    
     <View style={styles.card}>
-      
-      {/* Orange Badge Positioned */}
       <View style={styles.badgeContainer}>
         <Icon name="location-sharp" size={14} color="#d78b54" />
         <Text style={styles.badgeText}>{distance}</Text>
       </View>
 
-      {/* Content */}
       <View style={styles.content}>
         <Text style={styles.areaText}>{area}</Text>
 
@@ -369,7 +391,6 @@ const RateExperienceSection = () => {
     <View style={rateStyles.container}>
       <Text style={rateStyles.title}>Rate your experience</Text>
 
-      {/* Stars */}
       <View style={rateStyles.starRow}>
         {[1, 2, 3, 4, 5].map((star) => (
           <TouchableOpacity key={star} onPress={() => setRating(star)}>
@@ -383,9 +404,8 @@ const RateExperienceSection = () => {
         ))}
       </View>
 
-      {/* Small info text with shield icon */}
       <View style={rateStyles.trustRow}>
-        <MaterialCommunityIcon name="shield-check" size={18} color="#666" />
+        <MaterialCommunityIcon name="shield" size={18} color="#666" />
         <Text style={rateStyles.trustText}>
           More than 50 lakhs Indians trust Staff Bridges
         </Text>
@@ -397,7 +417,6 @@ const RateExperienceSection = () => {
 const ReferFriendSection = () => {
   return (
     <View style={referStyles.wrapper}>
-      {/* Card Background */}
       <View style={referStyles.card}>
         <Text style={referStyles.text}>
           Help your friends get{"\n"}job on Staff Bridges
@@ -409,7 +428,6 @@ const ReferFriendSection = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Girl Image Overlapping */}
       <Image
         source={require('../../assets/images/girlwithmobile-removebg-preview.png')}
         style={referStyles.girlImage}
@@ -420,97 +438,77 @@ const ReferFriendSection = () => {
 
 export default HomeScreen;
 
-// ----------------------------------------
-// Add your existing styles below
-// ----------------------------------------
+// STYLES
 const styles = StyleSheet.create({
   container: { backgroundColor: '#fff'},
    containerImage: {padding: 16},
-  bannerCard: { marginTop:10, marginBottom:40, backgroundColor: '#cfe4eeff' },
+  bannerCard: { marginTop:10, marginBottom:40, backgroundColor: AppColors.cardBg },
   bannerLogo: { width: 50, height: 50, resizeMode: 'contain' },
   bannerImage: { width: 100, height: 125, resizeMode: 'contain' ,borderTopLeftRadius: 25,borderTopRightRadius:25,marginRight:20},
-    bannerHeader: {
+  bannerHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-
     marginHorizontal: 14,
-    // marginBottom: 12,
   },
-resumeCard: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#EAF4FF',
-  padding: 12,
-  // borderRadius: 10,
-  // marginHorizontal: 18,
-  marginTop: 5,
-},
-
-resumeTitle: {
-  fontSize: 13,
-  fontWeight: '500',
-  color: '#000',
-},
-
-resumeLink: {
-  fontSize: 13,
-  marginEnd: 5,
-   color:"#00A79D" ,
-  textDecorationLine: 'underline',
-  fontWeight: '700',
-},
-
+  resumeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: AppColors.cardLightBg,
+    padding: 12,
+    marginTop: 5,
+  },
+  resumeTitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#000',
+  },
+  resumeLink: {
+    fontSize: 13,
+    marginEnd: 5,
+    color:AppColors.themeColor ,
+    textDecorationLine: 'underline',
+    fontWeight: '700',
+  },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 0,
     marginTop:10,
   },
-
-
-
   viewAll: {
-    color: "#00A79D",
+    color: AppColors.themeColor,
     fontSize: 13,
-    fontWeight: "600",
-   
+    fontWeight: "700",
   },
-
-searchBox: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#FFFFFF', // White background
-  borderRadius: 25,
-  paddingHorizontal: 14,
-  paddingVertical: 2,
-  marginHorizontal: 14,
-  marginTop: 20,
-marginBottom:2,
-  // 👇 Added border
-  borderWidth:2,
-  borderColor: '#CCCCCC', // Light grey border
-},
-
-searchInput: {
-  flex: 1,
-  marginLeft: 10,
-  fontSize: 14,
-  color: '#000',
-},
-
-greetingText: {
-  fontSize: 16,
-  fontWeight: '600',
-  color: '#000',
-},
-
-subGreetingText: {
-  fontSize: 13,
-  // color: '#666',
-  marginTop: 4,
-},
-
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 25,
+    paddingHorizontal: 14,
+    paddingVertical: 2,
+    marginHorizontal: 14,
+    marginTop: 20,
+    marginBottom:2,
+    borderWidth:2,
+    borderColor: '#CCCCCC',
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 14,
+    color: '#000',
+  },
+  greetingText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+  },
+  subGreetingText: {
+    fontSize: 13,
+    marginTop: 4,
+  },
   bannerContent: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -528,18 +526,18 @@ subGreetingText: {
   },
   bannerTitle: {
     fontSize: 13,
-        marginStart: 10,
+    marginStart: 10,
     fontWeight: '500',
     color: '#000',
     marginBottom: 10,
     lineHeight: 18,
   },
   bannerButton: {
-    backgroundColor:  "#00A79D" ,
+    backgroundColor:  AppColors.buttons,
     paddingHorizontal: 20,
     paddingVertical: 8,
-        marginStart: 10,
-        marginBottom: 20,
+    marginStart: 10,
+    marginBottom: 20,
     borderRadius: 20,
     alignSelf: 'flex-start',
   },
@@ -547,10 +545,9 @@ subGreetingText: {
     color: '#fff',
     fontWeight: '600',
     fontSize: 14,
-    
   },
-  gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', padding: 16 ,paddingBottom:0,backgroundColor:"#d2e6ff",marginTop:10},
-  needCard: { width: '48%', backgroundColor: '#f8f8f8', padding: 16, borderRadius: 12, marginBottom: 10, alignItems: 'center' },
+  gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', padding: 16 ,backgroundColor:AppColors.cardLightBg,marginTop:10},
+  needCard: { width: '48%', backgroundColor: '#fff', padding: 16, borderRadius: 12, marginBottom: 10, alignItems: 'center' ,shadowColor: '#646363ff',elevation: 1,shadowOpacity: 0.1,shadowRadius: 0,shadowOffset: { width: 0, height: 1 },},
   needImage: { width: 40, height: 40, marginBottom: 10 },
   needTitle: { fontWeight: 'bold', fontSize: 14 },
   needSubtitle: { color: '#777', marginTop: 4 },
@@ -565,11 +562,11 @@ subGreetingText: {
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: 'teal',
+    borderColor: AppColors.gradientDark,
   },
   iconImage: {
-    width: 40,
-    height: 40,
+    width: 48,
+    height: 48,
   },
   title: {
     marginTop: 10,
@@ -581,7 +578,7 @@ subGreetingText: {
     fontWeight: '600',
   },
   titleTeal: {
-    color: 'teal',
+    color: AppColors.themeColor,
     fontWeight: '700',
   },
   avatarRow: {
@@ -612,7 +609,7 @@ subGreetingText: {
     shadowOpacity: 0.6,
     shadowRadius: 10,
     shadowOffset: { width: 8, height: 8 },
-    elevation: 4, // For Android shadow
+    elevation: 4,
     paddingTop: 70,
     paddingBottom: 12,
     paddingHorizontal: 12,
@@ -665,7 +662,7 @@ subGreetingText: {
   },
   dotNeeds: {
     height: 4,
-    backgroundColor: '#009ca4',
+    backgroundColor: AppColors.themeColor,
     borderRadius: 2,
     marginHorizontal: 4,
   },
@@ -678,7 +675,7 @@ subGreetingText: {
   },
   dotJobSuggestion: {
     height: 4,
-    backgroundColor: '#009ca4',
+    backgroundColor: AppColors.themeColor,
     borderRadius: 2,
     marginHorizontal: 4,
   },
@@ -701,27 +698,29 @@ const videoStyles = StyleSheet.create({
     marginBottom: 12,
   },
   backgroundContainer: {
-    backgroundColor: '#e3f2fd',
+    // backgroundColor: '#e3f2fd',
     paddingVertical: 8,
   },
   scrollContent: {
     paddingHorizontal: 16,
   },
   categoryCard: {
-    width: 200,
+    width: 300,
+    height: 200,
     backgroundColor: '#fff',
     borderRadius: 8,
     marginRight: 12,
-    shadowColor: '#2196F3',
+    shadowColor:AppColors.primary,
     shadowOpacity: 0.1,
-    shadowRadius: 10,
+    shadowRadius: 7,
     shadowOffset: { width: 0, height: 5 },
-    elevation: 3,
+    elevation: 4,
     overflow: 'hidden',
+    marginBottom: 10,
   },
   imageContainer: {
     width: '100%',
-    height: 100,
+    height: 140,
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
     overflow: 'hidden',
@@ -761,7 +760,7 @@ const videoStyles = StyleSheet.create({
   },
   dot: {
     height: 4,
-    backgroundColor: '#009ca4',
+    backgroundColor: AppColors.themeColor,
     borderRadius: 2,
     marginHorizontal: 4,
   },
@@ -770,16 +769,18 @@ const videoStyles = StyleSheet.create({
 const rateStyles = StyleSheet.create({
   container: {
     backgroundColor: "#F6F6F6",
-    paddingVertical: 25,
+    paddingBottom: 30,
+    paddingTop: 10,
     paddingHorizontal: 20,
-    marginTop: 20,
+    marginTop: 40,
+    marginBottom: 20,
   },
   title: {
     textAlign: "center",
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: "800",
     color: "#333",
-    marginBottom: 15,
+    marginBottom: 40,
   },
   starRow: {
     flexDirection: "row",
@@ -805,16 +806,19 @@ const referStyles = StyleSheet.create({
     marginTop: 20,
     alignItems: "center",
     width: "100%",
+     marginBottom: 15,
   },
   card: {
     width: "100%",
-    backgroundColor: "rgba(254, 238, 219, 1)",
+    backgroundColor: "rgb(255,241,224)",
+    // backgroundColor: " #fff1e0",
+  
     paddingVertical: 18,
     paddingHorizontal: 18,
     justifyContent: "center",
     alignItems: "flex-start",
     position: "relative",
-    minHeight: 100,
+    minHeight: 120,
   },
   text: {
     fontSize: 14,
@@ -823,7 +827,7 @@ const referStyles = StyleSheet.create({
   },
   button: {
     marginTop: 12,
-    backgroundColor: "#00A79D",
+    backgroundColor: AppColors.buttons,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 18,
@@ -836,12 +840,11 @@ const referStyles = StyleSheet.create({
     marginLeft: 8,
     fontWeight: "600",
   },
-
   girlImage: {
     position: "absolute",
     right: 0,
-    top: -18, // Moves image outside card (overlapping effect)
-    height: 138, 
+     bottom: -28,
+    height: 200, 
     width: 210,
     resizeMode: "contain",
   },

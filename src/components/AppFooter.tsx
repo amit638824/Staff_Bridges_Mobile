@@ -3,6 +3,7 @@ import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { AppColors } from "../constants/AppColors";
 
 interface AppFooterProps {
   currentIndex: number;
@@ -15,7 +16,7 @@ const AppFooter: React.FC<AppFooterProps> = ({ currentIndex, onTap }) => {
   const navItems = [
     { label: "Home", solid: "home", outline: "home-outline", route: "HomeScreen" },
     { label: "Jobs", solid: "work", outline: "briefcase-outline", route: "JobsScreen" },
-    { label: "Responses", solid: "chat-bubble", outline: "chat-outline", route: "ResponsesScreen" },
+    { label: "Responses", solid: "chat", outline: "chat-outline", route: "ResponsesScreen" },
     { label: "Profile", solid: "person", outline: "account-outline", route: "ProfileScreen" },
   ];
 
@@ -35,7 +36,7 @@ const AppFooter: React.FC<AppFooterProps> = ({ currentIndex, onTap }) => {
             onPress={() => handlePress(index, item.route)}
           >
             {currentIndex === index ? (
-              <Icon name={item.solid} size={24} color="#008080" />
+              <Icon name={item.solid} size={24} color={AppColors.themeColor} />
             ) : (
               <MaterialCommunityIcons name={item.outline} size={24} color="#999" />
             )}
@@ -43,7 +44,7 @@ const AppFooter: React.FC<AppFooterProps> = ({ currentIndex, onTap }) => {
             <Text
               style={[
                 styles.label,
-                { color: currentIndex === index ? "#008080" : "#999" },
+                { color: currentIndex === index ? AppColors.themeColor : "#999" },
               ]}
             >
               {item.label}
@@ -60,9 +61,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     elevation: 8,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
   },
   navBar: {
     flexDirection: "row",

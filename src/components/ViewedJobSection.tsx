@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { AppColors } from "../constants/AppColors";
 
 const ViewedJobsSection = () => {
   const viewedJob = {
@@ -110,7 +111,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#333",
-    marginBottom: 40,
+    marginBottom: 15,
   },
 
   badgeLabel: {
@@ -133,11 +134,11 @@ const styles = StyleSheet.create({
     // width: "92%",
     backgroundColor: "#fff",
     borderRadius: 14,
-    shadowColor: "teal",
+    shadowColor:'#81b5e6ff',
     shadowOpacity: 0.6,
     shadowRadius: 10,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
+    shadowOffset: { width: 8, height: 10 },
+    elevation: 10,
     borderColor: "#ddd",
     borderWidth: 1,
     paddingBottom: 12,
@@ -147,8 +148,8 @@ const styles = StyleSheet.create({
     position: "relative",
   },
 
-  bestBadge: {
-    backgroundColor: "#fee9c8",
+bestBadge: {
+    backgroundColor: "#fde7da",
     alignSelf: "flex-end",
     borderTopStartRadius: 6,
     borderBottomLeftRadius: 6,
@@ -156,13 +157,15 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingVertical: 3,
     paddingHorizontal: 6,
+    marginRight: -12,
   },
 
   bestBadgeText: {
-    color: "#b87025",
+    // color: "#b87025",
     fontSize: 10,
     fontWeight: "700",
   },
+
 
   jobTitle: {
     fontSize: 15,
@@ -234,7 +237,7 @@ const styles = StyleSheet.create({
   },
 
   button: {
-    backgroundColor: "#009ca4",
+    backgroundColor: AppColors.themeColor,
     paddingVertical: 11,
     paddingHorizontal: 45,
     borderRadius: 25,

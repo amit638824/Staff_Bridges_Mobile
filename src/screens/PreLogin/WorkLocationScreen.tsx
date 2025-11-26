@@ -102,7 +102,7 @@ export default function WorkLocationScreen() {
             styles.button,
             { backgroundColor: selectedCity && selectedLocality ? AppColors.buttons : "#cacaca" },
           ]}
-          onPress={() => navigation.navigate("HomeScreen")}
+          onPress={() => navigation.navigate("JobRoleScreen")}
         >
           <Text style={styles.btnText}>Next</Text>
         </TouchableOpacity>

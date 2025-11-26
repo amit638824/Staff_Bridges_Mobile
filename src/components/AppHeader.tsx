@@ -10,45 +10,63 @@ import {
   Platform,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { RootStackParamList } from "../../App";   // 👈 IMPORT YOUR TYPE
+import { AppColors } from "../constants/AppColors";
+
 
 interface AppHeaderProps {
   location?: string;
   title?: string;
-  onNotificationTap?: () => void;
   showLogo?: boolean;
   showLocation?: boolean;
   customLeftWidget?: React.ReactNode;
   showBackArrow?: boolean;
   onBackPressed?: () => void;
+  showNotification?: boolean;
+  showLanguage?: boolean;
+  showRightSection?: boolean;
+  onNotificationTap?: () => void; // 👈 ADD THIS
 }
+
 
 const AppHeader: React.FC<AppHeaderProps> = ({
   location = "Dewa Road",
   title,
-  onNotificationTap,
   showLogo = true,
   showLocation = true,
   customLeftWidget,
   showBackArrow = false,
   onBackPressed,
+  showNotification = true,
+  showLanguage = true,
+  showRightSection = true,
 }) => {
+
+const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
   const onLanguageChanged = () => {
     console.log("Language changed");
   };
+
+const handleNotificationTap = () => {
+  navigation.navigate("NotificationsScreen");
+};
 
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          {/* 🔹 Left Section */}
+          
+          {/* LEFT SECTION */}
           <View style={styles.leftSection}>
             {showBackArrow && (
               <TouchableOpacity
                 style={styles.iconButton}
                 onPress={onBackPressed}
               >
-                <Icon name="arrow-back" size={20} color="#00A79D" />
+                <Icon name="arrow-back" size={20} color="#080808ff" />
               </TouchableOpacity>
             )}
 
@@ -67,7 +85,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
                 {showLocation && (
                   <View style={styles.locationContainer}>
-                    <Icon name="location-on" size={18} color="#00A79D" />
+                    <Icon name="location-on" size={18} color={AppColors.buttons} />
                     <Text style={styles.locationText}>{location}</Text>
                   </View>
                 )}
@@ -75,44 +93,52 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             )}
           </View>
 
-          {/* 🔹 Right Section */}
-          <View style={styles.rightSection}>
-            {/* Notifications */}
-            <View style={styles.notificationWrapper}>
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={onNotificationTap}
-              >
-                <Icon name="notifications" size={26} color="#00A79D" />
-              </TouchableOpacity>
+          {/* RIGHT SECTION */}
+          {showRightSection && (
+            <View style={styles.rightSection}>
+              
+              {/* NOTIFICATION ICON */}
+              {showNotification && (
+                <View style={styles.notificationWrapper}>
+                  <TouchableOpacity
+                    style={styles.iconButton}
+                    onPress={handleNotificationTap}  // 👈 UPDATED
+                  >
+                    <Icon name="notifications" size={26} color={AppColors.buttons} />
+                  </TouchableOpacity>
 
-              {/* 🔸 Notification Badge */}
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>2</Text>
-              </View>
-            </View>
+                  {/* BADGE */}
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>2</Text>
+                  </View>
+                </View>
+              )}
 
-            {/* Language Selector */}
-            <View style={styles.languageWrapper}>
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={onLanguageChanged}
-              >
-                <Icon name="translate" size={22} color="#00A79D" />
-              </TouchableOpacity>
-              <Icon
-                name="keyboard-arrow-down"
-                size={18}
-                color="#00A79D"
-                style={{ marginLeft: 2 }}
-              />
+              {/* LANGUAGE BUTTON */}
+              {showLanguage && (
+                <View style={styles.languageWrapper}>
+                  <TouchableOpacity
+                    style={styles.iconButton}
+                    onPress={onLanguageChanged}
+                  >
+                    <Icon name="translate" size={22} color={AppColors.buttons}/>
+                  </TouchableOpacity>
+                  <Icon
+                    name="keyboard-arrow-down"
+                    size={18}
+                    color={AppColors.buttons}
+                    style={{ marginLeft: 2 }}
+                  />
+                </View>
+              )}
             </View>
-          </View>
+          )}
         </View>
       </SafeAreaView>
     </>
   );
 };
+
 
 export default AppHeader;
 
@@ -126,11 +152,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 0,
-    paddingVertical: 8,
+    paddingVertical: 20,
     backgroundColor: "#fff",
   },
   leftSection: {
     flexDirection: "row",
+    marginLeft: 10,
   },
   leftInner: {
     flexDirection: "row",
@@ -145,7 +172,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   locationText: {
-    color: "#00A79D",
+    color: AppColors.buttons,
     fontSize: 15,
     fontWeight: "600",
     marginLeft: 4,

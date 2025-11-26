@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 interface JobCardProps {
@@ -11,42 +11,67 @@ interface JobCardProps {
 }
 
 const JobCard: React.FC<JobCardProps> = ({ title, salary, company, location, badges }) => {
+
+  const renderBadge = (badge: string, index: number) => {
+  let icon = null;
+  let tagStyle = [styles.tag] as any;
+  let textStyle = [styles.tagText] as any;
+
+  if (badge === "New Job") {
+    tagStyle.push(styles.newTag);
+    textStyle.push({ color: "#7e93ff" });
+  }
+
+  if (badge === "Verified") {
+    icon = <Ionicons name="checkmark-done-circle" size={13} color="#007BFF" />;
+    tagStyle.push(styles.verifiedTag);
+    textStyle.push({ color: "#000" });
+  }
+
+  if (badge === "Urgent Hiring") {
+    icon = <Ionicons name="time-outline" size={13} color="#dc935e" />;
+    tagStyle.push(styles.urgentTag);
+    textStyle.push({ color: "#dc935e" });
+  }
+
+  return (
+    <View key={index} style={tagStyle}>
+      {icon}
+      <Text style={textStyle}>{badge}</Text>
+    </View>
+  );
+};
+
+
   return (
     <View style={styles.card}>
+
       {/* Badge */}
       <View style={styles.bestBadge}>
         <Text style={styles.bestBadgeText}>⭐ BEST JOB FOR YOU</Text>
       </View>
 
       <Text style={styles.jobTitle}>{title}</Text>
-
       <Text style={styles.salary}>{salary}</Text>
-          <View style={styles.locationRow}>
-              <Ionicons name="briefcase-outline" size={14} color="#777"/>
 
-      <Text style={styles.company}>{company}</Text>
-</View>
+      <View style={styles.locationRow}>
+        <Ionicons name="briefcase-outline" size={14} color="#777" />
+        <Text style={styles.company}>{company}</Text>
+      </View>
+
       <View style={styles.locationRow}>
         <Ionicons name="location-outline" size={14} color="#777" />
         <Text style={styles.location}>{location}</Text>
       </View>
 
-   {/* Bottom Tags */}
-<View style={styles.tagContainer}>
-  {badges.map((b, i) => (
-    <Text key={i} style={[styles.tag, b === "Urgent Hiring" && styles.urgentTag]}>
-      {b}
-    </Text>
-  ))}
-</View>
+      {/* Badge Section */}
+      <View style={styles.tagContainer}>{badges.map(renderBadge)}</View>
 
-{/* Divider */}
-<View style={styles.divider} />
-
+      {/* Divider */}
+      <View style={styles.divider} />
     </View>
   );
 };
-
 
 const JobSuggestionSection = () => {
   const jobs = [
@@ -68,9 +93,6 @@ const JobSuggestionSection = () => {
 
   return (
     <View style={styles.section}>
-      {/* Header */}
-    
-
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {jobs.map((job, index) => (
           <JobCard key={index} {...job} />
@@ -89,38 +111,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
 
-
-   card: {
-    width: 280,
-    backgroundColor: '#fff',
+  card: {
+    width: 310,
+    backgroundColor: "#fff",
     borderRadius: 14,
-    shadowColor: 'teal',
+    shadowColor: "teal",
     shadowOpacity: 0.6,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 8 },
-    elevation: 8, // For Android shadow
+    elevation: 4,
     paddingTop: 0,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderWidth: 1,
     paddingBottom: 12,
     paddingHorizontal: 12,
     marginRight: 16,
-    position: 'relative',
+    marginBottom: 10,
   },
 
   bestBadge: {
-    backgroundColor: "#fee9c8",
+    backgroundColor: "#fde7da",
     alignSelf: "flex-end",
     borderTopStartRadius: 6,
     borderBottomLeftRadius: 6,
     marginBottom: 6,
-    marginTop:8,
+    marginTop: 8,
     paddingVertical: 3,
     paddingHorizontal: 6,
+    marginRight: -12,
   },
 
   bestBadgeText: {
-    color: "#b87025",
+    // color: "#b87025",
     fontSize: 10,
     fontWeight: "700",
   },
@@ -142,8 +164,7 @@ const styles = StyleSheet.create({
   company: {
     fontSize: 13,
     color: "#444",
-    // marginBottom: 0,
-        marginLeft: 4,
+    marginLeft: 4,
   },
 
   locationRow: {
@@ -163,28 +184,45 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 6,
   },
-  divider: {
-  width: "100%",
-  height: 1,
-  backgroundColor: "#ddd",
-  marginTop: 15,
-  marginBottom: 20, // space after divider
-},
 
+  divider: {
+    width: "100%",
+    height: 1,
+    backgroundColor: "#ddd",
+    marginTop: 15,
+    marginBottom: 20,
+  },
 
   tag: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    // borderRadius: 10,
+    paddingVertical: 5,
+    borderRadius: 2,
     marginTop: 12,
-    backgroundColor: "#EAF6FF",
+  },
+
+  tagText: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#0186c9",
+  },
+
+  newTag: {
+    backgroundColor: "#d9dfff",
+    borderWidth: 1,
+    borderColor: "#d9dfff",
+  },
+
+  verifiedTag: {
+    backgroundColor: "#e8e8e8",
+    borderWidth: 1,
+    borderColor: "#e8e8e8",
   },
 
   urgentTag: {
-    backgroundColor: "#FFE8E8",
-    color: "#E63946",
+    backgroundColor: "#ffcca7",
+    borderWidth: 1,
+    borderColor: "#ffcca7",
   },
 });

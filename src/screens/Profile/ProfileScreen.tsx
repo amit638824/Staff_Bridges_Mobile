@@ -10,8 +10,10 @@ import {
   StatusBar,
   Platform
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AppFooter from '../../components/AppFooter';
+import { AppColors } from '../../constants/AppColors';
 
 const ProfileScreen: React.FC<{ navigation: any, route: any }> = ({ navigation, route }) => {
 
@@ -41,7 +43,7 @@ const ProfileScreen: React.FC<{ navigation: any, route: any }> = ({ navigation, 
           </TouchableOpacity>
           {/* Add onPress handler to settings icon */}
           <TouchableOpacity onPress={handleSettingsPress}>
-            <Icon name="settings" size={24} color="#000" style={{ marginLeft: 12 }} />
+            <Icon name="settings-outline" size={24} color="#000" style={{ marginLeft: 12 }} />
           </TouchableOpacity>
         </View>
       </View>
@@ -96,8 +98,8 @@ const renderProfileCard = () => (
         <Text style={styles.profileName}>Ram Singh</Text>
         <Text style={styles.profileSub}>Member Since 2025</Text>
       </View>
-      <TouchableOpacity>
-        <Icon name="pencil" size={18} color="#999" />
+      <TouchableOpacity style={styles.iconButtonBorder}>
+        <Icon name="pencil-outline" size={18} color="#999" />
       </TouchableOpacity>
     </View>
 
@@ -113,27 +115,37 @@ const renderProfileCard = () => (
     </View>
   </View>
 );
+
 const renderJobPreferenceCard = () => (
   <View style={styles.card}>
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
       <Text style={styles.sectionTitle}>Looking for jobs</Text>
-      <Icon name="pencil" size={20} color="gray" />
+      <TouchableOpacity style={styles.iconButtonBorder}>
+        <Icon name="pencil" size={18} color="#999" />
+      </TouchableOpacity>
     </View>
     <Text style={styles.chip}>Customer Support / Telecaller</Text>
   </View>
 );
 
 const renderCompletionSection = () => (
-  <View style={styles.completionContainer}>
-    <Text style={styles.completionTitle}>
-      Add 3 missing details to get more job responses
-    </Text>
+<View style={styles.completionContainer}>
+  <Text style={styles.completionTitle}>
+    Add 3 missing details to get more job responses
+  </Text>
 
+  <View style={styles.completionRow}>
+    {/* Fixed Circular Progress */}
+  <View style={styles.progressWrapper}>
+  <View style={styles.progressBase}>
+    <View style={styles.progressFill} />
+    <Text style={styles.progressLabel}>18%{"\n"}done</Text>
+  </View>
+</View>
+
+
+    {/* Horizontally scrollable cards */}
     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-      <View style={styles.progressBox}>
-        <Text style={styles.progressText}>18%{"\n"}done</Text>
-      </View>
-
       {[
         { icon: 'work-outline', color: '#E91E63', title: 'Add previous work', subtitle: 'to let know you better' },
         { icon: 'star-outline', color: '#9C27B0', title: 'Add relative', subtitle: 'and boost your' },
@@ -151,6 +163,8 @@ const renderCompletionSection = () => (
       ))}
     </ScrollView>
   </View>
+</View>
+
 );
 
 const renderUploadResume = () => (
@@ -172,15 +186,20 @@ const renderUploadResume = () => (
 
 const renderWorkExperience = () => (
   <View style={styles.card}>
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
       <Text style={styles.sectionTitle}>Work Experience</Text>
-      <Text style={{ color: '#56bbc0', fontWeight: '600' }}>Add New</Text>
+      <Text style={{ color:AppColors.themeColor, fontWeight: '600' }}>Add New</Text>
     </View>
 
     <Text style={styles.subHeading}>Customer Support / Telecaller</Text>
     <Text style={styles.subText}>1 year</Text>
     <Text style={styles.link}>Add company details</Text>
-<View style={styles.greenBox}>
+<LinearGradient
+  colors={['#def2ec', '#97e1ca']}
+  start={{ x: 0, y: 0 }}
+  end={{ x: 1, y: 0 }}
+  style={styles.greenBox}
+>
   <Image
   source={require('../../../assets/images/active-user.png')}
   style={styles.boyImage}
@@ -191,19 +210,34 @@ const renderWorkExperience = () => (
     <Text style={styles.greenTextDown}>Add pending details instantly {"\n"}
       to attract recruiters.</Text>
   </View>
-</View>
+</LinearGradient>
 
-    <Text style={styles.sectionTitle}>Skills</Text>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Text style={styles.sectionTitle}>Skills</Text>
+      <TouchableOpacity>
+        <Icon name="pencil" size={18} color={AppColors.themeColor} />
+      </TouchableOpacity>
+    </View>
 <Text style={[styles.subText, { fontWeight: '700',color: '#000' }]}>
   Domestic Calling
 </Text>
 
-    <Text style={styles.sectionTitle}>Category Details</Text>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Text style={styles.sectionTitle}>Category Details</Text>
+      <TouchableOpacity>
+        <Icon name="pencil" size={18} color={AppColors.themeColor}/>
+      </TouchableOpacity>
+    </View>
     <Text style={[styles.subText, { fontWeight: '700',color: '#000' }]}>Bike</Text>
      <Text style={styles.subText}>Which of these IDs/ Documents do you have?</Text>
     <Text style={[styles.subText, { fontWeight: '500',color: '#000' }]}>Pan Card, Aadhar Card</Text>
 
-    <Text style={styles.sectionTitle}>Basic Details</Text>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Text style={styles.sectionTitle}>Basic Details</Text>
+      <TouchableOpacity>
+        <Icon name="pencil" size={18} color={AppColors.themeColor} />
+      </TouchableOpacity>
+    </View>
     <Text style={styles.subText}>Current/Last Salary</Text>
         <Text style={styles.link}>Add</Text>
 
@@ -274,6 +308,13 @@ profileImage: {
     height: 50,
     
   },
+  iconButtonBorder: {
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    borderRadius: 6,
+    // backgroundColor: '#fafafa',
+  },
   card: {
     backgroundColor: '#fff',
     borderRadius: 10,
@@ -300,19 +341,93 @@ profileImage: {
     paddingVertical: 5,
     color: '#555',
   },
-  completionContainer: { backgroundColor: '#FDE6F0', padding: 15,marginBottom: 15 },
+  completionContainer: { backgroundColor: '#fff0de', padding: 15, marginBottom: 15, marginHorizontal: -15 },
   completionTitle: { fontWeight: '600', fontSize: 13,marginBottom: 10, color: '#000' },
-  progressBox: {
-    width: 60,
-    height: 60,
-    borderRadius: 40,
-    borderWidth: 4,
-    borderColor: '#E91E63',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  progressText: { fontSize: 12, fontWeight: '700', textAlign: 'center' },
+completionRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+
+progressWrapper: {
+  width: 60,
+  height: 60,
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginRight: 15,
+},
+
+progressBase: {
+  width: 60,
+  height: 60,
+  borderRadius: 30,
+  backgroundColor: '#fff',
+  justifyContent: 'center',
+  alignItems: 'center',
+  position: 'relative',
+  borderWidth: 4,
+  borderColor: '#ffd7d9',
+},
+
+progressFill: {
+  position: 'absolute',
+  width: 60,
+  height: 60,
+  borderRadius: 30,
+  borderTopColor: '#E91E63', // dark arc
+  borderTopWidth: 5,
+  borderRightColor: 'transparent',
+  borderRightWidth: 5,
+  borderBottomColor: 'transparent',
+  borderBottomWidth: 5,
+  borderLeftColor: 'transparent',
+  borderLeftWidth: 5,
+  transform: [{ rotate: '65deg' }], // 18% of 360° ≈ 65°
+},
+
+progressLabel: {
+  fontSize: 12,
+  fontWeight: '700',
+  color: '#000',
+  textAlign: 'center',
+},
+
+progressCircle: {
+  width: 60,
+  height: 60,
+  borderRadius: 30,
+  backgroundColor: '#ffd7d9', // light track
+  justifyContent: 'center',
+  alignItems: 'center',
+  position: 'relative',
+  overflow: 'hidden',
+  marginRight: 15,
+},
+
+innerCircle: {
+  width: '100%',
+  height: '100%',
+  borderRadius: 30,
+  // position: 'absolute',
+  top: 0,
+  left: 0,
+  backgroundColor: 'transparent',
+ // transform: [{ rotate: '162deg' }], // 18% of 360° = ~65°, rotate to show arc
+  borderTopColor: '#da1e28', // dark progress
+  borderTopWidth: 5,
+  borderRightColor: 'transparent',
+  borderRightWidth: 5,
+  borderBottomColor: 'transparent',
+  borderBottomWidth: 5,
+  borderLeftColor: 'transparent',
+  borderLeftWidth: 5,
+  borderTopLeftRadius: 30,
+  borderTopRightRadius: 30,
+  borderBottomLeftRadius: 30,
+  borderBottomRightRadius: 30,
+},
+
+
+
   completionCard: {
     flexDirection: 'row',
     backgroundColor: '#fff',
@@ -337,24 +452,23 @@ profileImage: {
   uploadText: { fontWeight: '600', fontSize: 13, color: '#000', marginLeft: 10 },
   uploadButton: {
     borderWidth: 1,
-    borderColor: '#56bbc0',
+    borderColor: AppColors.themeColor,
     borderRadius: 20,
     paddingHorizontal: 25,
     paddingVertical: 4,
   },
-  uploadButtonText: { color: '#56bbc0', fontWeight: '600' },
+  uploadButtonText: { color: AppColors.themeColor, fontWeight: '600' },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: '#000', marginTop: 10,marginBottom: 5 },
   subHeading: { fontSize: 14, fontWeight: '600', color: '#000',marginBottom: 5 },
   subText: { color: '#555', fontSize: 13,marginBottom: 5 },
-  link: { color: '#56bbc0', fontSize: 13, fontWeight: '600' ,marginBottom: 5},
+  link: { color: AppColors.themeColor, fontSize: 13, fontWeight: '600' ,marginBottom: 5},
   greenBox: {
     flexDirection: 'row',
-    backgroundColor: '#c0ebdd',
     padding: 15,
     borderRadius: 10,
     marginVertical: 10,
   },
-  greenTextUp: { marginLeft: 8, color: '#333', fontSize: 13, flex: 1,fontWeight: '800' },
+  greenTextUp: { marginLeft: 8, color: '#333', fontSize: 14, flex: 1,fontWeight: '800' },
    greenTextDown: { marginLeft: 8, color: '#333', fontSize: 12, flex: 1 },
 });
 

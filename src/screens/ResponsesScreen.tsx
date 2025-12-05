@@ -14,8 +14,10 @@ import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AppFooter from '../components/AppFooter';
 import { AppColors } from '../constants/AppColors';
+import { useTranslation } from 'react-i18next';
 
 const ResponsesScreen = ({ navigation }: any) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('applications');
   const [currentIndex, setCurrentIndex] = useState(2);
 
@@ -23,27 +25,25 @@ const ResponsesScreen = ({ navigation }: any) => {
     setCurrentIndex(index);
   };
 
-  const applicationData = {
-    title: 'Email & Chat Support Executive',
-    salary: '₹ 16,000 - 25,000 / Month',
-    company: 'Rudrao-emisis',
-    location: 'Hazratganj, Lucknow (within 7 KM)',
-    badge: 'Urgent Hiring',
-    timeAgo: '17 hours ago',
-    status: 'Application sent',
-    statusSubtext: 'HR called you. Call back to check application status.',
-  };
+ const applicationData = {
+  title: t('resp_job_title'),
+  salary: '₹ 16,000 - 25,000 / Month',
+  company: 'Rudrao-emisis',
+  location: 'Hazratganj, Lucknow (within 7 KM)',
+  badge: t('resp_urgent_hiring'),
+  timeAgo: t('resp_time_ago_17h'),   // 👈 added translation
+  status: t('resp_status_sent'),
+  statusSubtext: t('resp_status_subtext'),
+};
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFE5E5" />
       
-    {/* Simple Header - Just "Responses" text */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Responses</Text>
+        <Text style={styles.headerTitle}>{t('resp_header_title')}</Text>
       </View>
 
-      {/* Tab Section */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[
@@ -58,76 +58,63 @@ const ResponsesScreen = ({ navigation }: any) => {
               activeTab === 'applications' && styles.activeTabText,
             ]}
           >
-            Applications (1)
+            {t('resp_applications_tab')}
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Scrollable Content */}
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Application Card */}
         <View style={styles.applicationCard}>
-          {/* Top Badge Row */}
-      <View style={styles.badgeRow}>
-  <LinearGradient
-    colors={['#ffe1cf', '#f9f4f1']}
-    start={{ x: 0, y: 0 }}
-    end={{ x: 1, y: 0 }}
-    style={styles.bestJobGradient}
-  >
-    <Ionicons name="star" size={10} color="#e59600" />
-    <Text style={styles.bestJobText}>BEST JOB FOR YOU</Text>
-  </LinearGradient>
+          <View style={styles.badgeRow}>
+            <LinearGradient
+              colors={['#ffe1cf', '#f9f4f1']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.bestJobGradient}
+            >
+              <Ionicons name="star" size={10} color="#e59600" />
+              <Text style={styles.bestJobText}>{t('resp_best_job_badge')}</Text>
+            </LinearGradient>
 
-  <View style={styles.urgentBadge}>
-    <Ionicons name="time" size={10} color="#d78b53" />
-    <Text style={styles.urgentText}>Urgent Hiring</Text>
-  </View>
-</View>
+            <View style={styles.urgentBadge}>
+              <Ionicons name="time" size={10} color="#d78b53" />
+              <Text style={styles.urgentText}>{applicationData.badge}</Text>
+            </View>
+          </View>
 
+          <View style={styles.jobRow}>
+            <Image
+              source={require('../../assets/images/residential.png')}
+              style={styles.jobIcon}
+            />
 
-        {/* Job + Image Section */}
-<View style={styles.jobRow}>
-  <Image
-    source={require('../../assets/images/residential.png')}
-    style={styles.jobIcon}
-  />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.jobTitle}>{applicationData.title}</Text>
+              <Text style={styles.salaryText}>{applicationData.salary}</Text>
+            </View>
+          </View>
 
-  <View style={{ flex: 1 }}>
-    <Text style={styles.jobTitle}>{applicationData.title}</Text>
-
-    <Text style={styles.salaryText}>{applicationData.salary}</Text>
-
-    
-  </View>
-  
-</View>
-
-
-          {/* Company */}
           <View style={styles.infoRow}>
             <Ionicons name="briefcase-outline" size={13} color="#888" />
             <Text style={styles.infoText}>{applicationData.company}</Text>
           </View>
 
-          {/* Location */}
           <View style={styles.infoRow}>
             <Ionicons name="location-outline" size={13} color="#888" />
             <Text style={styles.infoText}>{applicationData.location}</Text>
           </View>
 
-          {/* Application Status with Blue Background */}
           <View style={styles.statusContainer}>
             <View style={styles.statusIconBg}>
               <Ionicons name="bulb" size={14} color="#d7e7f5ff" />
             </View>
             <View style={styles.statusTextContainer}>
               <Text style={styles.statusTitle}>
-                Application sent {applicationData.timeAgo}
+                {applicationData.status} {applicationData.timeAgo}
               </Text>
               <Text style={styles.statusSubtext}>
                 {applicationData.statusSubtext}
@@ -135,25 +122,22 @@ const ResponsesScreen = ({ navigation }: any) => {
             </View>
           </View>
 
-          {/* Action Buttons */}
           <View style={styles.buttonRow}>
             <TouchableOpacity style={styles.similarJobsButton}>
-              <Text style={styles.similarJobsText}>Similar jobs</Text>
+              <Text style={styles.similarJobsText}>{t('resp_similar_jobs_button')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.callHRButton}>
               <Ionicons name="call" size={14} color="#fff" />
-              <Text style={styles.callHRText}>Call HR</Text>
+              <Text style={styles.callHRText}>{t('resp_call_hr_button')}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Help Section */}
         <TouchableOpacity style={styles.helpCard}>
-          <Text style={styles.helpTitle}>Get Help / Tell us what happened</Text>
+          <Text style={styles.helpTitle}>{t('resp_help_card_title')}</Text>
           <Ionicons name="chevron-forward" size={18} color="#00BCC4" />
         </TouchableOpacity>
 
-        {/* Add Experience Section with Blue Gradient */}
         <LinearGradient
           colors={['#d7dff1', '#9ab1e2']}
           start={{ x: 0, y:0}}
@@ -162,11 +146,11 @@ const ResponsesScreen = ({ navigation }: any) => {
         >
           <View style={styles.experienceContent}>
             <Text style={styles.experienceTitle}>
-              Add industry experience to your profile
+              {t('resp_experience_title')}
             </Text>
             <TouchableOpacity style={styles.addExperienceButton}>
               <Text style={styles.addExperienceText}>
-                Add industry experience
+                {t('resp_experience_button')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -179,13 +163,10 @@ const ResponsesScreen = ({ navigation }: any) => {
         </LinearGradient>
       </ScrollView>
 
-      {/* Bottom Navigation */}
       <AppFooter currentIndex={currentIndex} onTap={handleFooterTap} />
     </SafeAreaView>
   );
 };
-
-export default ResponsesScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -210,11 +191,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#f4f6ff',
     paddingHorizontal: 16,
-    // paddingBottom: 14,
     alignContent: 'center',
     borderBottomWidth: 1,
     borderColor: '#eeeff1ff',
-    // borderBottomWidth: 1,
     padding: 8,
   },
 
@@ -224,7 +203,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#f5f5f5',
     borderWidth: 1,
-    // marginTop: ,
     borderColor: '#e0e0e0',
   },
 
@@ -274,47 +252,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  bestJobBadge: {
+  bestJobGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderTopLeftRadius: 20,
+    borderBottomLeftRadius: 20,
+    alignSelf: 'flex-start',
+    gap: 5,
   },
 
   bestJobText: {
     fontSize: 9,
     fontWeight: '700',
-    // color: '#E8A54B',
     letterSpacing: 0.3,
   },
-bestJobGradient: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  paddingHorizontal: 10,
-  paddingVertical: 4,
-  borderTopLeftRadius: 20,
-  borderBottomLeftRadius: 20,
 
-  alignSelf: 'flex-start',
-  gap: 5,
-},
+  jobRow: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'flex-start',
+    marginTop: 5,
+  },
 
-jobRow: {
-  flexDirection: 'row',
-  gap: 12,
-  alignItems: 'flex-start',
-  marginTop: 5,
-},
-
-jobIcon: {
-  width: 42,
-  height: 42,
-  borderColor: '#e0e0e0',
-  borderWidth: 1,
-  borderRadius: 4,
-  padding: 6,
-  resizeMode: 'contain',
-  marginTop: 2,
-},
+  jobIcon: {
+    width: 42,
+    height: 42,
+    borderColor: '#e0e0e0',
+    borderWidth: 1,
+    borderRadius: 4,
+    padding: 6,
+    resizeMode: 'contain',
+    marginTop: 2,
+  },
 
   urgentBadge: {
     flexDirection: 'row',
@@ -349,12 +320,6 @@ jobIcon: {
     gap: 6,
   },
 
-  salaryIcon: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#333',
-  },
-
   salaryText: {
     fontSize: 12,
     color: '#333',
@@ -365,23 +330,6 @@ jobIcon: {
     fontSize: 12,
     color: '#777',
     fontWeight: '400',
-  },
-
-  imageBoxContainer: {
-    width: '100%',
-    height: 120,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 8,
-    marginVertical: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-
-  jobImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
   },
 
   statusContainer: {
@@ -412,7 +360,6 @@ jobIcon: {
   statusTitle: {
     fontSize: 12,
     fontWeight: '700',
-    // color: '#0084FF',
     marginBottom: 2,
   },
 
@@ -424,7 +371,6 @@ jobIcon: {
 
   buttonRow: {
     flexDirection: 'row',
-    
     gap: 10,
     marginTop: 14,
     marginLeft: 150,
@@ -433,7 +379,6 @@ jobIcon: {
 
   similarJobsButton: {
     flex: 1,
-    // backgroundColor: '#E0F7F6',
     borderColor: '#00A79D',
     borderWidth: 1,
     paddingVertical: 10,
@@ -487,7 +432,6 @@ jobIcon: {
   helpTitle: {
     fontSize: 13,
     fontWeight: '600',
-    // color: '#E85D4C',
   },
 
   experienceCard: {
@@ -514,15 +458,14 @@ jobIcon: {
   experienceTitle: {
     fontSize: 16,
     fontWeight: '800',
-    // color: '#fff',
     marginBottom: 12,
     marginLeft: 4,
     lineHeight: 18,
   },
 
   addExperienceButton: {
-  backgroundColor: AppColors.buttons,
-      paddingHorizontal: 16,
+    backgroundColor: AppColors.buttons,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 20,
     alignSelf: 'flex-start',
@@ -543,12 +486,6 @@ jobIcon: {
     height: 80,
     borderRadius: 8,
   },
-
-  verifiedBadge: {
-    position: 'absolute',
-    bottom: -5,
-    right: -5,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-  },
 });
+
+export default ResponsesScreen;

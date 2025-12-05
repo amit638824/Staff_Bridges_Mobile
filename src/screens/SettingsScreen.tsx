@@ -13,8 +13,10 @@ import FontAwesome from "react-native-vector-icons/FontAwesome";
 import AppHeader from "../components/AppHeader";
 import AppFooter from "../components/AppFooter";
 import { AppColors } from "../constants/AppColors";
+import { useTranslation } from 'react-i18next';
 
 const SettingsScreen: React.FC = () => {
+  const { t } = useTranslation();
   const [smsEnabled, setSmsEnabled] = useState(true);
 
   const handleBack = () => console.log("Back pressed");
@@ -36,43 +38,39 @@ const SettingsScreen: React.FC = () => {
         onBackPressed={handleBack}
         customLeftWidget={
           <View style={styles.headerLeft}>
-            <Text style={styles.headerTitle}>Settings</Text>
+            <Text style={styles.headerTitle}>{t('settings_header_title')}</Text>
           </View>
         }
       />
-<View style={styles.divider}></View>
+      <View style={styles.divider}></View>
       <ScrollView 
         style={styles.scrollView} 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* SMS Preference Card */}
         <View style={styles.card}>
           <View style={styles.smsRow}>
-              <Text style={styles.sectionTitle}>SMS Preference</Text>
-           <TouchableOpacity 
+            <Text style={styles.sectionTitle}>{t('settings_sms_preference')}</Text>
+            <TouchableOpacity 
               style={[styles.customToggle, smsEnabled && styles.toggleActive]}
               onPress={() => setSmsEnabled(!smsEnabled)}
             >
               <View style={[styles.toggleThumb, smsEnabled && styles.toggleThumbActive]} />
             </TouchableOpacity>
-                 
           </View>
-            <Text style={styles.smsLabel}>Get notified by Staff Bridges</Text>
-      
+          <Text style={styles.smsLabel}>{t('settings_sms_label')}</Text>
         </View>
 
-        {/* Like the App Section */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Like the app?</Text>
+          <Text style={styles.sectionTitle}>{t('settings_like_app_title')}</Text>
           
           <View style={styles.rowWithButton}>
             <Text style={styles.descriptionText}>
-              Invite your friends to Staff Bridges and {"\n"}help them find good jobs
+              {t('settings_invite_description')}
             </Text>
             <TouchableOpacity style={styles.outlineButton} onPress={handleInvite}>
               <FontAwesome name="whatsapp" size={16} color={AppColors.themeColor} style={styles.whatsappIcon} />
-              <Text style={styles.outlineButtonText}>Invite Now</Text>
+              <Text style={styles.outlineButtonText}>{t('settings_invite_button')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -80,57 +78,54 @@ const SettingsScreen: React.FC = () => {
 
           <View style={styles.rowWithButton}>
             <Text style={styles.descriptionText}>
-              Rate your experience on Staff Bridges
+              {t('settings_rate_experience')}
             </Text>
             <TouchableOpacity style={styles.outlineButton} onPress={handleFeedback}>
-              <Text style={styles.outlineButtonText}>Give Feedback</Text>
+              <Text style={styles.outlineButtonText}>{t('settings_feedback_button')}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Need Help Card */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Need Help?</Text>
+          <Text style={styles.sectionTitle}>{t('settings_need_help')}</Text>
 
           <TouchableOpacity style={styles.linkRow} onPress={handleContactUs}>
-            <Text style={styles.linkText}>Contact us - Email</Text>
+            <Text style={styles.linkText}>{t('settings_contact_us')}</Text>
             <Icon name="open-in-new" size={14} color={AppColors.themeColor} style={styles.linkIcon} />
           </TouchableOpacity>
 
           <Text style={styles.helpDescription}>
-            Our team will get back to you, as soon as possible {"\n"}with the most suitable solution
+            {t('settings_help_description')}
           </Text>
 
           <View style={styles.divider} />
 
           <TouchableOpacity style={styles.linkRow} onPress={handleTerms}>
-            <Text style={styles.linkText}>Terms and Conditions</Text>
+            <Text style={styles.linkText}>{t('settings_terms')}</Text>
             <Icon name="open-in-new" size={14} color={AppColors.themeColor} style={styles.linkIcon} />
           </TouchableOpacity>
 
           <View style={styles.divider} />
 
           <TouchableOpacity style={styles.linkRow} onPress={handlePrivacy}>
-            <Text style={styles.linkText}>Privacy Policy</Text>
+            <Text style={styles.linkText}>{t('settings_privacy')}</Text>
             <Icon name="open-in-new" size={14} color={AppColors.themeColor} style={styles.linkIcon} />
           </TouchableOpacity>
         </View>
 
-        {/* Spacer to push bottom content */}
         <View style={styles.spacer} />
 
-        {/* Bottom Actions */}
         <View style={styles.bottomActions}>
           <TouchableOpacity onPress={handleDeactivate}>
-            <Text style={styles.actionText}>Deactivate Account</Text>
+            <Text style={styles.actionText}>{t('settings_deactivate_account')}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleSignOut}>
-            <Text style={styles.actionText}>Sign Out</Text>
+            <Text style={styles.actionText}>{t('settings_sign_out')}</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>App version 1.0.0</Text>
+          <Text style={styles.versionText}>{t('settings_app_version')}</Text>
         </View>
       </ScrollView>
 
@@ -175,7 +170,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: "#E8E8E8",
-  
   },
   smsRow: {
     flexDirection: "row",

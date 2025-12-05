@@ -1,9 +1,6 @@
 import { StyleSheet, TextStyle } from "react-native";
 import { AppColors } from "./AppColors";
 
-// ✅ If you're using Google Fonts (via Expo), install it:
-// expo install @expo-google-fonts/poppins expo-font
-
 export const AppTextStyles = StyleSheet.create<{
   headlineLarge: TextStyle;
   headlineMedium: TextStyle;

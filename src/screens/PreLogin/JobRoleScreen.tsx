@@ -17,7 +17,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppColors } from '../../constants/AppColors';
-import App from '../../../App';
+import { useTranslation } from 'react-i18next';
 
 // Type definitions
 interface JobRole {
@@ -31,40 +31,42 @@ interface RoleNavigationProp {
 }
 
 const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
+  const { t } = useTranslation();
+
   const jobRoles: JobRole[] = [
     {
       id: 'delivery',
-      title: 'Delivery',
+      title: t("role_delivery"),
       image: require('../../../assets/images/delvery.jpg'),
     },
     {
       id: 'customer_support',
-      title: 'Customer Support / Telecaller',
+      title: t("role_customer_support"),
       image: require('../../../assets/images/cs_and_telecler.jpg'),
     },
     {
       id: 'field_sales',
-      title: 'Field Sales',
+      title: t("role_field_sales"),
       image: require('../../../assets/images/field_sales.jpg'),
     },
     {
       id: 'sales_bd',
-      title: 'Sales / Business Development',
+      title: t("role_sales_bd"),
       image: require('../../../assets/images/sales-job.jpg'),
     },
     {
       id: 'digital_marketing',
-      title: 'Digital Marketing',
+      title: t("role_digital_marketing"),
       image: require('../../../assets/images/backoffice.jpg'),
     },
     {
       id: 'retail_sales',
-      title: 'Retail / Counter Sales',
+      title: t("role_retail_sales"),
       image: require('../../../assets/images/counter-sales.jpg'),
     },
     {
       id: 'recruiter_hr',
-      title: 'Recruiter / HR Admin',
+      title: t("role_hr_admin"),
       image: require('../../../assets/images/hradmin.jpg'),
     },
   ];
@@ -78,7 +80,7 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
     return jobRoles.filter((role: JobRole) =>
       role.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery]);
+  }, [searchQuery, t]);
 
   const handleRoleToggle = (roleId: string): void => {
     const newSelectedRoles = new Set(selectedRoles);
@@ -144,9 +146,7 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
     <SafeAreaView
       style={[
         styles.container,
-        {
-          paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-        },
+        { paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
       ]}
     >
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
@@ -163,15 +163,15 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
             source={require('../../../assets/images/job.png')}
             style={styles.headerIcon}
           />
-          <Text style={styles.headerTitle}>Select Job Roles</Text>
-          <Text style={styles.headerSubtitle}>Select up to 5 job categories</Text>
+          <Text style={styles.headerTitle}>{t("selectJobRoles")}</Text>
+          <Text style={styles.headerSubtitle}>{t("selectUpToFiveRoles")}</Text>
         </View>
 
         {/* Search */}
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
-            placeholder="Search job roles, categories, skills etc.."
+            placeholder={t("searchPlaceholder")}
             placeholderTextColor="#999"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -180,7 +180,7 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
         </View>
 
         <Text style={styles.selectedCountText}>
-          {selectedRoles.size} of 5 selected
+          {t("selectedCount", { count: selectedRoles.size })}
         </Text>
 
         {/* Role List */}
@@ -192,7 +192,7 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No job roles found</Text>
+              <Text style={styles.emptyText}>{t("noJobRolesFound")}</Text>
             </View>
           }
         />
@@ -208,7 +208,7 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
           onPress={handleNext}
           disabled={selectedRoles.size === 0}
         >
-          <Text style={styles.nextButtonText}>Next</Text>
+          <Text style={styles.nextButtonText}>{t("next")}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -218,16 +218,8 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
 export default SelectJobRoleScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  content: { flex: 1, paddingHorizontal: 20, paddingVertical: 10 },
 
   progressBarContainer: {
     height: 10,
@@ -237,35 +229,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     overflow: 'hidden',
   },
-
   progressBar: {
     height: '100%',
     backgroundColor: AppColors.themeColor,
     borderRadius: 5,
   },
 
-  headerContainer: {
-    marginBottom: 20,
-  },
-
-  headerIcon: {
-    width: 60,
-    height: 60,
-    marginBottom: 10,
-    resizeMode: 'contain',
-  },
-
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 4,
-  },
-
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#999',
-  },
+  headerContainer: { marginBottom: 20 },
+  headerIcon: { width: 60, height: 60, marginBottom: 10, resizeMode: 'contain' },
+  headerTitle: { fontSize: 18, fontWeight: '600', color: '#000', marginBottom: 4 },
+  headerSubtitle: { fontSize: 14, color: '#999' },
 
   searchContainer: {
     flexDirection: 'row',
@@ -278,13 +251,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     backgroundColor: '#fff',
   },
-
-  searchInput: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 13,
-    color: '#000',
-  },
+  searchInput: { flex: 1, marginLeft: 10, fontSize: 13, color: '#000' },
 
   selectedCountText: {
     fontSize: 12,
@@ -302,43 +269,18 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#fff',
   },
-
   roleCardSelected: {
     borderColor: AppColors.themeColor,
-    backgroundColor: AppColors.themeColorLight ,
-    shadowColor: AppColors.themeColor,
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
+    backgroundColor: AppColors.themeColorLight,
     elevation: 3,
   },
+  roleCardDisabled: { opacity: 0.6 },
 
-  roleCardDisabled: {
-    opacity: 0.6,
-  },
+  roleImage: { width: 45, height: 45, borderRadius: 8, resizeMode: 'cover' },
+  roleImageDisabled: { opacity: 0.5 },
 
-  roleImage: {
-    width: 45,
-    height: 45,
-    borderRadius: 8,
-    resizeMode: 'cover',
-  },
-
-  roleImageDisabled: {
-    opacity: 0.5,
-  },
-
-  roleTitle: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#000',
-    marginHorizontal: 14,
-  },
-
-  roleTitleDisabled: {
-    color: '#ccc',
-  },
+  roleTitle: { flex: 1, fontSize: 15, fontWeight: '500', color: '#000', marginHorizontal: 14 },
+  roleTitleDisabled: { color: '#ccc' },
 
   checkbox: {
     width: 16,
@@ -348,33 +290,16 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'transparent',
   },
-
   checkboxSelected: {
     backgroundColor: AppColors.themeColor,
     borderColor: AppColors.themeColor,
   },
 
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
-  },
+  emptyContainer: { alignItems: 'center', paddingVertical: 40 },
+  emptyText: { fontSize: 14, color: '#999', fontWeight: '500' },
 
-  emptyText: {
-    fontSize: 14,
-    color: '#999',
-    fontWeight: '500',
-  },
-
-  buttonContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#fff',
-    borderTopColor: '#f0f0f0',
-  },
-
+  buttonContainer: { paddingHorizontal: 20, paddingVertical: 16 },
   nextButton: {
     height: 50,
     backgroundColor: AppColors.themeColor,
@@ -382,14 +307,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
-  nextButtonDisabled: {
-    backgroundColor: '#ddd',
-  },
-
-  nextButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
+  nextButtonDisabled: { backgroundColor: '#ddd' },
+  nextButtonText: { fontSize: 16, fontWeight: '600', color: '#fff' },
 });

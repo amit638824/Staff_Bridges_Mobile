@@ -4,6 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { AppColors } from "../constants/AppColors";
+import { useTranslation } from "react-i18next";   // 👈 ADD THIS
 
 interface AppFooterProps {
   currentIndex: number;
@@ -12,12 +13,13 @@ interface AppFooterProps {
 
 const AppFooter: React.FC<AppFooterProps> = ({ currentIndex, onTap }) => {
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();  // 👈 TRANSLATION HOOK
 
   const navItems = [
-    { label: "Home", solid: "home", outline: "home-outline", route: "HomeScreen" },
-    { label: "Jobs", solid: "work", outline: "briefcase-outline", route: "JobsScreen" },
-    { label: "Responses", solid: "chat", outline: "chat-outline", route: "ResponsesScreen" },
-    { label: "Profile", solid: "person", outline: "account-outline", route: "ProfileScreen" },
+    { label: t("home"), solid: "home", outline: "home-outline", route: "HomeScreen" },
+    { label: t("jobs"), solid: "work", outline: "briefcase-outline", route: "JobsScreen" },
+    { label: t("responses"), solid: "chat", outline: "chat-outline", route: "ResponsesScreen" },
+    { label: t("profile"), solid: "person", outline: "account-outline", route: "ProfileScreen" },
   ];
 
   const handlePress = (index: number, route: string) => {

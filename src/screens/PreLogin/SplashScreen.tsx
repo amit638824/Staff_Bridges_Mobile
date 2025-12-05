@@ -10,11 +10,13 @@ import {
   Animated,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { AppColors } from '../../constants/AppColors';
 
 const { width, height } = Dimensions.get('window');
 
 const SplashScreen = ({ navigation }: any) => {
+  const { t } = useTranslation();
   const [dotIndex, setDotIndex] = useState(0);
   const fadeAnim = new Animated.Value(0);
   const scaleAnim = new Animated.Value(0.8);
@@ -84,10 +86,10 @@ const SplashScreen = ({ navigation }: any) => {
         {/* Text Content */}
         <View style={styles.textContainer}>
           <Text style={styles.subText}>
-            Find the right job. Faster.
+            {t('splashSubText1')}
           </Text>
           <Text style={styles.subText}>
-            Start your career journey with us.
+            {t('splashSubText2')}
           </Text>
         </View>
 
@@ -107,7 +109,7 @@ export default SplashScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor:AppColors.themeColor,
+    backgroundColor: AppColors.themeColor,
   },
 
   gradient: {

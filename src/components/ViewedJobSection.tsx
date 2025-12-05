@@ -9,29 +9,35 @@ import {
 import LinearGradient from "react-native-linear-gradient";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { AppColors } from "../constants/AppColors";
+import { useTranslation } from "react-i18next";
 
 const ViewedJobsSection = () => {
-  const viewedJob = {
-    title: "Email & Chat Support Executive",
-    salary: "₹ 18,000 - 25,000 / Month",
-    company: "Rudraksh-omies",
-    location: "Hazratganj, Lucknow (within 7 KM)",
-    badges:[],
-  };
+  const { t } = useTranslation();
+
+ const viewedJob = {
+  title: t("viewedJob_title"),
+  salary: t("viewedJob_salary"),
+    company: "Rudrab—emis",
+  location: t("viewedJob_location"),
+  badges: [],
+};
+
 
   return (
     <View style={styles.wrapper}>
-     
-      {/* Title */}
-      <Text style={styles.sectionTitle}>Because you viewed this job...</Text>
 
-    
+      {/* Title */}
+      <Text style={styles.sectionTitle}>
+        {t("section_viewed_jobs")}
+      </Text>
 
       {/* Job Card */}
       <View style={styles.card}>
         {/* Best Job Badge */}
         <View style={styles.bestBadge}>
-          <Text style={styles.bestBadgeText}>⭐ BEST JOB FOR YOU</Text>
+          <Text style={styles.bestBadgeText}>
+            {t("card_best_job")}
+          </Text>
         </View>
 
         {/* Job Title */}
@@ -59,7 +65,7 @@ const ViewedJobsSection = () => {
               key={i}
               style={[
                 styles.tag,
-                b === "Urgent Hiring" && styles.urgentTag,
+                b === t("card_urgent_hiring") && styles.urgentTag,
               ]}
             >
               {b}
@@ -71,7 +77,7 @@ const ViewedJobsSection = () => {
         <View style={styles.divider} />
       </View>
 
-    {/* Full Width Gradient Bar with Button - Overlapping */}
+      {/* Full Width Gradient Bar with Button */}
       <LinearGradient
         colors={["#d5f5f8", "#7cdce2"]}
         start={{ x: 0, y: 0 }}
@@ -79,7 +85,9 @@ const ViewedJobsSection = () => {
         style={styles.fullGradient}
       >
         <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>View similar jobs</Text>
+          <Text style={styles.buttonText}>
+            {t("btn_view_similar_jobs")}
+          </Text>
         </TouchableOpacity>
       </LinearGradient>
     </View>
@@ -87,6 +95,7 @@ const ViewedJobsSection = () => {
 };
 
 export default ViewedJobsSection;
+
 
 const styles = StyleSheet.create({
   wrapper: {

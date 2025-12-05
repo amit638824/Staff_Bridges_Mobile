@@ -18,10 +18,12 @@ import AppFooter from '../components/AppFooter';
 import LinearGradient from 'react-native-linear-gradient';
 import { AppColors } from '../constants/AppColors';
 import ViewedJobsSection from '../components/ViewedJobSection';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
 const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(1);
   const [searchText, setSearchText] = useState('');
 
@@ -33,105 +35,104 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     navigation.goBack();
   };
 
-  const filterChips = ['New Jobs +', 'Within 10 KMs +', 'Part Time +', 'Post Graduation +'];
+  const filterChips = [t('jobs_filter_new'), t('jobs_filter_distance'), t('jobs_filter_part_time'), t('jobs_filter_education')];
 
   const jobCategories = [
     {
       icon: 'trending-up',
       color: '#FFEBEE',
       iconColor: '#E91E63',
-      title: 'High Paying Jobs',
-      subtitle: 'View 193 Jobs',
+      title: t('jobs_category_high_paying'),
+      subtitle: t('jobs_category_high_paying_count'),
     },
     {
       icon: 'fiber-new',
       color: '#FFF4E5',
       iconColor: '#FF7043',
-      title: 'New Jobs',
-      subtitle: 'View 43 Jobs',
+      title: t('jobs_category_new'),
+      subtitle: t('jobs_category_new_count'),
     },
     {
       icon: 'school',
       color: '#E8F4FF',
       iconColor: '#2196F3',
-      title: 'Graduate Jobs',
-      subtitle: 'View 74 Jobs',
+      title: t('jobs_category_graduate'),
+      subtitle: t('jobs_category_graduate_count'),
     },
     {
       icon: 'home',
       color: '#FFF8E1',
       iconColor: '#FFC107',
-      title: 'Work From Home',
-      subtitle: 'View 40 Jobs',
+      title: t('jobs_category_work_from_home'),
+      subtitle: t('jobs_category_work_from_home_count'),
     },
     {
       icon: 'time',
       color: '#E3F2FD',
       iconColor: '#2196F3',
-      title: 'Part Time Jobs',
-      subtitle: 'View 43 Jobs',
+      title: t('jobs_category_part_time'),
+      subtitle: t('jobs_category_part_time_count'),
     },
     {
       icon: 'road',
       color: '#E3F2FD',
       iconColor: '#4CAF50',
-      title: 'Field Job',
-      subtitle: 'View 8 Jobs',
+      title: t('jobs_category_field'),
+      subtitle: t('jobs_category_field_count'),
     },
   ];
 
   const categoryChips = [
-    'Telesales / Telemarketing',
-    'Sales / Business Development',
-    'Digital Marketing',
-    'Marketing',
-    'Field Sales',
+    t('jobs_chip_telesales'),
+    t('jobs_chip_sales'),
+    t('jobs_chip_digital_marketing'),
+    t('jobs_chip_marketing'),
+    t('jobs_chip_field_sales'),
   ];
 
-  // Job data structure
   const jobsData = [
     {
       id: 1,
-      title: 'Email & Chat Support Executive',
+      title: t('jobs_title_email_support'),
       company: 'RJS Tech Solutions',
-      salary: '₹15,000 - ₹20,000 / month',
-      location: 'Lucknow, Uttar Pradesh',
+      salary: t("job1_salary"),
+      location: t('job_1_location'),
       badges: ['New', 'High Demand', 'Urgent Hiring'],
       isBestJob: true,
     },
     {
       id: 2,
-      title: 'International BPO Executive',
+      title: t('jobs_title_bpo_executive'),
       company: 'Prime Communications',
-      salary: '₹20,000 - ₹28,000 / month',
-      location: 'Lucknow, Uttar Pradesh',
+       salary: t("job2_salary"),
+      location: t('job_2_location'),
       badges: ['Urgent Hiring'],
       isBestJob: true,
     },
     {
       id: 3,
-      title: 'International BPO Executive',
+      title: t('jobs_title_bpo_executive'),
       company: 'Prime Communications',
-      salary: '₹20,000 - ₹28,000 per month',
-      location: 'Lucknow, Uttar Pradesh',
+  salary: t("job3_salary"),
+      location: t('job_3_location'),
       badges: ['Urgent Hiring'],
       isBestJob: true,
     },
     {
       id: 4,
-      title: 'BPO Telecaller',
+      title: t('jobs_title_bpo_telecaller'),
       company: 'Sunshine Infotech',
-      salary: '₹12,000 - ₹18,000 per month',
-      location: 'Lucknow, Uttar Pradesh',
+ salary: t("job1_salary"),
+      location: t('job_1_location'),
       badges: [],
       isBestJob: false,
     },
     {
       id: 5,
-      title: 'Hindi Telecaller',
+      title: t('jobs_title_hindi_telecaller'),
       company: 'Bright Minds Pvt Ltd',
-      salary: '₹10,000 - ₹14,000 per month',
-      location: 'Lucknow, Uttar Pradesh',
+ salary: t("job2_salary"),
+      location: t('job_2_location'),
       badges: [],
       isBestJob: false,
     },
@@ -149,7 +150,6 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       onPress={() => handleJobCardPress(job)}
     >
       <View style={styles.jobCard}>
-        {/* Top Row - Best Job Tag */}
         {job.isBestJob && (
           <View style={styles.badgeRow}>
             <LinearGradient
@@ -159,17 +159,16 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               style={styles.bestJobGradient}
             >
               <MaterialCommunityIcon name="star" size={10} color="#e59600" />
-              <Text style={styles.bestJobText}>BEST JOB FOR YOU</Text>
+              <Text style={styles.bestJobText}>{t('jobs_best_job_badge')}</Text>
             </LinearGradient>
 
             <View style={styles.urgentBadge}>
               <MaterialCommunityIcon name="clock-outline" size={12} color="#d78b53" />
-              <Text style={styles.urgentText}>Urgent Hiring</Text>
+              <Text style={styles.urgentText}>{t('jobs_urgent_hiring')}</Text>
             </View>
           </View>
         )}
 
-        {/* Job + Image Section */}
         <View style={styles.jobRow}>
           <Image
             source={require('../../assets/images/residential.png')}
@@ -182,21 +181,19 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Company */}
         <View style={styles.jobMetaRow}>
           <Icon name="briefcase-outline" size={12} color="#9E9E9E" />
           <Text style={styles.jobMeta}>{job.company}</Text>
         </View>
 
-        {/* Location */}
         <View style={styles.jobMetaRow}>
           <Icon name="location-outline" size={12} color="#9E9E9E" />
           <Text style={styles.jobMeta}>{job.location}</Text>
         </View>
 
         <View style={styles.tagsContainer}>
-          {['New Job', '80 Vacancies', 'High Demand'].map((tag, index) => {
-            const isNewJob = tag === 'New Job';
+          {[t('jobs_tag_new'), t('jobs_tag_vacancies'), t('jobs_tag_high_demand')].map((tag, index) => {
+            const isNewJob = tag === t('jobs_tag_new');
 
             return (
               <View
@@ -209,7 +206,7 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                   },
                 ]}
               >
-                {tag === 'High Demand' && (
+                {tag === t('jobs_tag_high_demand') && (
                   <Icon name="flash-outline" size={10} color={!isNewJob ? '#000' : '#fff'} />
                 )}
 
@@ -218,7 +215,7 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                     styles.tagText,
                     {
                       color: isNewJob ? '#6c83ff' : '#979797',
-                      marginLeft: tag === 'High Demand' ? 2 : 0,
+                      marginLeft: tag === t('jobs_tag_high_demand') ? 2 : 0,
                     },
                   ]}
                 >
@@ -229,44 +226,39 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           })}
         </View>
 
-        {/* Divider */}
         <View style={styles.tagDivider} />
 
-        {/* PF Provided */}
-        <Text style={styles.pfText}>PF Provided</Text>
+        <Text style={styles.pfText}>{t('jobs_pf_provided')}</Text>
       </View>
     </TouchableOpacity>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.headerContainer}>
         <AppHeader
-          location="277 jobs near you"
+          location={t('jobs_header_title')}
           showLogo={false}
           showLocation={false}
           showBackArrow={true}
           onBackPressed={handleBackPress}
           customLeftWidget={
-            <Text style={styles.headerTitle}>277 jobs near you</Text>
+            <Text style={styles.headerTitle}>{t('jobs_header_title')}</Text>
           }
         />
       </View>
 
-      {/* Search Box */}
       <View style={styles.searchContainer}>
         <Icon name="search-outline" size={20} color="#999" />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search jobs here.."
+          placeholder={t('jobs_search_placeholder')}
           placeholderTextColor="#666"
           value={searchText}
           onChangeText={setSearchText}
         />
       </View>
 
-      {/* Filter Row */}
       <View style={styles.filterRow}>
         <TouchableOpacity style={styles.filterChip}>
           <MaterialCommunityIcon
@@ -275,8 +267,7 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             color="#0072BC"
           />
           <Text style={[styles.filterChipText, { color: '#0072BC' }]}>
-            {' '}
-            Filter (1)
+            {' '}{t('jobs_filter_button')}
           </Text>
         </TouchableOpacity>
         <ScrollView
@@ -292,98 +283,94 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         </ScrollView>
       </View>
 
-      {/* Main Content */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-     <View style={{ backgroundColor: '#fff6ec' }}>
-  <View style={styles.bestJobCard}>
-          <View style={styles.bestJobHeader}>
-            <Icon name="star" size={16} color="#FFA500" />
-            <Text style={styles.bestJobTitle}>BEST JOB FOR YOU</Text>
-          </View>
+        <View style={{ backgroundColor: '#fff6ec' }}>
+          <View style={styles.bestJobCard}>
+            <View style={styles.bestJobHeader}>
+              <Icon name="star" size={16} color="#FFA500" />
+              <Text style={styles.bestJobTitle}>{t('jobs_best_job_header')}</Text>
+            </View>
 
-          <View style={styles.bestJobContent}>
-            <View style={styles.bestJobItem}>
-              <View style={styles.bestJobItemContent}>
-                <View style={styles.bestJobItemRow}>
-                  <Icon name="location-outline" size={18} color="#000" />
-                  <Text style={styles.bestJobItemTitle}>Near</Text>
+            <View style={styles.bestJobContent}>
+              <View style={styles.bestJobItem}>
+                <View style={styles.bestJobItemContent}>
+                  <View style={styles.bestJobItemRow}>
+                    <Icon name="location-outline" size={18} color="#000" />
+                    <Text style={styles.bestJobItemTitle}>{t('jobs_best_location')}</Text>
+                  </View>
+                  <Text style={styles.bestJobItemSubtitle}>{t('jobs_best_you')}</Text>
                 </View>
-                <Text style={styles.bestJobItemSubtitle}>You</Text>
+              </View>
+
+              <View style={styles.divider} />
+
+              <View style={styles.bestJobItem}>
+                <View style={styles.bestJobItemContent}>
+                  <View style={styles.bestJobItemRow}>
+                    <MaterialCommunityIcon
+                      name="currency-inr"
+                      size={18}
+                      color="#000"
+                    />
+                    <Text style={styles.bestJobItemTitle}>{t('jobs_best_salary')}</Text>
+                  </View>
+                  <Text style={styles.bestJobItemSubtitle}>{t('jobs_best_matching')}</Text>
+                </View>
+              </View>
+
+              <View style={styles.divider} />
+
+              <View style={styles.bestJobItem}>
+                <View style={styles.bestJobItemContent}>
+                  <View style={styles.bestJobItemRow}>
+                    <Icon name="thumbs-up" size={18} color="#000" />
+                    <Text style={styles.bestJobItemTitle}>{t('jobs_best_experience')}</Text>
+                  </View>
+                  <Text style={styles.bestJobItemSubtitle}>{t('jobs_best_matching')}</Text>
+                </View>
               </View>
             </View>
 
-            <View style={styles.divider} />
-
-            <View style={styles.bestJobItem}>
-              <View style={styles.bestJobItemContent}>
-                <View style={styles.bestJobItemRow}>
-                  <MaterialCommunityIcon
-                    name="currency-inr"
-                    size={18}
-                    color="#000"
-                  />
-                  <Text style={styles.bestJobItemTitle}>Salary</Text>
-                </View>
-                <Text style={styles.bestJobItemSubtitle}>Matching</Text>
-              </View>
-            </View>
-
-            <View style={styles.divider} />
-
-            <View style={styles.bestJobItem}>
-              <View style={styles.bestJobItemContent}>
-                <View style={styles.bestJobItemRow}>
-                  <Icon name="thumbs-up" size={18} color="#000" />
-                  <Text style={styles.bestJobItemTitle}>Experience</Text>
-                </View>
-                <Text style={styles.bestJobItemSubtitle}>Matching</Text>
-              </View>
-            </View>
-          </View>
-
-          <Image
-            source={require('../../assets/images/phone_hand.png')}
-            style={styles.bestJobImage}
-          />
-        </View>
-
-        {/* Job Cards */}
-    {/* First two job cards */}
-  {jobsData.slice(0, 2).map((job) => renderJobCard(job))}
-
-        {/* Add Experience Section with Blue Gradient */}
-        <LinearGradient
-          colors={['#d7dff1', '#9ab1e2']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={styles.experienceCard}
-        >
-          <View style={styles.experienceContent}>
-            <Text style={styles.experienceTitle}>
-              Add industry experience to your profile
-            </Text>
-            <TouchableOpacity style={styles.addExperienceButton}>
-              <Text style={styles.addExperienceText}>
-                Add industry experience
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.experienceImageContainer}>
             <Image
-              style={styles.experienceImage}
-              source={require('../../assets/images/job-brief.png')}
+              source={require('../../assets/images/phone_hand.png')}
+              style={styles.bestJobImage}
             />
           </View>
-        </LinearGradient>
-  {renderJobCard(jobsData[2])}
-  </View>
-        {/* More Jobs For You */}
+
+          {jobsData.slice(0, 2).map((job) => renderJobCard(job))}
+
+          <LinearGradient
+            colors={['#d7dff1', '#9ab1e2']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={styles.experienceCard}
+          >
+            <View style={styles.experienceContent}>
+              <Text style={styles.experienceTitle}>
+                {t('jobs_experience_title')}
+              </Text>
+              <TouchableOpacity style={styles.addExperienceButton}>
+                <Text style={styles.addExperienceText}>
+                  {t('jobs_experience_button')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.experienceImageContainer}>
+              <Image
+                style={styles.experienceImage}
+                source={require('../../assets/images/job-brief.png')}
+              />
+            </View>
+          </LinearGradient>
+          {renderJobCard(jobsData[2])}
+        </View>
+
         <View style={styles.moreJobsHeader}>
           <Icon name="arrow-forward-circle-outline" size={20} color="#2196F3" />
-          <Text style={styles.moreJobsTitle}>More Jobs For You</Text>
+          <Text style={styles.moreJobsTitle}>{t('jobs_more_jobs_title')}</Text>
         </View>
 
         {jobsData.slice(3).map((job) => renderJobCard(job))}
@@ -391,9 +378,8 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <View style={styles.spaceContainer}></View>
         <ViewedJobsSection />
 
-        {/* Jobs for all your needs */}
         <View style={styles.jobsNeedsContainer}>
-          <Text style={styles.jobsNeedsTitle}>Jobs for all your needs</Text>
+          <Text style={styles.jobsNeedsTitle}>{t('jobs_needs_title')}</Text>
 
           <ScrollView
             horizontal
@@ -429,11 +415,10 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </ScrollView>
         </View>
 
-        {/* Explore jobs in other categories */}
         <View style={styles.exploreContainer}>
           <View style={styles.exploreHeader}>
             <Icon name="compass-outline" size={24} color="#0072BC" />
-            <Text style={styles.exploreTitle}>Explore jobs in other categories</Text>
+            <Text style={styles.exploreTitle}>{t('jobs_explore_title')}</Text>
           </View>
 
           <View style={styles.chipsContainer}>
@@ -446,7 +431,6 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         </View>
       </ScrollView>
 
-      {/* Footer */}
       <AppFooter currentIndex={currentIndex} onTap={handleFooterTap} />
     </SafeAreaView>
   );
@@ -563,7 +547,6 @@ const styles = StyleSheet.create({
   bestJobItemRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    // marginBottom: 2,
   },
   bestJobItemTitle: {
     fontSize: 11,
@@ -577,7 +560,6 @@ const styles = StyleSheet.create({
     color: '#999',
     alignItems: 'center',
     alignSelf: 'center',
-    // marginTop: 1,
     marginLeft: 10,
   },
   badgeRow: {
@@ -695,12 +677,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    // shadowColor: '#000',
-    // shadowOpacity: 0.1,
-    // shadowRadius: 8,
     borderTopColor: '#e7ebf4',
-    // shadowOffset: { width: 0, height: 2 },
-    // elevation: 4,
   },
   experienceContent: {
     flex: 1,

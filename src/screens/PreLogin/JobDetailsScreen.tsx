@@ -16,13 +16,11 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppColors } from '../../constants/AppColors';
-
-// ✅ Import RootStackParamList from App.tsx
 import { RootStackParamList } from '../../../App';
+import { useTranslation } from 'react-i18next';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobDetailsScreen'>;
 
-// Type definitions
 interface JobRole {
   id: string;
   title: string;
@@ -64,142 +62,248 @@ interface ChipProps {
 }
 
 // Role-specific questions config
+// Role-specific questions config
 const roleQuestionsConfig: RoleQuestionsConfig = {
   delivery: {
     image: require('../../../assets/images/delvery.jpg'),
-    title: 'Delivery',
+    title: 'jobDetails_role_delivery',
     questions: [
       {
         id: 'experience',
-        question: 'What is your work experience?',
+        question: 'jobDetails_question_experience',
         type: 'single',
-        options: ['Fresher', '1-6 Months', '1 Year', '2 Years', '3 Years', '4 Years', '5+ Years'],
+        options: [
+          'jobDetails_option_fresher',
+          'jobDetails_option_1_6_months',
+          'jobDetails_option_1_year',
+          'jobDetails_option_2_years',
+          'jobDetails_option_3_years',
+          'jobDetails_option_4_years',
+          'jobDetails_option_5_plus_years',
+        ],
       },
       {
         id: 'vehicle',
-        question: 'Which of these do you have?',
+        question: 'jobDetails_question_vehicle',
         type: 'multi',
-        options: ['Bike', 'Scooter', 'Car', 'None of These'],
+        options: [
+          'jobDetails_option_bike',
+          'jobDetails_option_scooter',
+          'jobDetails_option_car',
+          'jobDetails_option_none',
+        ],
       },
       {
         id: 'documents',
-        question: 'Which Ids/documents do you have?',
+        question: 'jobDetails_question_documents',
         type: 'multi',
-        options: ['Aadhar', 'Pan Card', 'Voter Id', '2 Wheeler Driving Licence', 'Passport'],
+        options: [
+          'jobDetails_option_aadhar',
+          'jobDetails_option_pan_card',
+          'jobDetails_option_voter_id',
+          'jobDetails_option_dl',
+          'jobDetails_option_passport',
+        ],
       },
     ],
   },
+
   customer_support: {
     image: require('../../../assets/images/cs_and_telecler.jpg'),
-    title: 'Customer Support / Telecaller',
+    title: 'jobDetails_role_customer_support',
     questions: [
       {
         id: 'experience',
-        question: 'What is your work experience?',
+        question: 'jobDetails_question_experience',
         type: 'single',
-        options: ['Fresher', '1-6 Months', '1 Year', '2 Years', '3 Years', '4 Years', '5+ Years'],
+        options: [
+          'jobDetails_option_fresher',
+          'jobDetails_option_1_6_months',
+          'jobDetails_option_1_year',
+          'jobDetails_option_2_years',
+          'jobDetails_option_3_years',
+          'jobDetails_option_4_years',
+          'jobDetails_option_5_plus_years',
+        ],
       },
       {
         id: 'workExp',
-        question: 'What is your work experience?',
+        question: 'jobDetails_question_workExp',
         type: 'multi',
-        options: ['Computer Knowledge', 'Domestic Calling', 'International Calling', 'Query Resolution', 'Non-voice/Chat Process', 'None of These'],
+        options: [
+          'jobDetails_option_computer_knowledge',
+          'jobDetails_option_domestic_calling',
+          'jobDetails_option_international_calling',
+          'jobDetails_option_query_resolution',
+          'jobDetails_option_non_voice_chat',
+          'jobDetails_option_none',
+        ],
       },
       {
         id: 'haveItems',
-        question: 'Which of these do you have?',
+        question: 'jobDetails_question_haveItems',
         type: 'multi',
-        options: ['Bike', 'Internet Connection', 'Laptop/Desktop', 'None of These'],
+        options: [
+          'jobDetails_option_bike',
+          'jobDetails_option_internet_connection',
+          'jobDetails_option_laptop_desktop',
+          'jobDetails_option_none',
+        ],
       },
       {
         id: 'documents',
-        question: 'Which Ids/documents do you have?',
+        question: 'jobDetails_question_documents',
         type: 'multi',
-        options: ['Aadhar', 'Pan Card', 'Voter Id', '2 Wheeler Driving Licence', 'Passport'],
+        options: [
+          'jobDetails_option_aadhar',
+          'jobDetails_option_pan_card',
+          'jobDetails_option_voter_id',
+          'jobDetails_option_dl',
+          'jobDetails_option_passport',
+        ],
       },
     ],
   },
+
   field_sales: {
     image: require('../../../assets/images/field_sales.jpg'),
-    title: 'Field Sales',
+    title: 'jobDetails_role_field_sales',
     questions: [
       {
         id: 'experience',
-        question: 'What is your work experience?',
+        question: 'jobDetails_question_experience',
         type: 'single',
-        options: ['Fresher', '1-6 Months', '1 Year', '2 Years', '3 Years', '4 Years', '5+ Years'],
+        options: [
+          'jobDetails_option_fresher',
+          'jobDetails_option_1_6_months',
+          'jobDetails_option_1_year',
+          'jobDetails_option_2_years',
+          'jobDetails_option_3_years',
+          'jobDetails_option_4_years',
+          'jobDetails_option_5_plus_years',
+        ],
       },
       {
-        id: 'haveItems',
-        question: 'Which of these do you have?',
+        id: 'skills',
+        question: 'jobDetails_question_skills',
         type: 'multi',
-        options: ['Bike', 'Internet Connection', 'Laptop/Desktop', 'None of These'],
-      },
-      {
-        id: 'documents',
-        question: 'Which Ids/documents do you have?',
-        type: 'multi',
-        options: ['Aadhar', 'Pan Card', 'Voter Id', '2 Wheeler Driving Licence', 'Passport'],
+        options: ['jobDetails_option_sales_pitch', 'jobDetails_option_negotiation', 'jobDetails_option_client_meeting'],
       },
     ],
   },
+
   sales_bd: {
     image: require('../../../assets/images/sales-job.jpg'),
-    title: 'Sales / Business Development',
+    title: 'jobDetails_role_sales_bd',
     questions: [
       {
         id: 'experience',
-        question: 'What is your work experience?',
+        question: 'jobDetails_question_experience',
         type: 'single',
-        options: ['Fresher', '1-6 Months', '1 Year', '2 Years', '3 Years', '4 Years', '5+ Years'],
+        options: [
+          'jobDetails_option_fresher',
+          'jobDetails_option_1_6_months',
+          'jobDetails_option_1_year',
+          'jobDetails_option_2_years',
+          'jobDetails_option_3_years',
+          'jobDetails_option_4_years',
+          'jobDetails_option_5_plus_years',
+        ],
       },
       {
-        id: 'haveItems',
-        question: 'Which of these do you have?',
+        id: 'skills',
+        question: 'jobDetails_question_skills',
         type: 'multi',
-        options: ['Internet Connection', 'Laptop/Desktop', 'None of These'],
+        options: ['jobDetails_option_leads_generation', 'jobDetails_option_proposals', 'jobDetails_option_closing'],
       },
     ],
   },
+
   digital_marketing: {
     image: require('../../../assets/images/backoffice.jpg'),
-    title: 'Digital Marketing',
+    title: 'jobDetails_role_digital_marketing',
     questions: [
       {
         id: 'experience',
-        question: 'What is your work experience?',
+        question: 'jobDetails_question_experience',
         type: 'single',
-        options: ['Fresher', '1-6 Months', '1 Year', '2 Years', '3 Years', '4 Years', '5+ Years'],
+        options: [
+          'jobDetails_option_fresher',
+          'jobDetails_option_1_6_months',
+          'jobDetails_option_1_year',
+          'jobDetails_option_2_years',
+          'jobDetails_option_3_years',
+          'jobDetails_option_4_years',
+          'jobDetails_option_5_plus_years',
+        ],
       },
       {
-        id: 'haveItems',
-        question: 'Which of these do you have?',
+        id: 'tools',
+        question: 'jobDetails_question_tools',
         type: 'multi',
-        options: ['Internet Connection', 'Laptop/Desktop', 'None of These'],
+        options: ['jobDetails_option_seo', 'jobDetails_option_sem', 'jobDetails_option_smm', 'jobDetails_option_email_marketing'],
       },
     ],
   },
-  recruiter_hr: {
-    image: require('../../../assets/images/hradmin.jpg'),
-    title: 'Recruiter / HR Admin',
+
+  retail_sales: {
+    image: require('../../../assets/images/counter-sales.jpg'),
+    title: 'jobDetails_role_retail_sales',
     questions: [
       {
         id: 'experience',
-        question: 'What is your work experience?',
+        question: 'jobDetails_question_experience',
         type: 'single',
-        options: ['Fresher', '1-6 Months', '1 Year', '2 Years', '3 Years', '4 Years', '5+ Years'],
+        options: [
+          'jobDetails_option_fresher',
+          'jobDetails_option_1_6_months',
+          'jobDetails_option_1_year',
+          'jobDetails_option_2_years',
+          'jobDetails_option_3_years',
+          'jobDetails_option_4_years',
+          'jobDetails_option_5_plus_years',
+        ],
       },
       {
-        id: 'haveItems',
-        question: 'Which of these do you have?',
+        id: 'skills',
+        question: 'jobDetails_question_skills',
         type: 'multi',
-        options: ['Internet Connection', 'Laptop/Desktop'],
+        options: ['jobDetails_option_customer_handling', 'jobDetails_option_inventory', 'jobDetails_option_cash_management'],
+      },
+    ],
+  },
+
+  recruiter_hr: {
+    image: require('../../../assets/images/hradmin.jpg'),
+    title: 'jobDetails_role_hr_admin',
+    questions: [
+      {
+        id: 'experience',
+        question: 'jobDetails_question_experience',
+        type: 'single',
+        options: [
+          'jobDetails_option_fresher',
+          'jobDetails_option_1_6_months',
+          'jobDetails_option_1_year',
+          'jobDetails_option_2_years',
+          'jobDetails_option_3_years',
+          'jobDetails_option_4_years',
+          'jobDetails_option_5_plus_years',
+        ],
+      },
+      {
+        id: 'skills',
+        question: 'jobDetails_question_skills',
+        type: 'multi',
+        options: ['jobDetails_option_recruitment', 'jobDetails_option_interviews', 'jobDetails_option_onboarding'],
       },
     ],
   },
 };
 
+
 const JobDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { t } = useTranslation();
   const { selectedRoles, currentRoleIndex, completedRoles, totalRoles } = route.params;
 
   const currentRole: JobRole = selectedRoles[currentRoleIndex];
@@ -208,7 +312,6 @@ const JobDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
   const [selectedExperience, setSelectedExperience] = useState<string | null>(null);
   const [selectedMulti, setSelectedMulti] = useState<Record<string, Set<string>>>({});
 
-  // Calculate progress percentage
   const progressPercentage = ((currentRoleIndex + 1) / totalRoles) * 100;
 
   const handleSingleSelect = (value: string): void => {
@@ -220,66 +323,58 @@ const JobDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
       const currentSet = prev[questionId] || new Set();
       const newSet = new Set(currentSet);
 
-      if (newSet.has(value)) {
-        newSet.delete(value);
-      } else {
-        newSet.add(value);
-      }
+      if (newSet.has(value)) newSet.delete(value);
+      else newSet.add(value);
 
-      return {
-        ...prev,
-        [questionId]: newSet,
-      };
+      return { ...prev, [questionId]: newSet };
     });
   };
 
   const handleNext = (): void => {
     if (!selectedExperience) {
-      Alert.alert('Validation', 'Please select your work experience');
+      Alert.alert(t('validationTitle'), t('jobDetails_validationExperience'));
       return;
     }
 
-const updatedAnswers: CompletedRoles = {
-  ...completedRoles,
-  [currentRole.id]: {
-    role: currentRole.title,
-    selectedExperience,
-    selectedMulti,
-  },
-};
-
-if (currentRoleIndex === totalRoles - 1) {
-  navigation.reset({
-    index: 0,
-    routes: [
-      {
-        name: 'HomeScreen',
-        params: { 
-          roleAnswers: updatedAnswers,
-          fromJobInfo: true,
-        },
+    const updatedAnswers: CompletedRoles = {
+      ...completedRoles,
+      [currentRole.id]: {
+        role: currentRole.title,
+        selectedExperience,
+        selectedMulti,
       },
-    ],
-  });
-} else {
-  navigation.replace('JobDetailsScreen', {
-    selectedRoles,
-    currentRoleIndex: currentRoleIndex + 1,
-    completedRoles: updatedAnswers,
-    totalRoles,
-  });
+    };
 
-  setSelectedExperience(null);
-  setSelectedMulti({});
-}
+    if (currentRoleIndex === totalRoles - 1) {
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'HomeScreen',
+            params: { roleAnswers: updatedAnswers, fromJobInfo: true },
+          },
+        ],
+      });
+    } else {
+      navigation.replace('JobDetailsScreen', {
+        selectedRoles,
+        currentRoleIndex: currentRoleIndex + 1,
+        completedRoles: updatedAnswers,
+        totalRoles,
+      });
+
+      setSelectedExperience(null);
+      setSelectedMulti({});
+    }
   };
-  const renderChip = ({ label, isSelected, onTap, showIcon }: ChipProps): React.ReactElement => (
+
+  const renderChip = ({ label, isSelected, onTap, showIcon }: ChipProps) => (
     <TouchableOpacity
       style={[styles.chip, isSelected && styles.chipSelected]}
       onPress={onTap}
     >
       <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-        {label}
+        {t(label)}
       </Text>
       {showIcon && (
         <View style={{ marginLeft: 6 }}>
@@ -293,52 +388,32 @@ if (currentRoleIndex === totalRoles - 1) {
     </TouchableOpacity>
   );
 
-  const renderQuestion = (question: Question): React.ReactElement => {
-    if (question.type === 'single') {
-      return (
-        <View key={question.id} style={styles.questionSection}>
-          <Text style={styles.questionText}>{question.question}</Text>
-          <View style={styles.chipsContainer}>
-            {question.options.map((option: string) => (
-              <View key={option} style={styles.chipWrapper}>
-                {renderChip({
-                  label: option,
-                  isSelected: selectedExperience === option,
-                  showIcon: false,
-                  onTap: () => handleSingleSelect(option),
-                })}
-              </View>
-            ))}
+  const renderQuestion = (question: Question) => (
+    <View key={question.id} style={styles.questionSection}>
+      <Text style={styles.questionText}>{t(question.question)}</Text>
+      <View style={styles.chipsContainer}>
+        {question.options.map((option) => (
+          <View key={option} style={styles.chipWrapper}>
+            {renderChip({
+              label: option,
+              isSelected: question.type === 'single'
+                ? selectedExperience === option
+                : (selectedMulti[question.id] || new Set()).has(option),
+              showIcon: question.type === 'multi',
+              onTap: () =>
+                question.type === 'single'
+                  ? handleSingleSelect(option)
+                  : handleMultiSelect(question.id, option),
+            })}
           </View>
-        </View>
-      );
-    } else {
-      return (
-        <View key={question.id} style={styles.questionSection}>
-          <Text style={styles.questionText}>{question.question}</Text>
-          <View style={styles.chipsContainer}>
-            {question.options.map((option: string) => (
-              <View key={option} style={styles.chipWrapper}>
-                {renderChip({
-                  label: option,
-                  isSelected: (selectedMulti[question.id] || new Set()).has(option),
-                  showIcon: true,
-                  onTap: () => handleMultiSelect(question.id, option),
-                })}
-              </View>
-            ))}
-          </View>
-        </View>
-      );
-    }
-  };
+        ))}
+      </View>
+    </View>
+  );
 
   return (
     <SafeAreaView
-      style={[
-        styles.container,
-        { paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
-      ]}
+      style={[styles.container, { paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }]}
     >
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
@@ -352,7 +427,7 @@ if (currentRoleIndex === totalRoles - 1) {
         <View style={styles.jobInfoContainer}>
           <Image source={roleConfig.image} style={styles.jobImage} />
           <View style={styles.jobTextContainer}>
-            <Text style={styles.jobTitle}>{roleConfig.title}</Text>
+            <Text style={styles.jobTitle}>{t(roleConfig.title)}</Text>
           </View>
         </View>
       </View>
@@ -363,13 +438,13 @@ if (currentRoleIndex === totalRoles - 1) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollViewContent}
       >
-        {roleConfig.questions.map((question: Question) => renderQuestion(question))}
+        {roleConfig.questions.map((q) => renderQuestion(q))}
       </ScrollView>
 
       {/* Button */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-          <Text style={styles.nextButtonText}>Next</Text>
+          <Text style={styles.nextButtonText}>{t('jobDetails_next')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -390,88 +465,22 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   progressBar: { height: '100%', backgroundColor: AppColors.themeColor, borderRadius: 10 },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#fff',
-    borderBottomColor: '#f0f0f0',
-  },
+  header: { paddingHorizontal: 20, paddingVertical: 16, backgroundColor: '#fff', borderBottomColor: '#f0f0f0' },
   jobInfoContainer: { flexDirection: 'row', alignItems: 'center' },
   jobImage: { width: 70, height: 70, borderRadius: 8, marginRight: 15, resizeMode: 'cover' },
   jobTextContainer: { flex: 1 },
   jobTitle: { fontSize: 18, fontWeight: '600', color: '#000' },
   scrollView: { flex: 1 },
-  scrollViewContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-  },
-
-  questionSection: {
-    marginBottom: 25,
-  },
-
-  questionText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 12,
-  },
-
-  chipsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-
-  chipWrapper: {
-    marginBottom: 8,
-  },
-
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderWidth: 1.5,
-    borderColor: '#ddd',
-    borderRadius: 20,
-    backgroundColor: '#e3e3e3',
-  },
-
-  chipSelected: {
-    borderColor: '#ffddb5',
-    backgroundColor: '#ffddb5',
-  },
-
-  chipText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#929292',
-  },
-
-  chipTextSelected: {
-    fontWeight: '600',
-    color: '#71695f',
-  },
-
-  buttonContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#fff',
-    borderTopColor: '#f0f0f0',
-  },
-
-  nextButton: {
-    height: 50,
-    backgroundColor: AppColors.themeColor,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  nextButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
+  scrollViewContent: { paddingHorizontal: 20, paddingVertical: 20 },
+  questionSection: { marginBottom: 25 },
+  questionText: { fontSize: 15, fontWeight: '600', color: '#000', marginBottom: 12 },
+  chipsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  chipWrapper: { marginBottom: 8 },
+  chip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1.5, borderColor: '#ddd', borderRadius: 20, backgroundColor: '#e3e3e3' },
+  chipSelected: { borderColor: '#ffddb5', backgroundColor: '#ffddb5' },
+  chipText: { fontSize: 13, fontWeight: '500', color: '#929292' },
+  chipTextSelected: { fontWeight: '600', color: '#71695f' },
+  buttonContainer: { paddingHorizontal: 20, paddingVertical: 16, backgroundColor: '#fff', borderTopColor: '#f0f0f0' },
+  nextButton: { height: 50, backgroundColor: AppColors.themeColor, borderRadius: 30, justifyContent: 'center', alignItems: 'center' },
+  nextButtonText: { fontSize: 16, fontWeight: '600', color: '#fff' },
 });

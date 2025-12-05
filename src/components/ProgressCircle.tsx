@@ -1,8 +1,11 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
+import { useTranslation } from 'react-i18next';
 
 const ProgressCircle = ({ percentage }: { percentage: number }) => {
+  const { t } = useTranslation();
+
   const radius = 30;
   const strokeWidth = 4;
   const circumference = 2 * Math.PI * radius;
@@ -12,7 +15,7 @@ const ProgressCircle = ({ percentage }: { percentage: number }) => {
     <View style={{ width: 70, height: 70, justifyContent: 'center', alignItems: 'center' }}>
       <Svg width={70} height={70}>
         <Circle
-          stroke="#f8cfe0" // light track
+          stroke="#f8cfe0"
           fill="none"
           cx={35}
           cy={35}
@@ -20,7 +23,7 @@ const ProgressCircle = ({ percentage }: { percentage: number }) => {
           strokeWidth={strokeWidth}
         />
         <Circle
-          stroke="#E91E63" // dark progress
+          stroke="#E91E63"
           fill="none"
           cx={35}
           cy={35}
@@ -33,8 +36,18 @@ const ProgressCircle = ({ percentage }: { percentage: number }) => {
           origin="35,35"
         />
       </Svg>
-      <Text style={{ position: 'absolute', fontSize: 12, fontWeight: '700', color: '#E91E63', textAlign: 'center' }}>
-        {percentage}%{"\n"}done
+
+      <Text
+        style={{
+          position: 'absolute',
+          fontSize: 12,
+          fontWeight: '700',
+          color: '#E91E63',
+          textAlign: 'center',
+        }}
+      >
+        {percentage}%{"\n"}
+        {t("progress_done")}
       </Text>
     </View>
   );

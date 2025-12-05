@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { useTranslation } from "react-i18next";
 
 interface JobCardProps {
   title: string;
@@ -11,44 +12,49 @@ interface JobCardProps {
 }
 
 const JobCard: React.FC<JobCardProps> = ({ title, salary, company, location, badges }) => {
+  const { t } = useTranslation();
 
   const renderBadge = (badge: string, index: number) => {
-  let icon = null;
-  let tagStyle = [styles.tag] as any;
-  let textStyle = [styles.tagText] as any;
+    let icon = null;
+    let tagStyle = [styles.tag] as any;
+    let textStyle = [styles.tagText] as any;
 
-  if (badge === "New Job") {
-    tagStyle.push(styles.newTag);
-    textStyle.push({ color: "#7e93ff" });
-  }
+    const translatedBadge = t(
+      badge === "New Job" ? "card_new_job" :
+      badge === "Verified" ? "card_verified" :
+      badge === "Urgent Hiring" ? "card_urgent_hiring" : badge
+    );
 
-  if (badge === "Verified") {
-    icon = <Ionicons name="checkmark-done-circle" size={13} color="#007BFF" />;
-    tagStyle.push(styles.verifiedTag);
-    textStyle.push({ color: "#000" });
-  }
+    if (badge === "New Job") {
+      tagStyle.push(styles.newTag);
+      textStyle.push({ color: "#7e93ff" });
+    }
 
-  if (badge === "Urgent Hiring") {
-    icon = <Ionicons name="time-outline" size={13} color="#dc935e" />;
-    tagStyle.push(styles.urgentTag);
-    textStyle.push({ color: "#dc935e" });
-  }
+    if (badge === "Verified") {
+      icon = <Ionicons name="checkmark-done-circle" size={13} color="#007BFF" />;
+      tagStyle.push(styles.verifiedTag);
+      textStyle.push({ color: "#000" });
+    }
 
-  return (
-    <View key={index} style={tagStyle}>
-      {icon}
-      <Text style={textStyle}>{badge}</Text>
-    </View>
-  );
-};
+    if (badge === "Urgent Hiring") {
+      icon = <Ionicons name="time-outline" size={13} color="#dc935e" />;
+      tagStyle.push(styles.urgentTag);
+      textStyle.push({ color: "#dc935e" });
+    }
 
+    return (
+      <View key={index} style={tagStyle}>
+        {icon}
+        <Text style={textStyle}>{translatedBadge}</Text>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.card}>
-
-      {/* Badge */}
+      {/* Best Job Tag */}
       <View style={styles.bestBadge}>
-        <Text style={styles.bestBadgeText}>⭐ BEST JOB FOR YOU</Text>
+        <Text style={styles.bestBadgeText}>{t("card_best_job")}</Text>
       </View>
 
       <Text style={styles.jobTitle}>{title}</Text>
@@ -64,32 +70,34 @@ const JobCard: React.FC<JobCardProps> = ({ title, salary, company, location, bad
         <Text style={styles.location}>{location}</Text>
       </View>
 
-      {/* Badge Section */}
+      {/* Badge Row */}
       <View style={styles.tagContainer}>{badges.map(renderBadge)}</View>
 
-      {/* Divider */}
       <View style={styles.divider} />
     </View>
   );
 };
 
 const JobSuggestionSection = () => {
-  const jobs = [
-    {
-      title: "Email & Chat Support Executive",
-      salary: "₹ 16,000 - 25,000 / Month",
-      company: "Rudraksh-omies",
-      location: "Hazratganj, Lucknow (within 7 KM)",
-      badges: ["New Job", "Verified", "Urgent Hiring"],
-    },
-    {
-      title: "Customer Relationship Manager",
-      salary: "₹ 20,000 - 30,000 / Month",
-      company: "Moris Tech Pvt Ltd",
-      location: "Gomti Nagar, Lucknow (within 5 KM)",
-      badges: ["Verified", "Urgent Hiring"],
-    },
-  ];
+ const { t } = useTranslation();
+
+const jobs = [
+  
+  {
+    title: t("job1_title"),
+    salary: t("job1_salary"),
+    company: "Rudrab—emis",
+    location: t("job1_location"),
+    badges: ["New Job", "Verified", "Urgent Hiring"],
+  },
+  {
+    title: t("job2_title"),
+    salary: t("job2_salary"),
+    company: "Samruddhy Bmart Entertainment Pvt. Ltd",
+    location: t("job2_location"),
+    badges: ["Verified", "Urgent Hiring"],
+  },
+];
 
   return (
     <View style={styles.section}>
@@ -103,7 +111,6 @@ const JobSuggestionSection = () => {
 };
 
 export default JobSuggestionSection;
-
 
 const styles = StyleSheet.create({
   section: {
@@ -142,7 +149,6 @@ const styles = StyleSheet.create({
   },
 
   bestBadgeText: {
-    // color: "#b87025",
     fontSize: 10,
     fontWeight: "700",
   },

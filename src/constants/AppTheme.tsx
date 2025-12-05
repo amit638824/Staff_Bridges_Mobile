@@ -23,7 +23,7 @@ export const AppTheme = {
       alignItems: 'center',
       justifyContent: 'space-between',
       borderBottomWidth: 1,
-      borderBottomColor: AppColors.border,
+      borderBottomColor: AppColors.themeBorder,
     },
 
     appBarTitle: {
@@ -35,7 +35,7 @@ export const AppTheme = {
     // ✏️ Input field styles
     input: {
       backgroundColor: AppColors.white,
-      borderColor: AppColors.border,
+      borderColor: AppColors.themeBorder,
       borderWidth: 1,
       borderRadius: 10,
       paddingVertical: 14,
@@ -63,7 +63,7 @@ export const AppTheme = {
       width: 20,
       height: 20,
       borderRadius: 4,
-      borderColor: AppColors.border,
+      borderColor: AppColors.themeBorder,
       borderWidth: 1,
       backgroundColor: AppColors.success,
       justifyContent: 'center',

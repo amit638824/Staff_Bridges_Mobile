@@ -10,6 +10,7 @@ import {
 import Icon from "react-native-vector-icons/MaterialIcons";
 import AppHeader from "../components/AppHeader";
 import { AppColors } from "../constants/AppColors";
+import { useTranslation } from 'react-i18next';
 
 interface NotificationItem {
   id: string;
@@ -24,63 +25,61 @@ interface NotificationItem {
 }
 
 const NotificationsScreen: React.FC = () => {
+  const { t } = useTranslation();
+  
   const handleBack = () => console.log("Back pressed");
   const handleViewJob = (id: string) => console.log("View Job:", id);
 
-  /** ORDER EXACTLY LIKE THE REFERENCE IMAGE */
   const notifications: NotificationItem[] = [
     {
       id: "1",
       type: "job",
-      title: "Delivery",
+      title: t('notif_job_delivery'),
       salary: "₹ 8,000 – 15,500 /Month",
       company: "Rudrab—emis",
-      location: "Hazratganj, Lucknow (within 7 KM)",
-      timeAgo: "2 hours ago",
+      location:  t("job1_location"),
+      timeAgo: t('notif_time_2hours'),
       isNew: true,
-      badge: "New Job",
+      badge: t('notif_badge_new_job'),
     },
     {
       id: "2",
       type: "job",
-      title: "Delivery",
+      title: t('notif_job_delivery'),
       salary: "₹ 25,000 – 30,500 /Month",
       company: "Jobilito Manpower Private Limited",
-      location: "Indira Nagar, Lucknow (within 7 KM)",
-      timeAgo: "2 hours ago",
+      location:  t("job2_location"),
+      timeAgo: t('notif_time_2hours'),
       isNew: true,
-      badge: "New Job",
+      badge: t('notif_badge_new_job'),
     },
     {
       id: "3",
       type: "job",
-      title: "Customer Support / Telecaller",
+      title: t('notif_job_customer_support'),
       salary: "₹ 10,000 – 30,000 /Month",
       company: "Samruddhy Bmart Entertainment Pvt. Ltd",
-      location: "Aliganj, Lucknow (within 7 KM)",
-      timeAgo: "a day ago",
+      location:  t("job1_location"),
+      timeAgo: t('notif_time_1day'),
       isNew: false,
     },
     {
       id: "4",
       type: "profile",
-      title: "Update your profile through chat to unlock your dream job faster!",
-      timeAgo: "10+ days ago",
+      title: t('notif_profile_update'),
+      timeAgo: t('notif_time_10days'),
     },
     {
       id: "5",
       type: "logoTip",
-      title: "Check this section daily for new updates to find a job faster",
-      timeAgo: "10+ days ago",
+      title: t('notif_logo_tip'),
+      timeAgo: t('notif_time_10days'),
     },
   ];
 
   const todayNotifications = notifications.slice(0, 2);
   const oldNotifications = notifications.slice(2);
 
-  // -------------------------------------
-  // LOGO TIP CARD
-  // -------------------------------------
   const renderLogoTipNotification = (item: NotificationItem, index: number, isOld: boolean) => (
     <View key={item.id} style={[
       styles.notificationCard,
@@ -106,19 +105,14 @@ const NotificationsScreen: React.FC = () => {
     </View>
   );
 
-  // -------------------------------------
-  // JOB CARD
-  // -------------------------------------
   const renderJobNotification = (item: NotificationItem, index: number, isOld: boolean) => {
     let cardBg = styles.whiteCardBg;
     
     if (!isOld) {
-      // Today section: first white, second light blue
       if (index === 1) {
         cardBg = styles.lightBlueBg;
       }
     } else {
-      // Old section: first and second light blue
       if (index === 0 || index === 1) {
         cardBg = styles.lightBlueBg;
       } else {
@@ -164,7 +158,7 @@ const NotificationsScreen: React.FC = () => {
                 style={styles.viewJobButton}
                 onPress={() => handleViewJob(item.id)}
               >
-                <Text style={styles.viewJobText}>View Job</Text>
+                <Text style={styles.viewJobText}>{t('notif_view_job_button')}</Text>
               </TouchableOpacity>
 
               <Text style={styles.timeText}>{item.timeAgo}</Text>
@@ -175,9 +169,6 @@ const NotificationsScreen: React.FC = () => {
     );
   };
 
-  // -------------------------------------
-  // PROFILE UPDATE CARD
-  // -------------------------------------
   const renderProfileNotification = (item: NotificationItem, index: number) => (
     <View key={item.id} style={[styles.notificationCard, styles.lightBlueBg]}>
       <View style={styles.cardHeader}>
@@ -191,7 +182,7 @@ const NotificationsScreen: React.FC = () => {
           <View style={styles.cardFooter}>
             <TouchableOpacity style={styles.updateButton}>
               <Icon name="add" size={14} color={AppColors.themeColor} />
-              <Text style={styles.updateButtonText}>Update profile now</Text>
+              <Text style={styles.updateButtonText}>{t('notif_update_profile_button')}</Text>
             </TouchableOpacity>
 
             <Text style={styles.timeText}>{item.timeAgo}</Text>
@@ -201,9 +192,6 @@ const NotificationsScreen: React.FC = () => {
     </View>
   );
 
-  // -------------------------------------
-  // RENDER
-  // -------------------------------------
   return (
     <View style={styles.container}>
       <AppHeader
@@ -215,7 +203,7 @@ const NotificationsScreen: React.FC = () => {
         onBackPressed={handleBack}
         customLeftWidget={
           <View style={styles.headerLeft}>
-            <Text style={styles.headerTitle}>Notifications</Text>
+            <Text style={styles.headerTitle}>{t('notif_header_title')}</Text>
           </View>
         }
       />
@@ -223,14 +211,14 @@ const NotificationsScreen: React.FC = () => {
       <View style={styles.divider} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.sectionHeader}>Today</Text>
+        <Text style={styles.sectionHeader}>{t('notif_section_today')}</Text>
         {todayNotifications.map((item, index) =>
           item.type === "job"
             ? renderJobNotification(item, index, false)
             : renderProfileNotification(item, index)
         )}
 
-        <Text style={styles.sectionHeader}>Old</Text>
+        <Text style={styles.sectionHeader}>{t('notif_section_old')}</Text>
         {oldNotifications.map((item, index) =>
           item.type === "job"
             ? renderJobNotification(item, index, true)

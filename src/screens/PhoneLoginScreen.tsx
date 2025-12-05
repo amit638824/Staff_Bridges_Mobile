@@ -1,3 +1,4 @@
+// src/screens/PhoneLoginScreen.tsx
 import React, { useState, useRef } from 'react';
 import {
   View,
@@ -5,10 +6,7 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
-  Modal,
-  FlatList,
   TextInput,
-  Button,
   SafeAreaView,
   ScrollView,
   ActivityIndicator,
@@ -18,12 +16,16 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import CheckBox from '@react-native-community/checkbox';
-import axios from 'axios';
 import RBSheet from 'react-native-raw-bottom-sheet';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../redux/store';
+import { sendOtp, loginWithOtp, setMobile, clearError } from '../redux/slices/authSlice';
+import { setUserProfile } from '../redux/slices/userSlice';
 import { AppColors } from '../constants/AppColors';
-import  Ionicons  from 'react-native-vector-icons/Ionicons';
-import App from '../../App';
-import { PLACEHOLDER_ELEMENT } from './../../node_modules/css-select/lib/esm/pseudo-selectors/subselects';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n/i18n';
+import LanguageSelectorBottomSheet from '../components/LanguageSelectorBottomSheet';
 
 type Language = {
   code: string;
@@ -37,64 +39,101 @@ const languages: Language[] = [
 
 const PhoneLoginScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();
+  const dispatch = useDispatch<AppDispatch>();
   const refRBSheet = useRef<any>(null);
-  const [phone, setPhone] = useState('');
+
+  // ✅ Redux selectors
+  const { mobile, sendOtpLoading, loginLoading, error, otpSent, token, newUserFlag } = useSelector(
+    (state: RootState) => state.auth
+  );
+
+  // Local state
   const [isChecked, setIsChecked] = useState(true);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
-  const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState('');
-  const [isOtpLoading, setIsOtpLoading] = useState(false);
 
-  const changeLanguage = (code: string) => {
+  const changeLanguage = async (code: string) => {
     setSelectedLanguage(code);
+    await i18n.changeLanguage(code);
     setLanguageModalVisible(false);
   };
 
+  // Step 1: Handle Send OTP
   const handleSendOtp = async () => {
-    if (!phone || phone.length !== 10) {
-      Alert.alert('Invalid Phone', 'Please enter a valid 10-digit phone number.');
+    // Clear previous errors
+    dispatch(clearError());
+
+    // Validation
+    if (!mobile || mobile.length !== 10) {
+      Alert.alert(t('invalidPhone'), t('invalidPhoneMessage'));
       return;
     }
+
     if (!isChecked) {
-      Alert.alert('Terms Required', 'You must agree to the terms before proceeding.');
+      Alert.alert(t('termsRequired'), t('termsRequiredMessage'));
       return;
     }
 
-    setLoading(true);
-    try {
-      const response = await axios.post('https://app.elderlycare.life/api/api/v1/login_phone', {
-        phone,
-      });
+    // Send OTP
+    const result = await dispatch(sendOtp(mobile));
 
-      if (response.data.status === true) {
-        Alert.alert('OTP Sent', 'Please check your phone for the OTP.');
-        refRBSheet.current?.open();
-      } else {
-        Alert.alert('Failed', response.data.message || 'Failed to send OTP.');
-      }
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'Something went wrong. Please try again later.');
-    } finally {
-      setLoading(false);
+    if (sendOtp.fulfilled.match(result)) {
+      Alert.alert(t('otpSent'), t('otpSentCheck'));
+      // Open OTP modal
+      refRBSheet.current?.open();
+    } else {
+      Alert.alert(t('failed'), error || t('failedSendOtp'));
     }
   };
 
-  const handleVerifyOtp = async () => {
+  // Step 2: Handle Login/Register with OTP
+  const handleLoginWithOtp = async () => {
+    dispatch(clearError());
+
+    // Validation
     if (!otp || otp.length < 4) {
-      Alert.alert('Invalid OTP', 'Please enter the correct OTP.');
+      Alert.alert(t('invalidOtp'), t('invalidOtpMessage'));
       return;
     }
 
-    setIsOtpLoading(true);
-    // Simulate verification
-    setTimeout(() => {
-      setIsOtpLoading(false);
+    // Login with OTP (auto-registers if new user)
+    const result = await dispatch(loginWithOtp({ mobile, otp }));
+
+    if (loginWithOtp.fulfilled.match(result)) {
+      setOtp('');
       refRBSheet.current?.close();
-      Alert.alert('Login Successful', 'Welcome!');
-      navigation.replace('AboutYourselfScreen');
-    }, 1500);
+      
+      Alert.alert(t('loginSuccessful'), t('welcome'));
+
+      // ✅ Extract user data from response
+      const userData = result.payload?.data?.user;
+
+      console.log('🔍 Login successful, userData:', userData);
+
+      // ✅ Save user profile to Redux (userSlice)
+    if (userData) {
+        console.log('📝 Dispatching setUserProfile with:', userData);
+        dispatch(setUserProfile(userData));
+      }
+
+      // ✅ Check if user_fullName is null/empty - if so, they are a new user
+      const isNewUser = !userData?.user_fullName || userData.user_fullName === null || userData.user_fullName === '';
+      
+      console.log('📝 user_fullName:', userData?.user_fullName);
+      console.log('📝 isNewUser:', isNewUser);
+
+      if (isNewUser) {
+        console.log('👤 New user detected (no user_fullName), navigating to AboutYourselfScreen');
+        navigation.replace('AboutYourselfScreen');
+      } else {
+        console.log('👤 Existing user detected (has user_fullName), navigating to HomeScreen');
+        navigation.replace('HomeScreen');
+      }
+    } else {
+      Alert.alert(t('failed'), error || t('failedLogin'));
+    }
   };
 
   return (
@@ -105,29 +144,26 @@ const PhoneLoginScreen: React.FC = () => {
       ]}
     >
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
-<ScrollView contentContainerStyle={{}}>
+      <ScrollView contentContainerStyle={{}}>
         {/* Logo + Language Selector */}
-         <View style={styles.pagePadding}>
-    <View style={styles.logoRow}>
-          <Image
-            source={require('../../assets/images/staff_bridges_logo.png')}
-            style={styles.logo}
-          />
-         <TouchableOpacity
-  style={styles.languageSelector}
-  onPress={() => setLanguageModalVisible(true)}
->
-  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-    <Text style={{ marginRight: 6 ,paddingHorizontal:4}}>
-      {selectedLanguage === 'hi' ? 'हिंदी' : 'English'}
-    </Text>
-
-    {/* Chevron Down Icon */}
-    <Ionicons name="chevron-down" size={18} color={AppColors.themeColor} />
-  </View>
-</TouchableOpacity>
-
-        </View>
+        <View style={styles.pagePadding}>
+          <View style={styles.logoRow}>
+            <Image
+              source={require('../../assets/images/staff_bridges_logo.png')}
+              style={styles.logo}
+            />
+            <TouchableOpacity
+              style={styles.languageSelector}
+              onPress={() => setLanguageModalVisible(true)}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{ marginRight: 6, paddingHorizontal: 4 }}>
+                  {i18n.language === 'hi' ? 'हिंदी' : 'English'}
+                </Text>
+                <Ionicons name="chevron-down" size={18} color={AppColors.themeColor} />
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Banner */}
@@ -136,133 +172,76 @@ const PhoneLoginScreen: React.FC = () => {
           style={styles.banner}
           resizeMode="cover"
         />
-  <View style={styles.pagePadding}>
-  
-        {/* Phone Input */}
-        <View style={styles.phoneForm}>
-          <Text style={styles.phoneLabel}>Let's start with your phone number</Text>
-          <View style={styles.phoneInputContainer}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-  <Text style={styles.countryCode}>+91</Text>
 
-  {/* Vertical Divider */}
-  <View
-    style={{
-      width: 1,
-      height: 20,
-      backgroundColor: '#ccc',
-      marginHorizontal: 8,
-    }}
-  />
-</View>
+        <View style={styles.pagePadding}>
+          {/* Phone Input Form */}
+          <View style={styles.phoneForm}>
+            <Text style={styles.phoneLabel}>{t('phoneTitle')}</Text>
+            <View style={styles.phoneInputContainer}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.countryCode}>+91</Text>
+                <View
+                  style={{
+                    width: 1,
+                    height: 20,
+                    backgroundColor: '#ccc',
+                    marginHorizontal: 8,
+                  }}
+                />
+              </View>
+              <TextInput
+                style={styles.phoneInput}
+                placeholder={t('enterPhone')}
+                placeholderTextColor={AppColors.lightText}
+                keyboardType="phone-pad"
+                maxLength={10}
+                value={mobile}
+                onChangeText={(text) => dispatch(setMobile(text))}
+                editable={!otpSent}
+              />
+            </View>
 
-            <TextInput
-              style={styles.phoneInput}
-              placeholder="Enter mobile number to get OTP"
-              placeholderTextColor={AppColors.lightText}
-              keyboardType="phone-pad"
-              maxLength={10}
-              value={phone}
-              onChangeText={setPhone}
-            />
-          </View>
-          <TouchableOpacity
-            style={styles.sendOtpButton}
-            onPress={handleSendOtp}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.sendOtpText}>Send OTP</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {/* Terms & Conditions */}
-        <View style={styles.termsRow}>
-<CheckBox
-  value={isChecked}
-  onValueChange={setIsChecked}
-  tintColors={{ true: AppColors.themeColor, false: '#999' }}
-/>
-          <Text style={styles.termsText}>
-            By clicking agree, you accept our
-            {/* <Text style={styles.linkText}> Terms of Service</Text> and
-            <Text style={styles.linkText}> Privacy Policy</Text>. */}
-              <Text style={styles.termsText}> Terms of Service</Text> and
-            <Text style={styles.termsText}> Privacy Policy</Text>.
-          </Text>
-        </View>
-
-      {/* Language Modal */}
-<Modal
-  animationType="slide"
-  transparent={true}
-  visible={languageModalVisible}
-  onRequestClose={() => setLanguageModalVisible(false)}
->
-  <View style={styles.modalBackground}>
-    <View style={styles.modalContainer}>
-      
-      {/* Header Row with Title + Cross */}
-      <View style={styles.modalHeader}>
-        <Text style={styles.modalTitle}>Choose Language</Text>
-        <TouchableOpacity onPress={() => setLanguageModalVisible(false)}>
-          <Ionicons name="close" size={15} color="#444444ff" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Divider Line */}
-      <View style={styles.divider} />
-
-      {/* Language List */}
-      <FlatList
-        data={languages}
-        keyExtractor={(item) => item.code}
-        renderItem={({ item }) => {
-          const selected = selectedLanguage === item.code;
-          return (
+            {/* Send OTP Button */}
             <TouchableOpacity
               style={[
-                styles.languageCard,
-                selected && styles.languageCardSelected,
+                styles.sendOtpButton,
+                otpSent && { backgroundColor: '#ccc' },
               ]}
-              onPress={() => changeLanguage(item.code)}
+              onPress={handleSendOtp}
+              disabled={sendOtpLoading || otpSent}
             >
-              <Text style={styles.languageLabel}>{item.label}</Text>
-           <View
-  style={[
-    styles.radioOuter,
-    selected && styles.radioOuterSelected,
-  ]}
->
-  {selected && <View style={styles.radioInner} />}
-</View>
-
+              {sendOtpLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : otpSent ? (
+                <Text style={styles.sendOtpText}>{t('otpSent')}</Text>
+              ) : (
+                <Text style={styles.sendOtpText}>{t('sendOtp')}</Text>
+              )}
             </TouchableOpacity>
-          );
-        }}
-      />
+          </View>
 
-      {/* Next Button styled like Send OTP */}
-      <TouchableOpacity
-        style={styles.sendOtpButton}
-        onPress={() => setLanguageModalVisible(false)}
-      >
-        <Text style={styles.sendOtpText}>Next</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</Modal>
+          {/* Terms & Conditions */}
+          <View style={styles.termsRow}>
+            <CheckBox
+              value={isChecked}
+              onValueChange={setIsChecked}
+              tintColors={{ true: AppColors.themeColor, false: '#999' }}
+            />
+            <Text style={styles.termsText}>{t('agreeTerms')}</Text>
+          </View>
 
-  </View>
+          {/* Language Modal */}
+          <LanguageSelectorBottomSheet
+            visible={languageModalVisible}
+            onClose={() => setLanguageModalVisible(false)}
+          />
+        </View>
       </ScrollView>
 
-      {/* OTP Bottom Sheet */}
+      {/* OTP Verification Bottom Sheet */}
       <RBSheet
         ref={refRBSheet}
-        height={300}
+        height={320}
         openDuration={250}
         draggable
         customStyles={{
@@ -271,31 +250,39 @@ const PhoneLoginScreen: React.FC = () => {
           container: { borderTopLeftRadius: 20, borderTopRightRadius: 20 },
         }}
       >
-        <Text style={styles.otpTitle}>Enter OTP</Text>
-        
-        <Text style={styles.otpSubtitle}>
-          We have sent an OTP to +91 {phone}
-        </Text>
-        <TextInput
-          style={styles.otpInput}
-          placeholder="Enter 6-digit OTP"
-          placeholderTextColor={AppColors.lightText}
-          keyboardType="number-pad"
-          maxLength={6}
-          value={otp}
-          onChangeText={setOtp}
-        />
-        <TouchableOpacity
-          style={styles.verifyOtpButton}
-          onPress={handleVerifyOtp}
-          disabled={isOtpLoading}
-        >
-          {isOtpLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.verifyOtpText}>Verify & Continue</Text>
-          )}
-        </TouchableOpacity>
+        <View style={styles.otpBottomSheet}>
+          <Text style={styles.otpTitle}>{t('enterOtp')}</Text>
+          <Text style={styles.otpSubtitle}>
+            {t('otpSentMessage', { phone: mobile })}
+          </Text>
+
+          {/* OTP Input */}
+          <TextInput
+            style={styles.otpInput}
+            placeholder={t('enterOtpPlaceholder')}
+            placeholderTextColor={AppColors.lightText}
+            keyboardType="number-pad"
+            maxLength={6}
+            value={otp}
+            onChangeText={setOtp}
+          />
+
+          {/* Error Message */}
+          {error && <Text style={styles.errorText}>{error}</Text>}
+
+          {/* Verify Button */}
+          <TouchableOpacity
+            style={styles.verifyOtpButton}
+            onPress={handleLoginWithOtp}
+            disabled={loginLoading}
+          >
+            {loginLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.verifyOtpText}>{t('verifyContinue')}</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </RBSheet>
     </SafeAreaView>
   );
@@ -305,12 +292,15 @@ export default PhoneLoginScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  scrollContainer: {  },
   pagePadding: {
-  padding: 16,
-},
-
-  logoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',marginBottom: 16 },
+    padding: 16,
+  },
+  logoRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 16 
+  },
   logo: { height: 60, width: 120, resizeMode: 'contain' },
   languageSelector: {
     paddingHorizontal: 10,
@@ -332,8 +322,13 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     marginBottom: 16,
   },
-  countryCode: { fontSize: 16, fontWeight: '600', marginRight: 8,color:AppColors.lightText },
-  phoneInput: { flex: 1, fontSize: 16 ,padding:4},
+  countryCode: { 
+    fontSize: 16, 
+    fontWeight: '600', 
+    marginRight: 8, 
+    color: AppColors.lightText 
+  },
+  phoneInput: { flex: 1, fontSize: 16, padding: 4 },
   sendOtpButton: {
     backgroundColor: AppColors.themeColor,
     borderRadius: 40,
@@ -345,31 +340,21 @@ const styles = StyleSheet.create({
   sendOtpText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   termsRow: { flexDirection: 'row', alignItems: 'center', marginTop: 16 },
   termsText: { flex: 1, marginLeft: 8, fontSize: 13, color: '#555' },
-  linkText: { color: AppColors.themeColor, textDecorationLine: 'underline' },
-  modalBackground: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'flex-end' },
-  modalContainer: {
-    backgroundColor: '#fff',
-    borderTopRightRadius: 20,
-    borderTopLeftRadius: 20,
-    padding: 16,
-    maxHeight: '50%',
+  otpBottomSheet: {
+    padding: 20,
   },
-  modalTitle: { fontSize: 16, fontWeight: '600', marginBottom: 12 },
-  languageCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 15,
-    borderWidth: 1,
-    borderColor:AppColors.themeColor,
-    backgroundColor:AppColors.themeColorLight,
-    borderRadius: 10,
-    marginBottom: 20,
+  otpTitle: { 
+    fontSize: 18, 
+    fontWeight: '700', 
+    textAlign: 'center', 
+    marginBottom: 8 
   },
-  languageCardSelected: { backgroundColor: AppColors.themeColorLight },
-  languageLabel: { fontSize: 15, fontWeight: '500' },
-  selectedDot: { width: 16, height: 16, borderRadius: 16, backgroundColor: AppColors.themeColor, },
-  otpTitle: { fontSize: 18, fontWeight: '700', textAlign: 'center', marginBottom: 8 },
-  otpSubtitle: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 },
+  otpSubtitle: { 
+    fontSize: 14, 
+    color: '#666', 
+    textAlign: 'center', 
+    marginBottom: 20 
+  },
   otpInput: {
     borderWidth: 1,
     borderColor: '#DDD',
@@ -378,8 +363,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 18,
     letterSpacing: 6,
-    marginBottom: 20,
-    marginHorizontal: 16,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    textAlign: 'center',
+    marginBottom: 10,
   },
   verifyOtpButton: {
     backgroundColor: AppColors.themeColor,
@@ -387,41 +377,16 @@ const styles = StyleSheet.create({
     height: 48,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 16,
+    marginBottom: 12,
   },
   verifyOtpText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  modalHeader: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: 8,
-},
-
-divider: {
-  height: 1,
-  backgroundColor: '#ccc',
-  marginBottom: 30,
-  width: '100%',
-},
-radioOuter: {
-  width: 18,
-  height: 18,
-  borderRadius: 18,
-  borderWidth: 2,
-  borderColor: AppColors.themeColor,
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-
-radioOuterSelected: {
-  borderColor: AppColors.themeColor,
-},
-
-radioInner: {
-  width: 10,
-  height: 10,
-  borderRadius: 10,
-  backgroundColor: AppColors.themeColor,
-},
-
+  resendContainer: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  resendText: {
+    color: AppColors.themeColor,
+    fontSize: 14,
+    fontWeight: '500',
+  },
 });

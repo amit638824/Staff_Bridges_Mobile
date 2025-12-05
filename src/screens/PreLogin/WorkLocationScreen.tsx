@@ -15,59 +15,56 @@ import {
 } from "react-native";
 
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { useTranslation } from "react-i18next";
 import { AppColors } from "../../constants/AppColors";
-
-// ⭐ Add Navigation Imports
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../../App";
 
-const cities = ["Lucknow", "Delhi", "Pune", "Hyderabad", "Mumbai"];
+const citiesKeys = ["lucknow", "delhi", "pune", "hyderabad", "mumbai"];
 
 const localitiesData = [
-  "Adil Nagar",
-  "Amar Shaheed Path Lucknow",
-  "Arjunganj",
-  "Cantonment",
-  "Faizullaganj",
-  "Kursi Road",
-  "Safedabad",
-  "Samesee",
-  "Sisana",
-  "Sultanpur Road",
-  "Aishbagh",
-  "Aminabad",
-  "Bakshi Ka Talab",
-  "Deva Road",
-  "Faizabad Road",
-  "Gomti Nagar",
+  "adilNagar",
+  "amarShaheedPath",
+  "arjunganj",
+  "cantonment",
+  "faizullaganj",
+  "kursiRoad",
+  "safedabad",
+  "samesee",
+  "sisana",
+  "sultanpurRoad",
+  "aishbagh",
+  "aminabad",
+  "bakshiKaTalab",
+  "devaRoad",
+  "faizabadRoad",
+  "gomtiNagar",
 ];
 
 export default function WorkLocationScreen() {
-  // ⭐ Get navigation instance
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { t } = useTranslation();
 
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedLocality, setSelectedLocality] = useState("");
-
   const [showCityModal, setShowCityModal] = useState(false);
   const [showLocalityModal, setShowLocalityModal] = useState(false);
-
   const [searchText, setSearchText] = useState("");
 
   const filteredLocalities = localitiesData.filter((item) =>
-    item.toLowerCase().includes(searchText.toLowerCase())
+    t(item).toLowerCase().includes(searchText.toLowerCase())
   );
 
   return (
     <SafeAreaView style={[styles.safeArea, { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }]}>
-      {/* Keep StatusBar translucent like your other screens */}
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         {/* Progress Bar */}
-<View style={styles.progressContainer}>
-  <View style={styles.progressFill} />
-</View>
+        <View style={styles.progressContainer}>
+          <View style={styles.progressFill} />
+        </View>
+
         <View style={styles.imageContainer}>
           <Image
             source={require("../../../assets/images/your-location.png")}
@@ -75,27 +72,26 @@ export default function WorkLocationScreen() {
           />
         </View>
 
-        <Text style={styles.title}>Tell us your work Location</Text>
+        <Text style={styles.title}>{t("tellWorkLocation")}</Text>
 
-        <Text style={styles.label}>Preferred City</Text>
+        <Text style={styles.label}>{t("preferredCity")}</Text>
         <TouchableOpacity style={styles.dropdown} onPress={() => setShowCityModal(true)}>
-          <Text style={styles.dropdownText}>{selectedCity || "Choose City"}</Text>
+          <Text style={styles.dropdownText}>{selectedCity ? t(selectedCity) : t("chooseCity")}</Text>
           <Icon name="keyboard-arrow-down" size={22} />
         </TouchableOpacity>
 
-        <Text style={styles.label}>Preferred Locality</Text>
+        <Text style={styles.label}>{t("preferredLocality")}</Text>
         <TouchableOpacity
           disabled={!selectedCity}
           style={[styles.dropdown, { opacity: selectedCity ? 1 : 0.4 }]}
           onPress={() => setShowLocalityModal(true)}
         >
           <Text style={styles.dropdownText}>
-            {selectedLocality || "Choose Locality"}
+            {selectedLocality ? t(selectedLocality) : t("chooseLocality")}
           </Text>
           <Icon name="keyboard-arrow-down" size={22} />
         </TouchableOpacity>
 
-        {/* ⭐ Next Button Navigation Fix */}
         <TouchableOpacity
           disabled={!selectedCity || !selectedLocality}
           style={[
@@ -104,18 +100,20 @@ export default function WorkLocationScreen() {
           ]}
           onPress={() => navigation.navigate("JobRoleScreen")}
         >
-          <Text style={styles.btnText}>Next</Text>
+          <Text style={styles.btnText}>{t("next")}</Text>
         </TouchableOpacity>
       </ScrollView>
 
-      {/* -------- LOCALITY BOTTOM SHEET -------- */}
+      {/* LOCALITY BOTTOM SHEET */}
       <Modal visible={showLocalityModal} transparent animationType="slide">
         <View style={styles.bottomSheetOverlay}>
           <View style={styles.bottomSheet}>
             <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>
-                Choose your locality in {selectedCity}
-              </Text>
+         <Text style={styles.sheetTitle}>
+  {selectedCity ? t("chooseLocalityWithCity", { city: t(selectedCity) }) : t("chooseYourLocality")}
+</Text>
+
+
               <TouchableOpacity onPress={() => setShowLocalityModal(false)}>
                 <Icon name="close" size={26} />
               </TouchableOpacity>
@@ -124,7 +122,7 @@ export default function WorkLocationScreen() {
             <View style={styles.divider}></View>
 
             <TextInput
-              placeholder="Type your Locality"
+              placeholder={t("typeLocality")}
               placeholderTextColor="#7c7878ff"
               style={styles.searchBar}
               value={searchText}
@@ -143,9 +141,10 @@ export default function WorkLocationScreen() {
                   onPress={() => {
                     setSelectedLocality(item);
                     setShowLocalityModal(false);
+                    setSearchText("");
                   }}
                 >
-                  <Text style={styles.listItemText}>{item}</Text>
+                  <Text style={styles.listItemText}>{t(item)}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -153,19 +152,19 @@ export default function WorkLocationScreen() {
         </View>
       </Modal>
 
-      {/* -------- CITY BOTTOM SHEET -------- */}
+      {/* CITY BOTTOM SHEET */}
       <Modal visible={showCityModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <View style={styles.sheetHeader}>
-              <Text style={styles.modalTitle}>Choose City</Text>
+              <Text style={styles.modalTitle}>{t("chooseCity")}</Text>
               <TouchableOpacity onPress={() => setShowCityModal(false)}>
                 <Icon name="close" size={26} />
               </TouchableOpacity>
             </View>
 
             <FlatList
-              data={cities}
+              data={citiesKeys}
               keyExtractor={(item) => item}
               renderItem={({ item, index }) => (
                 <TouchableOpacity
@@ -179,7 +178,7 @@ export default function WorkLocationScreen() {
                     setShowCityModal(false);
                   }}
                 >
-                  <Text style={styles.cityText}>{item}</Text>
+                  <Text style={styles.cityText}>{t(item)}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -193,20 +192,19 @@ export default function WorkLocationScreen() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#fff" },
   scrollContent: { padding: 20, paddingBottom: 30 },
-progressContainer: {
-  height: 10,
-  width: "100%",
-  backgroundColor: "#cacaca",
-  borderRadius: 5,
-  marginBottom: 20,
-},
-
-progressFill: {
-  height: "100%",
-  width: "20%",  // progress percentage
-  backgroundColor: AppColors.buttons,
-  borderRadius: 5,
-},
+  progressContainer: {
+    height: 10,
+    width: "100%",
+    backgroundColor: "#cacaca",
+    borderRadius: 5,
+    marginBottom: 20,
+  },
+  progressFill: {
+    height: "100%",
+    width: "20%",
+    backgroundColor: AppColors.buttons,
+    borderRadius: 5,
+  },
   imageContainer: { alignItems: "flex-start", marginBottom: 10 },
   icon: { width: 60, height: 60 },
   title: { fontSize: 20, fontWeight: "bold", marginBottom: 25 },

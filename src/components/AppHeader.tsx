@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -11,9 +11,10 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { RootStackParamList } from "../../App";   // 👈 IMPORT YOUR TYPE
+import { RootStackParamList } from "../../App";
 import { AppColors } from "../constants/AppColors";
-
+import { useTranslation } from "react-i18next";
+import LanguageSelectorBottomSheet from "../components/LanguageSelectorBottomSheet"; // ✅ Add this
 
 interface AppHeaderProps {
   location?: string;
@@ -26,12 +27,11 @@ interface AppHeaderProps {
   showNotification?: boolean;
   showLanguage?: boolean;
   showRightSection?: boolean;
-  onNotificationTap?: () => void; // 👈 ADD THIS
+  onNotificationTap?: () => void;
 }
 
-
 const AppHeader: React.FC<AppHeaderProps> = ({
-  location = "Dewa Road",
+  location="location_dewa_road",
   title,
   showLogo = true,
   showLocation = true,
@@ -42,30 +42,25 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   showLanguage = true,
   showRightSection = true,
 }) => {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { t } = useTranslation();
 
-const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const [showLangModal, setShowLangModal] = useState(false);
 
-  const onLanguageChanged = () => {
-    console.log("Language changed");
+  const handleNotificationTap = () => {
+    navigation.navigate("NotificationsScreen");
   };
-
-const handleNotificationTap = () => {
-  navigation.navigate("NotificationsScreen");
-};
 
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          
-          {/* LEFT SECTION */}
+
+          {/* LEFT */}
           <View style={styles.leftSection}>
             {showBackArrow && (
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={onBackPressed}
-              >
+              <TouchableOpacity style={styles.iconButton} onPress={onBackPressed}>
                 <Icon name="arrow-back" size={20} color="#080808ff" />
               </TouchableOpacity>
             )}
@@ -86,43 +81,43 @@ const handleNotificationTap = () => {
                 {showLocation && (
                   <View style={styles.locationContainer}>
                     <Icon name="location-on" size={18} color={AppColors.buttons} />
-                    <Text style={styles.locationText}>{location}</Text>
+<Text style={styles.locationText}>{t(location)}</Text>
                   </View>
                 )}
               </View>
             )}
           </View>
 
-          {/* RIGHT SECTION */}
+          {/* RIGHT */}
           {showRightSection && (
             <View style={styles.rightSection}>
-              
-              {/* NOTIFICATION ICON */}
+
+              {/* NOTIFICATION */}
               {showNotification && (
                 <View style={styles.notificationWrapper}>
                   <TouchableOpacity
                     style={styles.iconButton}
-                    onPress={handleNotificationTap}  // 👈 UPDATED
+                    onPress={handleNotificationTap}
                   >
                     <Icon name="notifications" size={26} color={AppColors.buttons} />
                   </TouchableOpacity>
 
-                  {/* BADGE */}
                   <View style={styles.badge}>
                     <Text style={styles.badgeText}>2</Text>
                   </View>
                 </View>
               )}
 
-              {/* LANGUAGE BUTTON */}
+              {/* LANGUAGE */}
               {showLanguage && (
                 <View style={styles.languageWrapper}>
                   <TouchableOpacity
                     style={styles.iconButton}
-                    onPress={onLanguageChanged}
+                    onPress={() => setShowLangModal(true)}
                   >
-                    <Icon name="translate" size={22} color={AppColors.buttons}/>
+                    <Icon name="translate" size={22} color={AppColors.buttons} />
                   </TouchableOpacity>
+
                   <Icon
                     name="keyboard-arrow-down"
                     size={18}
@@ -131,21 +126,28 @@ const handleNotificationTap = () => {
                   />
                 </View>
               )}
+
             </View>
           )}
         </View>
       </SafeAreaView>
+
+      {/* ✅ REPLACED OLD MODAL WITH COMMON LANGUAGE SELECTOR */}
+      <LanguageSelectorBottomSheet
+        visible={showLangModal}
+        onClose={() => setShowLangModal(false)}
+      />
     </>
   );
 };
 
-
 export default AppHeader;
+
 
 const styles = StyleSheet.create({
   safeArea: {
     backgroundColor: "#fff",
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   container: {
     flexDirection: "row",
@@ -208,5 +210,41 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginRight: 20,
+  },
+
+  /* BOTTOM SHEET */
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContainer: {
+    backgroundColor: "#fff",
+    paddingVertical: 25,
+    paddingHorizontal: 25,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  langHeading: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 15,
+  },
+  langOption: {
+    paddingVertical: 12,
+  },
+  langText: {
+    fontSize: 16,
+  },
+  closeBtn: {
+    marginTop: 15,
+    backgroundColor: "#eee",
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  closeText: {
+    fontSize: 16,
+    fontWeight: "600",
   },
 });

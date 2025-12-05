@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { AppColors } from '../constants/AppColors';
+import { useTranslation } from 'react-i18next';
 
 const { height } = Dimensions.get('window');
 
@@ -28,6 +29,8 @@ const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
   onNotNow,
   onClose,
 }) => {
+  const { t } = useTranslation();
+
   const slideAnim = React.useRef(new Animated.Value(height)).current;
 
   useEffect(() => {
@@ -38,41 +41,54 @@ const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
     }).start();
   }, [visible]);
 
-  const jobsData = [
-    {
-      id: 1,
-      role: 'Delivery Boy',
-      company: 'FLIPWEB NET',
-      location: 'Hazratganj, Lucknow (within 7 Km)',
-      salary: '₹6,000 - 25,000 /Month',
-      experience: '0 - 2 years Experience\nIn Delivery',
-      tags: ['New Job', 'Verified', 'Full Time'],
-      insurance: true,
-      highlights: ['All education levels', 'All genders', '5 days working | Day shift'],
-    },
-    {
-      id: 2,
-      role: 'Digital Marketing Executive',
-      company: 'FUTURE GROWTH',
-      location: 'Gomti Nagar, Lucknow (within 7 Km)',
-      salary: '₹8,000 - 15,500 /Month',
-      experience: '1 - 2 years Experience\nIn Digital Marketing',
-      tags: ['New Job', 'Verified', 'Full Time'],
-      insurance: true,
-      highlights: ['All education levels', 'All genders', '5 days working | Day shift'],
-    },
-    {
-      id: 3,
-      role: 'Recruiter / HR Admin',
-      company: 'EXPERTISE',
-      location: 'Hazratganj, Lucknow (within 7 Km)',
-      salary: '₹7,000 - 23,500 /Month',
-      experience: '1 - 2 years Experience\nIn Recruiter / HR / Admin',
-      tags: ['New Job', 'Verified', 'Full Time'],
-      insurance: true,
-      highlights: ['All education levels', 'All genders', '5 days working | Day shift'],
-    },
-  ];
+ const jobsData = [
+  {
+    id: 1,
+    role: t("job_1_role"),
+    company: "Rudrab—emis",
+    location: t("job_1_location"),
+    salary: t("job_1_salary"),
+    experience: t("job_1_experience"),
+    tags: [t("tag_new_job"), t("tag_verified"), t("tag_full_time")],
+    insurance: true,
+    highlights: [
+      t("job_1_highlight_1"),
+      t("job_1_highlight_2"),
+      t("job_1_highlight_3"),
+    ],
+  },
+  {
+    id: 2,
+    role: t("job_2_role"),
+    company: "Samruddhy Bmart Entertainment Pvt. Ltd",
+    location: t("job_2_location"),
+    salary: t("job_2_salary"),
+    experience: t("job_2_experience"),
+    tags: [t("tag_new_job"), t("tag_verified"), t("tag_full_time")],
+    insurance: true,
+    highlights: [
+      t("job_2_highlight_1"),
+      t("job_2_highlight_2"),
+      t("job_2_highlight_3"),
+    ],
+  },
+  {
+    id: 3,
+    role: t("job_3_role"),
+    company: "Jobilito Manpower Private Limited",
+    location: t("job_3_location"),
+    salary: t("job_3_salary"),
+    experience: t("job_3_experience"),
+    tags: [t("tag_new_job"), t("tag_verified"), t("tag_full_time")],
+    insurance: true,
+    highlights: [
+      t("job_3_highlight_1"),
+      t("job_3_highlight_2"),
+      t("job_3_highlight_3"),
+    ],
+  },
+];
+
 
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
@@ -80,20 +96,14 @@ const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
         <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
 
         <Animated.View style={[styles.modalContainer, { transform: [{ translateY: slideAnim }] }]}>
-          
+
           {/* ------- Header -------- */}
           <View style={styles.headerRow}>
             <View style={styles.headerTextContainer}>
-              <Text style={styles.modalTitle}>Start Applying!</Text>
+              <Text style={styles.modalTitle}>{t("modal_start_applying")}</Text>
 
               <View style={styles.headerSubRow}>
-                <Text style={styles.subTitle}>New jobs unlocked!</Text>
-
-                {/* <View style={styles.paginationBox}>
-                  <Text style={styles.paginationText}>
-                    {String(jobsData.length).padStart(2, '0')} Jobs
-                  </Text>
-                </View> */}
+                <Text style={styles.subTitle}>{t("modal_new_jobs_unlocked")}</Text>
               </View>
             </View>
 
@@ -101,7 +111,9 @@ const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
               <Ionicons name="close" size={22} color="#3b3b3b" />
             </TouchableOpacity>
           </View>
-<View style={styles.divider} />
+
+          <View style={styles.divider} />
+
           {/* ------- Job List -------- */}
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
             {jobsData.map((job) => (
@@ -114,8 +126,6 @@ const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
 
                 <Text style={styles.companyName}>{job.company}</Text>
 
-               
-
                 <View style={styles.row}>
                   <Ionicons name="location-outline" size={15} color="#6b6b6b" />
                   <Text style={styles.jobInfo}>{job.location}</Text>
@@ -125,35 +135,36 @@ const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
                   <Ionicons name="cash-outline" size={15} color="#6b6b6b" />
                   <Text style={styles.salary}>{job.salary}</Text>
                 </View>
- <View style={styles.row}>
+
+                <View style={styles.row}>
                   <Ionicons name="briefcase-outline" size={15} color="#6b6b6b" />
                   <Text style={styles.salary}>{job.experience}</Text>
                 </View>
-               <View style={styles.tagRow}>
-  {job.tags.map((tag, i) => (
-    <View key={i} style={styles.tagContainer}>
-      {tag === 'Verified' && (
-        <Ionicons name="checkmark-circle" size={14} color={AppColors.primary} />
-      )}
-      {tag === 'Full Time' && (
-        <Ionicons name="time-outline" size={14} color="#444" />
-      )}
-      <Text style={styles.tag}>{tag}</Text>
-    </View>
-  ))}
-</View>
 
+                <View style={styles.tagRow}>
+                  {job.tags.map((tag, i) => (
+                    <View key={i} style={styles.tagContainer}>
+                      {tag === 'Verified' && (
+                        <Ionicons name="checkmark-circle" size={14} color={AppColors.primary} />
+                      )}
+                      {tag === 'Full Time' && (
+                        <Ionicons name="time-outline" size={14} color="#444" />
+                      )}
+                      <Text style={styles.tag}>{tag}</Text>
+                    </View>
+                  ))}
+                </View>
 
                 <View style={styles.divider} />
 
                 {job.insurance && (
                   <>
-                    <Text style={styles.sectionTitle}>Insurance Provided</Text>
+                    <Text style={styles.sectionTitle}>{t("modal_insurance_provided")}</Text>
                     <View style={styles.divider} />
                   </>
                 )}
 
-                <Text style={styles.sectionTitle}>Job Highlights</Text>
+                <Text style={styles.sectionTitle}>{t("modal_job_highlights")}</Text>
                 {job.highlights.map((highlight, i) => (
                   <Text key={i} style={styles.bullet}>{highlight}</Text>
                 ))}
@@ -167,14 +178,15 @@ const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
           <View style={styles.bottomButtons}>
             <TouchableOpacity style={styles.notNowBtn} onPress={onNotNow}>
               <Ionicons name="close" size={18} color="#777" />
-              <Text style={styles.notNowText}>Not Now</Text>
+              <Text style={styles.notNowText}>{t("modal_not_now")}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.applyBtn} onPress={onApplyNow}>
               <Ionicons name="checkmark" size={18} color="#fff" />
-              <Text style={styles.applyText}>Apply Now</Text>
+              <Text style={styles.applyText}>{t("modal_apply_now")}</Text>
             </TouchableOpacity>
           </View>
+
         </Animated.View>
       </View>
     </Modal>

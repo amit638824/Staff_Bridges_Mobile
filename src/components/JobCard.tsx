@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { useTranslation } from "react-i18next";
 
 interface JobCardProps {
   title: string;
@@ -11,25 +12,40 @@ interface JobCardProps {
 }
 
 const JobCard: React.FC<JobCardProps> = ({ title, salary, company, location, badges }) => {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>{title}</Text>
-     <Text style={styles.salary}>{salary}</Text>
-            <View style={styles.locationRow}>
-                <Ionicons name="briefcase-outline" size={14} color="#777"/>
-  
-        <Text style={styles.company}>{company}</Text>
-  </View>
-        <View style={styles.locationRow}>
-          <Ionicons name="location-outline" size={14} color="#777" />
-          <Text style={styles.location}>{location}</Text>
-        </View>
 
+      {/* Job Title */}
+      <Text style={styles.title}>{title}</Text>
+
+      {/* Salary */}
+      <Text style={styles.salary}>
+        {t("jobCard.salary")}: {salary}
+      </Text>
+
+      {/* Company Row */}
+      <View style={styles.locationRow}>
+        <Ionicons name="briefcase-outline" size={14} color="#777" />
+        <Text style={styles.company}>{company}</Text>
+      </View>
+
+      {/* Location Row */}
+      <View style={styles.locationRow}>
+        <Ionicons name="location-outline" size={14} color="#777" />
+        <Text style={styles.location}>{location}</Text>
+      </View>
+
+      {/* Badges */}
       <View style={styles.badgesContainer}>
         {badges.map((badge, index) => (
-          <Text key={index} style={styles.badge}>{badge}</Text>
+          <Text key={index} style={styles.badge}>
+            {badge}
+          </Text>
         ))}
       </View>
+
     </View>
   );
 };
@@ -44,14 +60,13 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
   },
   title: { fontWeight: "bold", fontSize: 16 },
-  salary: { marginTop: 2 ,marginBottom:10},
-  company: { marginTop: 2,marginLeft: 4, fontSize: 14, color: "#444" },
-   locationRow: {
+  salary: { marginTop: 2, marginBottom: 10 },
+  company: { marginTop: 2, marginLeft: 4, fontSize: 14, color: "#444" },
+  locationRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 10,
   },
-
   location: { marginLeft: 4, fontSize: 14, color: "#444" },
   badgesContainer: { flexDirection: "row", marginTop: 10 },
   badge: {

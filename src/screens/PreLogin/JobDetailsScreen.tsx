@@ -18,6 +18,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppColors } from '../../constants/AppColors';
 import { RootStackParamList } from '../../../App';
 import { useTranslation } from 'react-i18next';
+import * as Yup from 'yup';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobDetailsScreen'>;
 
@@ -61,7 +62,17 @@ interface ChipProps {
   showIcon: boolean;
 }
 
-// Role-specific questions config
+const jobDetailsSchema = Yup.object().shape({
+  experience: Yup.string()
+    .required('jobDetails_validationExperience'),
+
+  multi: Yup.object()
+    .test('multi-selected', (value) => {
+      // Always valid because multi-selection isn't mandatory
+      return true;
+    }),
+});
+
 // Role-specific questions config
 const roleQuestionsConfig: RoleQuestionsConfig = {
   delivery: {
@@ -329,44 +340,57 @@ const JobDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
       return { ...prev, [questionId]: newSet };
     });
   };
-
-  const handleNext = (): void => {
-    if (!selectedExperience) {
-      Alert.alert(t('validationTitle'), t('jobDetails_validationExperience'));
-      return;
-    }
-
-    const updatedAnswers: CompletedRoles = {
-      ...completedRoles,
-      [currentRole.id]: {
-        role: currentRole.title,
-        selectedExperience,
-        selectedMulti,
+const handleNext = async (): Promise<void> => {
+  try {
+    await jobDetailsSchema.validate(
+      {
+        experience: selectedExperience,
+        multi: selectedMulti,
       },
-    };
-
-    if (currentRoleIndex === totalRoles - 1) {
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'HomeScreen',
-            params: { roleAnswers: updatedAnswers, fromJobInfo: true },
-          },
-        ],
-      });
+      { abortEarly: false }
+    );
+  } catch (err: any) {
+    if (err.inner && err.inner.length > 0) {
+      const message = err.inner[0].message;
+      Alert.alert(t('validationTitle'), t(message));
     } else {
-      navigation.replace('JobDetailsScreen', {
-        selectedRoles,
-        currentRoleIndex: currentRoleIndex + 1,
-        completedRoles: updatedAnswers,
-        totalRoles,
-      });
-
-      setSelectedExperience(null);
-      setSelectedMulti({});
+      Alert.alert(t('validationTitle'), t('jobDetails_validationExperience'));
     }
+    return;
+  }
+
+  const updatedAnswers: CompletedRoles = {
+    ...completedRoles,
+    [currentRole.id]: {
+      role: currentRole.title,
+      selectedExperience,
+      selectedMulti,
+    },
   };
+
+  if (currentRoleIndex === totalRoles - 1) {
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'HomeScreen',
+          params: { roleAnswers: updatedAnswers, fromJobInfo: true },
+        },
+      ],
+    });
+  } else {
+    navigation.replace('JobDetailsScreen', {
+      selectedRoles,
+      currentRoleIndex: currentRoleIndex + 1,
+      completedRoles: updatedAnswers,
+      totalRoles,
+    });
+
+    setSelectedExperience(null);
+    setSelectedMulti({});
+  }
+};
+
 
   const renderChip = ({ label, isSelected, onTap, showIcon }: ChipProps) => (
     <TouchableOpacity

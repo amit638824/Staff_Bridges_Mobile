@@ -1,7 +1,3 @@
-// ============================================
-// jobRoleSlice.ts - Handles job role categories
-// ============================================
-
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axiosInstance from "../../services/authService";
 
@@ -15,7 +11,7 @@ interface JobRole {
 interface JobRoleState {
   roles: JobRole[];
   loading: boolean;
-  error: any;
+  error: string | null;
 }
 
 const initialState: JobRoleState = {
@@ -24,14 +20,11 @@ const initialState: JobRoleState = {
   error: null,
 };
 
-// ============================
-// Fetch Job Roles API
-// ============================
 export const fetchJobRoles = createAsyncThunk(
   "jobRoles/fetchAll",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get("/master-category");
+      const response = await axiosInstance.get("/api/master-category");
 
       if (response.data.success === true) {
         return response.data.data; // return array
@@ -52,7 +45,6 @@ const jobRoleSlice = createSlice({
       state.error = null;
     },
   },
-
   extraReducers: (builder) => {
     builder
       .addCase(fetchJobRoles.pending, (state) => {
@@ -66,7 +58,7 @@ const jobRoleSlice = createSlice({
       })
       .addCase(fetchJobRoles.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload as string;
       });
   },
 });

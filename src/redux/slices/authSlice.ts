@@ -34,24 +34,24 @@ export const loginWithOtp = createAsyncThunk(
   'auth/loginWithOtp',
   async ({ mobile, otp }: { mobile: string; otp: string }, { rejectWithValue }) => {
     try {
-      console.log('🔐 loginWithOtp - Attempting login with mobile:', mobile);
+      // console.log('🔐 loginWithOtp - Attempting login with mobile:', mobile);
       const response = await axiosInstance.post('/auth/mobile-login', {
         mobile,
         otp,
       });
 
-      console.log('🔐 loginWithOtp - Raw Response:', JSON.stringify(response.data, null, 2));
+      // console.log('🔐 loginWithOtp - Raw Response:', JSON.stringify(response.data, null, 2));
 
       if (response.data.success === true) {
-        console.log('🔐 loginWithOtp - Success! Response data:', response.data);
+        // console.log('🔐 loginWithOtp - Success! Response data:', response.data);
         return response.data;
       } else {
-        console.error('🔐 loginWithOtp - Failed:', response.data.message);
+        // console.error('🔐 loginWithOtp - Failed:', response.data.message);
         return rejectWithValue(response.data.message || 'Failed to login');
       }
     } catch (error: any) {
-      console.error('🔐 loginWithOtp - Exception:', error);
-      console.error('🔐 loginWithOtp - Error Response:', error.response?.data);
+      // console.error('🔐 loginWithOtp - Exception:', error);
+      // console.error('🔐 loginWithOtp - Error Response:', error.response?.data);
       return rejectWithValue(error.response?.data?.message || 'Error logging in');
     }
   }

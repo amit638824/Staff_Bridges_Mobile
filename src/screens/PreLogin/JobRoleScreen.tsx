@@ -1,5 +1,3 @@
-// src/screens/PreLogin/SelectJobRoleScreen.tsx
-
 import React, { useState, useMemo } from 'react';
 import {
   View,
@@ -18,8 +16,15 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppColors } from '../../constants/AppColors';
 import { useTranslation } from 'react-i18next';
+import { useDispatch, useSelector } from "react-redux";
+import { fetchJobRoles } from "../../redux/slices/jobRoleSlice";
+import { RootState } from "../../redux/store";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { selectJobRoleSchema } from "../../validation/selectJobRoleSchema";
 
-// Type definitions
+
 interface JobRole {
   id: string;
   title: string;
@@ -33,78 +38,76 @@ interface RoleNavigationProp {
 const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
   const { t } = useTranslation();
 
-  const jobRoles: JobRole[] = [
-    {
-      id: 'delivery',
-      title: t("role_delivery"),
-      image: require('../../../assets/images/delvery.jpg'),
-    },
-    {
-      id: 'customer_support',
-      title: t("role_customer_support"),
-      image: require('../../../assets/images/cs_and_telecler.jpg'),
-    },
-    {
-      id: 'field_sales',
-      title: t("role_field_sales"),
-      image: require('../../../assets/images/field_sales.jpg'),
-    },
-    {
-      id: 'sales_bd',
-      title: t("role_sales_bd"),
+  const dispatch = useDispatch();
+  const { roles, loading, error } = useSelector((state: RootState) => state.jobRoles);
+
+  useEffect(() => {
+    dispatch(fetchJobRoles() as any);
+  }, [dispatch]);
+
+  const jobRoles = useMemo(() => {
+    console.log('API Roles:', roles); // Debug log
+    const mapped = roles.map((item: any) => ({
+      id: String(item.id),
+      title: item.name,
       image: require('../../../assets/images/sales-job.jpg'),
-    },
-    {
-      id: 'digital_marketing',
-      title: t("role_digital_marketing"),
-      image: require('../../../assets/images/backoffice.jpg'),
-    },
-    {
-      id: 'retail_sales',
-      title: t("role_retail_sales"),
-      image: require('../../../assets/images/counter-sales.jpg'),
-    },
-    {
-      id: 'recruiter_hr',
-      title: t("role_hr_admin"),
-      image: require('../../../assets/images/hradmin.jpg'),
-    },
-  ];
+    }));
+    console.log('Mapped Roles:', mapped); // Debug log
+    return mapped;
+  }, [roles]);
 
   const [selectedRoles, setSelectedRoles] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const isMaxSelected = selectedRoles.size >= 5;
+  const {
+  handleSubmit,
+  setValue,
+  formState: { errors }
+} = useForm({
+  resolver: yupResolver(selectJobRoleSchema),
+  defaultValues: {
+    selectedRoles: [],
+  },
+});
+
+  const isMaxSelected = selectedRoles.size >= 4;
 
   const filteredRoles = useMemo(() => {
-    return jobRoles.filter((role: JobRole) =>
+    console.log('Filtering from:', jobRoles.length, 'roles'); // Debug log
+    const filtered = jobRoles.filter((role: JobRole) =>
       role.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery, t]);
+    console.log('Filtered result:', filtered.length, 'roles'); // Debug log
+    return filtered;
+  }, [searchQuery, jobRoles]); // Fixed: added jobRoles to dependency array
+const handleRoleToggle = (roleId: string): void => {
+  let newSelected = new Set(selectedRoles);
 
-  const handleRoleToggle = (roleId: string): void => {
-    const newSelectedRoles = new Set(selectedRoles);
-    if (newSelectedRoles.has(roleId)) {
-      newSelectedRoles.delete(roleId);
-    } else if (newSelectedRoles.size < 5) {
-      newSelectedRoles.add(roleId);
-    }
-    setSelectedRoles(newSelectedRoles);
-  };
+  if (newSelected.has(roleId)) {
+    newSelected.delete(roleId);
+  } else if (newSelected.size < 4) {
+    newSelected.add(roleId);
+  }
 
-  const handleNext = (): void => {
-    if (selectedRoles.size > 0) {
-      const selectedRoleDetails = jobRoles.filter((role) =>
-        selectedRoles.has(role.id)
-      );
-      navigation.push('JobDetailsScreen', {
-        selectedRoles: selectedRoleDetails,
-        currentRoleIndex: 0,
-        completedRoles: {},
-        totalRoles: selectedRoleDetails.length,
-      });
-    }
-  };
+  setSelectedRoles(newSelected);
+
+  // Update RHF array
+  setValue("selectedRoles", Array.from(newSelected));
+};
+
+
+ const onSubmit = () => {
+  const selectedRoleDetails = jobRoles.filter((role) =>
+    selectedRoles.has(role.id)
+  );
+
+  navigation.push("JobDetailsScreen", {
+    selectedRoles: selectedRoleDetails,
+    currentRoleIndex: 0,
+    completedRoles: {},
+    totalRoles: selectedRoleDetails.length,
+  });
+};
 
   const renderRoleItem = ({ item }: { item: JobRole }): React.ReactElement => {
     const isSelected = selectedRoles.has(item.id);
@@ -141,6 +144,26 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
       </TouchableOpacity>
     );
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text>{t("loading")}</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }}>
+          <Text style={{ color: 'red', textAlign: 'center' }}>Error: {error}</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView
@@ -188,28 +211,36 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
           data={filteredRoles}
           renderItem={renderRoleItem}
           keyExtractor={(item: JobRole) => item.id}
-          scrollEnabled={false}
+          scrollEnabled={true}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>{t("noJobRolesFound")}</Text>
+              <Text style={styles.emptyText}>
+                {jobRoles.length === 0 ? 'No roles loaded from API' : t("noJobRolesFound")}
+              </Text>
             </View>
           }
         />
+        {errors.selectedRoles && (
+  <Text style={{ color: "red", marginTop: 8 }}>
+    {errors.selectedRoles.message}
+  </Text>
+)}
+
       </View>
 
       {/* Button */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[
-            styles.nextButton,
-            selectedRoles.size === 0 && styles.nextButtonDisabled,
-          ]}
-          onPress={handleNext}
-          disabled={selectedRoles.size === 0}
-        >
-          <Text style={styles.nextButtonText}>{t("next")}</Text>
-        </TouchableOpacity>
+    <TouchableOpacity
+  style={[
+    styles.nextButton,
+    selectedRoles.size === 0 && styles.nextButtonDisabled,
+  ]}
+  onPress={handleSubmit(onSubmit)}
+>
+  <Text style={styles.nextButtonText}>{t("next")}</Text>
+</TouchableOpacity>
+
       </View>
     </SafeAreaView>
   );

@@ -8,18 +8,46 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
-  Platform
+  Platform,
+  Alert
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AppFooter from '../../components/AppFooter';
 import { AppColors } from '../../constants/AppColors';
 import { useTranslation } from 'react-i18next';
+import { profileSchema } from '../../validation/profileSchema';
+
 
 const ProfileScreen: React.FC<{ navigation: any, route: any }> = ({ navigation, route }) => {
   const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(route?.params?.tabIndex ?? 3);
+ const validateProfile = async () => {
+  try {
+    const profileData = {
+      fullName: 'Sheetal Sharma',
+      phone: '9876543210',
+      location: 'Delhi',
+      experience: '2 Years',
+      skills: ['Calling'],
+      salary: '20000',
+      email: 'sheetal@gmail.com',
+      gender: 'Female',
+      education: 'Graduate'
+    };
 
+    await profileSchema.validate(profileData, { abortEarly: false });
+
+    Alert.alert(t('validationTitle'), t('profile_validation_success'));
+  } catch (err: any) {
+    if (err.inner && err.inner.length > 0) {
+      Alert.alert(
+        t('validationTitle'),
+        t(err.inner[0].message)   // show 1st error
+      );
+    }
+  }
+};
   const handleFooterTap = (index: number) => {
     setCurrentIndex(index);
   };
@@ -27,6 +55,8 @@ const ProfileScreen: React.FC<{ navigation: any, route: any }> = ({ navigation, 
   const handleSettingsPress = () => {
     navigation.navigate('SettingsScreen');
   };
+
+ 
 
   return (
     <SafeAreaView style={styles.container}>
@@ -46,8 +76,9 @@ const ProfileScreen: React.FC<{ navigation: any, route: any }> = ({ navigation, 
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {renderProfileCard(t)}
-        {renderJobPreferenceCard(t)}
+     {renderProfileCard(t, validateProfile)}
+{renderJobPreferenceCard(t, validateProfile)}
+
         {renderCompletionSection(t)}
         {renderUploadResume(t)}
         {renderWorkExperience(t)}
@@ -58,7 +89,7 @@ const ProfileScreen: React.FC<{ navigation: any, route: any }> = ({ navigation, 
   );
 };
 
-const renderProfileCard = (t: any) => (
+const renderProfileCard = (t: any, validateProfile: () => void) => (
   <View style={styles.card}>
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
       <View
@@ -87,9 +118,10 @@ const renderProfileCard = (t: any) => (
         <Text style={styles.profileName}>{t('profile_user_name')}</Text>
         <Text style={styles.profileSub}>{t('profile_member_since')}</Text>
       </View>
-      <TouchableOpacity style={styles.iconButtonBorder}>
-        <Icon name="pencil-outline" size={18} color="#999" />
-      </TouchableOpacity>
+     <TouchableOpacity style={styles.iconButtonBorder} onPress={validateProfile}>
+  <Icon name="pencil-outline" size={18} color="#999" />
+</TouchableOpacity>
+
     </View>
 
     <View style={{ marginTop: 12 }}>
@@ -105,13 +137,14 @@ const renderProfileCard = (t: any) => (
   </View>
 );
 
-const renderJobPreferenceCard = (t: any) => (
+const renderJobPreferenceCard = (t: any, validateProfile: () => void) => (
   <View style={styles.card}>
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
       <Text style={styles.sectionTitle}>{t('profile_looking_for_jobs')}</Text>
-      <TouchableOpacity style={styles.iconButtonBorder}>
-        <Icon name="pencil" size={18} color="#999" />
-      </TouchableOpacity>
+    <TouchableOpacity style={styles.iconButtonBorder} onPress={validateProfile}>
+  <Icon name="pencil-outline" size={18} color="#999" />
+</TouchableOpacity>
+
     </View>
     <Text style={styles.chip}>{t('role_customer_support')}</Text>
   </View>

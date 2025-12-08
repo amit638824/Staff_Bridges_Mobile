@@ -20,16 +20,19 @@ import { AppColors } from '../../constants/AppColors';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from "react-redux";
 import { fetchJobRoles, resetJobRoles } from "../../redux/slices/jobRoleSlice";
+import { fetchSeekerCategories } from "../../redux/slices/seekerCategorySlice";
 import { RootState } from "../../redux/store";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { selectJobRoleSchema } from "../../validation/selectJobRoleSchema";
+import { createSeekerCategory } from "../../redux/slices/seekerCategorySlice";
 
 
 interface JobRole {
   id: string;
   title: string;
   image: any;
+  categoryId?: number;
 }
 
 interface RoleNavigationProp {
@@ -43,6 +46,13 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
   const { roles, page, totalPages, loading, error, hasMore } = useSelector(
     (state: RootState) => state.jobRoles
   );
+
+  // Add this - get categories from Redux
+  const { categories } = useSelector(
+    (state: RootState) => state.seekerCategory
+  );
+
+  const userId = useSelector((state: RootState) => state.auth.userId);
 
   const [loadingMore, setLoadingMore] = useState(false);
   const [debugInfo, setDebugInfo] = useState({
@@ -70,10 +80,18 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
       console.log('Dispatching fetchJobRoles for page 1');
       dispatch(fetchJobRoles({ page: 1, limit: 10 }) as any);
       setDebugInfo(prev => ({ ...prev, initialLoadDone: true }));
-    }, 200); // Increased delay to ensure reset completes
+    }, 200);
 
     return () => clearTimeout(timer);
   }, [dispatch]);
+
+  // Fetch seeker categories when userId is available
+  useEffect(() => {
+    if (userId) {
+      console.log('🚀 Fetching seeker categories for userId:', userId);
+      dispatch(fetchSeekerCategories({ page: 1, limit: 100, userId: Number(userId) }) as any);
+    }
+  }, [dispatch, userId]);
 
   // Monitor Redux state changes
   useEffect(() => {
@@ -160,27 +178,68 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
     let newSelected = new Set(selectedRoles);
 
     if (newSelected.has(roleId)) {
+      console.log("❌ Removing category:", roleId);
       newSelected.delete(roleId);
     } else if (newSelected.size < 4) {
+      console.log("✅ Adding category:", roleId);
       newSelected.add(roleId);
+
+      // ---- CALL API WHEN CATEGORY ADDED ----
+      const payload = {
+        categoryId: Number(roleId),
+        userId: Number(userId),
+        status: 1,
+        createdBy: Number(userId),
+      };
+
+      console.log("📤 Sending API Payload:", payload);
+
+      dispatch(createSeekerCategory(payload) as any)
+        .unwrap()
+        .then((res: any) => {
+          console.log("📥 API Success Response:", res);
+        })
+        .catch((err: any) => {
+          console.log("❌ API Error:", err);
+        });
     }
 
     setSelectedRoles(newSelected);
     setValue("selectedRoles", Array.from(newSelected));
   };
 
+  // Updated onSubmit function with proper category matching
   const onSubmit = () => {
     const selectedRoleDetails = jobRoles.filter((role) =>
       selectedRoles.has(role.id)
     );
 
     console.log('Navigating with selected roles:', selectedRoleDetails.length);
+    console.log('Available categories:', categories.length);
     
+    // Map selected roles to include categoryId from the fetched categories
+    const enrichedRoles = selectedRoleDetails.map((role) => {
+      // Try to find matching category by job_categoryid
+      const matchingCategory = categories?.find(
+        (cat: any) => String(cat.job_categoryid) === role.id
+      );
+      
+      console.log(`Role ${role.id} - Matching category:`, matchingCategory);
+
+      return {
+        ...role,
+        categoryId: matchingCategory?.job_categoryid || Number(role.id),
+        userId: Number(userId), // Pass userId here as well
+      };
+    });
+
+    console.log('Enriched roles:', enrichedRoles);
+
     navigation.push("JobDetailsScreen", {
-      selectedRoles: selectedRoleDetails,
+      selectedRoles: enrichedRoles,
       currentRoleIndex: 0,
       completedRoles: {},
-      totalRoles: selectedRoleDetails.length,
+      totalRoles: enrichedRoles.length,
     });
   };
 
@@ -429,7 +488,7 @@ const styles = StyleSheet.create({
   buttonContainer: { paddingHorizontal: 20, paddingVertical: 16 },
   nextButton: {
     height: 50,
-    backgroundColor:AppColors.themeColor,
+    backgroundColor: AppColors.themeColor,
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',

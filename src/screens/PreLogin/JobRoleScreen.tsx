@@ -11,6 +11,7 @@ import {
   FlatList,
   StatusBar,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -39,22 +40,29 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
   const { t } = useTranslation();
 
   const dispatch = useDispatch();
-  const { roles, loading, error } = useSelector((state: RootState) => state.jobRoles);
+const { roles, page, totalPages, loading, error } = useSelector(
+  (state: RootState) => state.jobRoles
+);
 
-  useEffect(() => {
-    dispatch(fetchJobRoles() as any);
-  }, [dispatch]);
+const loadMore = () => {
+  if (!loading && page < totalPages) {
+    dispatch(fetchJobRoles({ page: page + 1, limit: 10 }) as any);
+  }
+};
 
-  const jobRoles = useMemo(() => {
-    console.log('API Roles:', roles); // Debug log
-    const mapped = roles.map((item: any) => ({
-      id: String(item.id),
-      title: item.name,
-      image: require('../../../assets/images/sales-job.jpg'),
-    }));
-    console.log('Mapped Roles:', mapped); // Debug log
-    return mapped;
-  }, [roles]);
+useEffect(() => {
+  dispatch(fetchJobRoles({ page: 1, limit: 10 }) as any);
+}, []);
+
+
+const jobRoles = useMemo(() => {
+  return roles.map((item: any) => ({
+    id: String(item.id),
+    title: item.name,
+    image: item.image ? { uri: item.image } : require("../../../assets/images/sales-job.jpg"),
+  }));
+}, [roles]);
+
 
   const [selectedRoles, setSelectedRoles] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -145,15 +153,16 @@ const handleRoleToggle = (roleId: string): void => {
     );
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text>{t("loading")}</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+ if (loading) {
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={AppColors.themeColor} />
+      </View>
+    </SafeAreaView>
+  );
+}
+
 
   if (error) {
     return (
@@ -207,20 +216,33 @@ const handleRoleToggle = (roleId: string): void => {
         </Text>
 
         {/* Role List */}
-        <FlatList
-          data={filteredRoles}
-          renderItem={renderRoleItem}
-          keyExtractor={(item: JobRole) => item.id}
-          scrollEnabled={true}
-          ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
-                {jobRoles.length === 0 ? 'No roles loaded from API' : t("noJobRolesFound")}
-              </Text>
-            </View>
-          }
-        />
+       <FlatList
+  data={filteredRoles}
+  renderItem={renderRoleItem}
+  keyExtractor={(item) => item.id}
+  ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+  ListEmptyComponent={
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>
+        {jobRoles.length === 0 ? "No roles loaded from API" : t("noJobRolesFound")}
+      </Text>
+    </View>
+  }
+
+  // 🔥 PAGINATION LOGIC ADDED
+  onEndReachedThreshold={0.3}
+  onEndReached={loadMore}
+
+ListFooterComponent={
+  loading && page > 1 ? (
+    <View style={{ paddingVertical: 20 }}>
+      <ActivityIndicator size="small" color={AppColors.themeColor} />
+    </View>
+  ) : null
+}
+
+/>
+
         {errors.selectedRoles && (
   <Text style={{ color: "red", marginTop: 8 }}>
     {errors.selectedRoles.message}

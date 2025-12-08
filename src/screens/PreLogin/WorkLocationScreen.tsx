@@ -12,6 +12,7 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 
 import Icon from "react-native-vector-icons/MaterialIcons";
@@ -68,14 +69,25 @@ export default function WorkLocationScreen() {
     },
   });
 
+  const [loading, setLoading] = useState(false);
+
+
   const filteredLocalities = localitiesData.filter((item) =>
     t(item).toLowerCase().includes(searchText.toLowerCase())
   );
 
-  const onSubmit = (data: any) => {
-    console.log("Validated Data:", data);
+const onSubmit = async (data: any) => {
+  console.log("Validated Data:", data);
+
+  setLoading(true); // show loader
+
+  // Simulate API / async processing before navigating  
+  setTimeout(() => {
+    setLoading(false); // hide loader before navigating
     navigation.navigate("JobRoleScreen");
-  };
+  }, 800);
+};
+
 
   return (
     <SafeAreaView
@@ -147,8 +159,8 @@ export default function WorkLocationScreen() {
         />
 
         {/* NEXT BUTTON */}
-        <TouchableOpacity
-          style={[
+      <TouchableOpacity
+ style={[
             styles.button,
             {
               backgroundColor:
@@ -157,10 +169,15 @@ export default function WorkLocationScreen() {
                   : "#cccccc",
             },
           ]}
-          onPress={handleSubmit(onSubmit)}
-        >
-          <Text style={styles.btnText}>{t("next")}</Text>
-        </TouchableOpacity>
+  onPress={handleSubmit(onSubmit)}
+  disabled={loading}
+>
+  {loading
+    ? <ActivityIndicator color="#fff" />
+    : <Text style={styles.btnText}>{t("next")}</Text>
+  }
+</TouchableOpacity>
+
       </ScrollView>
 
       {/* LOCALITY BOTTOM SHEET */}

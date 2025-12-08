@@ -17,33 +17,46 @@ interface JobRoleState {
   limit: number;
   totalPages: number;
   totalRecords: number;
+  hasMore: boolean;
+  isInitialized: boolean;
 }
 
 const initialState: JobRoleState = {
   roles: [],
   loading: false,
   error: null,
-  page: 1,
+  page: 0,
   limit: 10,
-  totalPages: 1,
+  totalPages: 0,
   totalRecords: 0,
+  hasMore: false,
+  isInitialized: false,
 };
 
 export const fetchJobRoles = createAsyncThunk(
   "jobRoles/fetchAll",
   async ({ page, limit }: { page: number; limit: number }, { rejectWithValue }) => {
     try {
+      console.log(`🔄 API Request: Page ${page}, Limit ${limit}`);
       const response = await axiosInstance.get(
         `/api/master-category?page=${page}&limit=${limit}`
       );
 
       if (response.data.success) {
-        return response.data.data; // contains currentPage, totalPages, items etc.
+        const { items, currentPage, totalPages, totalRecords } = response.data.data;
+        console.log(`✅ API Response: Page ${currentPage}/${totalPages}, Items: ${items.length}`);
+        return {
+          items,
+          currentPage,
+          totalPages,
+          totalRecords,
+        };
       }
 
       return rejectWithValue(response.data.message || "Failed to fetch job roles");
     } catch (error: any) {
-      return rejectWithValue(error.response?.data || "API error");
+      console.error("❌ API Error:", error.message);
+      return rejectWithValue(error.response?.data?.message || "API error");
     }
   }
 );
@@ -55,32 +68,61 @@ const jobRoleSlice = createSlice({
     clearJobRoleError(state) {
       state.error = null;
     },
+    resetJobRoles(state) {
+      console.log("🔄 RESET: Clearing all job roles");
+      state.roles = [];
+      state.page = 0;
+      state.totalPages = 0;
+      state.totalRecords = 0;
+      state.hasMore = false;
+      state.error = null;
+      state.loading = false;
+      state.isInitialized = false;
+    },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchJobRoles.pending, (state) => {
+      .addCase(fetchJobRoles.pending, (state, action) => {
+        const { page } = action.meta.arg;
+        console.log(`⏳ PENDING: Fetching page ${page}`);
         state.loading = true;
+        state.error = null;
       })
       .addCase(fetchJobRoles.fulfilled, (state, action: any) => {
         const { items, currentPage, totalPages, totalRecords } = action.payload;
 
+        console.log(`📥 FULFILLED: Page ${currentPage}/${totalPages}, Items: ${items.length}`);
+        console.log(`   Before: ${state.roles.length} items`);
+
+        // IMPORTANT: Always reset on page 1, append on other pages
         if (currentPage === 1) {
-          state.roles = items; // RESET list
+          console.log(`   Action: RESET (page 1)`);
+          state.roles = [...items]; // Fresh array for page 1
         } else {
-          state.roles = [...state.roles, ...items]; // APPEND next page
+          console.log(`   Action: APPEND (page ${currentPage})`);
+          state.roles = [...state.roles, ...items]; // Append for subsequent pages
         }
+
+        console.log(`   After: ${state.roles.length} items`);
 
         state.page = currentPage;
         state.totalPages = totalPages;
         state.totalRecords = totalRecords;
+        state.hasMore = currentPage < totalPages;
         state.loading = false;
+        state.error = null;
+        state.isInitialized = true;
+
+        console.log(`   State: Page ${state.page}/${state.totalPages}, HasMore: ${state.hasMore}, Total Items: ${state.roles.length}`);
       })
       .addCase(fetchJobRoles.rejected, (state, action) => {
+        console.log("❌ REJECTED:", action.payload);
         state.loading = false;
         state.error = action.payload as string;
+        state.isInitialized = true;
       });
   },
 });
 
-export const { clearJobRoleError } = jobRoleSlice.actions;
+export const { clearJobRoleError, resetJobRoles } = jobRoleSlice.actions;
 export default jobRoleSlice.reducer;

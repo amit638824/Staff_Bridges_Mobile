@@ -248,6 +248,7 @@ const PhoneLoginScreen: React.FC = () => {
               <TextInput
                 style={styles.otpInput}
                 placeholder={t('enterOtpPlaceholder')}
+                 placeholderTextColor={AppColors.lightText}
                 keyboardType="number-pad"
                 maxLength={6}
                 value={value}

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,15 +12,15 @@ import {
   StatusBar,
   Platform,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppColors } from '../../constants/AppColors';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from "react-redux";
-import { fetchJobRoles } from "../../redux/slices/jobRoleSlice";
+import { fetchJobRoles, resetJobRoles } from "../../redux/slices/jobRoleSlice";
 import { RootState } from "../../redux/store";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { selectJobRoleSchema } from "../../validation/selectJobRoleSchema";
@@ -40,82 +40,149 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
   const { t } = useTranslation();
 
   const dispatch = useDispatch();
-const { roles, page, totalPages, loading, error } = useSelector(
-  (state: RootState) => state.jobRoles
-);
+  const { roles, page, totalPages, loading, error, hasMore } = useSelector(
+    (state: RootState) => state.jobRoles
+  );
 
-const loadMore = () => {
-  if (!loading && page < totalPages) {
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [debugInfo, setDebugInfo] = useState({
+    initialLoadDone: false,
+    rolesInState: 0,
+    currentPage: 0,
+    totalPages: 0,
+  });
+
+  // Reset Redux on mount to ensure fresh start
+  useEffect(() => {
+    console.log('=== 🎯 COMPONENT MOUNTED ===');
+    console.log('Current Redux state - Roles:', roles.length, 'Page:', page);
+    dispatch(resetJobRoles() as any);
+    
+    return () => {
+      console.log('=== 🎯 COMPONENT UNMOUNTED ===');
+    };
+  }, [dispatch]);
+
+  // Initial load - only once after reset
+  useEffect(() => {
+    console.log('=== 📡 INITIAL FETCH EFFECT ===');
+    const timer = setTimeout(() => {
+      console.log('Dispatching fetchJobRoles for page 1');
+      dispatch(fetchJobRoles({ page: 1, limit: 10 }) as any);
+      setDebugInfo(prev => ({ ...prev, initialLoadDone: true }));
+    }, 200); // Increased delay to ensure reset completes
+
+    return () => clearTimeout(timer);
+  }, [dispatch]);
+
+  // Monitor Redux state changes
+  useEffect(() => {
+    setDebugInfo({
+      initialLoadDone: true,
+      rolesInState: roles.length,
+      currentPage: page,
+      totalPages: totalPages,
+    });
+    console.log(`📊 Redux State: ${roles.length} roles loaded, Page ${page}/${totalPages}, HasMore: ${hasMore}`);
+  }, [roles, page, totalPages, hasMore]);
+
+  const loadMore = () => {
+    console.log(`=== LOAD MORE CALLED ===`);
+    console.log(`Conditions - loadingMore: ${loadingMore}, loading: ${loading}, hasMore: ${hasMore}, page: ${page}, totalPages: ${totalPages}`);
+
+    if (loadingMore) {
+      console.log('❌ Already loading more');
+      return;
+    }
+
+    if (loading) {
+      console.log('❌ Initial load in progress');
+      return;
+    }
+
+    if (!hasMore) {
+      console.log('❌ No more pages');
+      return;
+    }
+
+    if (page >= totalPages) {
+      console.log('❌ Already on last page');
+      return;
+    }
+
+    console.log(`✅ Fetching page ${page + 1}`);
+    setLoadingMore(true);
     dispatch(fetchJobRoles({ page: page + 1, limit: 10 }) as any);
-  }
-};
+  };
 
-useEffect(() => {
-  dispatch(fetchJobRoles({ page: 1, limit: 10 }) as any);
-}, []);
+  // Reset loadingMore when loading finishes
+  useEffect(() => {
+    if (loadingMore && !loading) {
+      console.log('✅ Pagination complete, resetting loadingMore');
+      setLoadingMore(false);
+    }
+  }, [loading, loadingMore]);
 
-
-const jobRoles = useMemo(() => {
-  return roles.map((item: any) => ({
-    id: String(item.id),
-    title: item.name,
-    image: item.image ? { uri: item.image } : require("../../../assets/images/sales-job.jpg"),
-  }));
-}, [roles]);
-
+  const jobRoles = useMemo(() => {
+    console.log(`🔄 jobRoles memo recalculated: ${roles.length} items`);
+    return roles.map((item: any) => ({
+      id: String(item.id),
+      title: item.name,
+      image: item.image ? { uri: item.image } : require("../../../assets/images/sales-job.jpg"),
+    }));
+  }, [roles]);
 
   const [selectedRoles, setSelectedRoles] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const {
-  handleSubmit,
-  setValue,
-  formState: { errors }
-} = useForm({
-  resolver: yupResolver(selectJobRoleSchema),
-  defaultValues: {
-    selectedRoles: [],
-  },
-});
+    handleSubmit,
+    setValue,
+    formState: { errors }
+  } = useForm({
+    resolver: yupResolver(selectJobRoleSchema),
+    defaultValues: {
+      selectedRoles: [],
+    },
+  });
 
   const isMaxSelected = selectedRoles.size >= 4;
 
   const filteredRoles = useMemo(() => {
-    console.log('Filtering from:', jobRoles.length, 'roles'); // Debug log
     const filtered = jobRoles.filter((role: JobRole) =>
       role.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    console.log('Filtered result:', filtered.length, 'roles'); // Debug log
+    console.log(`🔍 Filtered: ${filtered.length} from ${jobRoles.length}`);
     return filtered;
-  }, [searchQuery, jobRoles]); // Fixed: added jobRoles to dependency array
-const handleRoleToggle = (roleId: string): void => {
-  let newSelected = new Set(selectedRoles);
+  }, [searchQuery, jobRoles]);
 
-  if (newSelected.has(roleId)) {
-    newSelected.delete(roleId);
-  } else if (newSelected.size < 4) {
-    newSelected.add(roleId);
-  }
+  const handleRoleToggle = (roleId: string): void => {
+    let newSelected = new Set(selectedRoles);
 
-  setSelectedRoles(newSelected);
+    if (newSelected.has(roleId)) {
+      newSelected.delete(roleId);
+    } else if (newSelected.size < 4) {
+      newSelected.add(roleId);
+    }
 
-  // Update RHF array
-  setValue("selectedRoles", Array.from(newSelected));
-};
+    setSelectedRoles(newSelected);
+    setValue("selectedRoles", Array.from(newSelected));
+  };
 
+  const onSubmit = () => {
+    const selectedRoleDetails = jobRoles.filter((role) =>
+      selectedRoles.has(role.id)
+    );
 
- const onSubmit = () => {
-  const selectedRoleDetails = jobRoles.filter((role) =>
-    selectedRoles.has(role.id)
-  );
-
-  navigation.push("JobDetailsScreen", {
-    selectedRoles: selectedRoleDetails,
-    currentRoleIndex: 0,
-    completedRoles: {},
-    totalRoles: selectedRoleDetails.length,
-  });
-};
+    console.log('Navigating with selected roles:', selectedRoleDetails.length);
+    
+    navigation.push("JobDetailsScreen", {
+      selectedRoles: selectedRoleDetails,
+      currentRoleIndex: 0,
+      completedRoles: {},
+      totalRoles: selectedRoleDetails.length,
+    });
+  };
 
   const renderRoleItem = ({ item }: { item: JobRole }): React.ReactElement => {
     const isSelected = selectedRoles.has(item.id);
@@ -153,22 +220,17 @@ const handleRoleToggle = (roleId: string): void => {
     );
   };
 
- if (loading) {
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={AppColors.themeColor} />
-      </View>
-    </SafeAreaView>
-  );
-}
-
-
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 }}>
           <Text style={{ color: 'red', textAlign: 'center' }}>Error: {error}</Text>
+          <TouchableOpacity 
+            style={{ marginTop: 20, padding: 10, backgroundColor: AppColors.themeColor, borderRadius: 5 }}
+            onPress={() => dispatch(fetchJobRoles({ page: 1, limit: 10 }) as any)}
+          >
+            <Text style={{ color: '#fff' }}>Retry</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -215,54 +277,66 @@ const handleRoleToggle = (roleId: string): void => {
           {t("selectedCount", { count: selectedRoles.size })}
         </Text>
 
-        {/* Role List */}
-       <FlatList
-  data={filteredRoles}
-  renderItem={renderRoleItem}
-  keyExtractor={(item) => item.id}
-  ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-  ListEmptyComponent={
-    <View style={styles.emptyContainer}>
-      <Text style={styles.emptyText}>
-        {jobRoles.length === 0 ? "No roles loaded from API" : t("noJobRolesFound")}
-      </Text>
-    </View>
-  }
-
-  // 🔥 PAGINATION LOGIC ADDED
-  onEndReachedThreshold={0.3}
-  onEndReached={loadMore}
-
-ListFooterComponent={
-  loading && page > 1 ? (
-    <View style={{ paddingVertical: 20 }}>
-      <ActivityIndicator size="small" color={AppColors.themeColor} />
-    </View>
-  ) : null
-}
-
-/>
+        {/* Initial Loading State */}
+        {loading && jobRoles.length === 0 ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color={AppColors.themeColor} />
+            <Text style={{ marginTop: 10, color: '#999', fontSize: 12 }}>
+              Loading job roles...
+            </Text>
+          </View>
+        ) : (
+          /* Role List */
+          <FlatList
+            data={filteredRoles}
+            renderItem={renderRoleItem}
+            keyExtractor={(item) => item.id}
+            ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>
+                  {jobRoles.length === 0 ? "No roles loaded from API" : t("noJobRolesFound")}
+                </Text>
+              </View>
+            }
+            onEndReachedThreshold={0.5}
+            onEndReached={({ distanceFromEnd }) => {
+              console.log(`📍 FlatList end reached, distance from end: ${distanceFromEnd}`);
+              loadMore();
+            }}
+            ListFooterComponent={
+              loadingMore ? (
+                <View style={{ paddingVertical: 20, alignItems: 'center', justifyContent: 'center' }}>
+                  <ActivityIndicator size="small" color={AppColors.themeColor} />
+                  <Text style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+                    Loading more job roles...
+                  </Text>
+                </View>
+              ) : null
+            }
+            scrollEnabled={true}
+          />
+        )}
 
         {errors.selectedRoles && (
-  <Text style={{ color: "red", marginTop: 8 }}>
-    {errors.selectedRoles.message}
-  </Text>
-)}
-
+          <Text style={{ color: "red", marginTop: 8 }}>
+            {errors.selectedRoles.message}
+          </Text>
+        )}
       </View>
 
       {/* Button */}
       <View style={styles.buttonContainer}>
-    <TouchableOpacity
-  style={[
-    styles.nextButton,
-    selectedRoles.size === 0 && styles.nextButtonDisabled,
-  ]}
-  onPress={handleSubmit(onSubmit)}
->
-  <Text style={styles.nextButtonText}>{t("next")}</Text>
-</TouchableOpacity>
-
+        <TouchableOpacity
+          style={[
+            styles.nextButton,
+            selectedRoles.size === 0 && styles.nextButtonDisabled,
+          ]}
+          onPress={handleSubmit(onSubmit)}
+          disabled={selectedRoles.size === 0}
+        >
+          <Text style={styles.nextButtonText}>{t("next")}</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -324,7 +398,7 @@ const styles = StyleSheet.create({
   },
   roleCardSelected: {
     borderColor: AppColors.themeColor,
-    backgroundColor: AppColors.themeColorLight,
+    backgroundColor: '#E3F2FD',
     elevation: 3,
   },
   roleCardDisabled: { opacity: 0.6 },
@@ -339,7 +413,7 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderWidth: 1.5,
-    borderColor: AppColors.lightBorder,
+    borderColor: '#999',
     borderRadius: 2,
     justifyContent: 'center',
     alignItems: 'center',
@@ -355,7 +429,7 @@ const styles = StyleSheet.create({
   buttonContainer: { paddingHorizontal: 20, paddingVertical: 16 },
   nextButton: {
     height: 50,
-    backgroundColor: AppColors.themeColor,
+    backgroundColor:AppColors.themeColor,
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',

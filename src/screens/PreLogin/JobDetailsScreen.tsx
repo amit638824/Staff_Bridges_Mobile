@@ -1,5 +1,3 @@
-// src/screens/PreLogin/JobDetailsScreen.tsx
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -22,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchSeekerCategories } from '../../redux/slices/seekerCategorySlice';
 import { RootState } from '../../redux/store';
+import { seekerExperienceService } from '../../services/seekerExperienceService';
 import * as Yup from 'yup';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobDetailsScreen'>;
@@ -65,6 +64,7 @@ interface ChipProps {
   isSelected: boolean;
   onTap: () => void;
   showIcon: boolean;
+  isSaving?: boolean;
 }
 
 interface SeekerCategoryItem {
@@ -78,6 +78,17 @@ const jobDetailsSchema = Yup.object().shape({
   experience: Yup.string().required('jobDetails_validationExperience'),
   multi: Yup.object().test('multi-selected', () => true),
 });
+
+// Mapping of translation keys to actual experience text
+const experienceTextMap: Record<string, string> = {
+  'jobDetails_option_fresher': 'Fresher',
+  'jobDetails_option_1_6_months': '1-6 months',
+  'jobDetails_option_1_year': '1 year',
+  'jobDetails_option_2_years': '2 years',
+  'jobDetails_option_3_years': '3 years',
+  'jobDetails_option_4_years': '4 years',
+  'jobDetails_option_5_plus_years': '5 years',
+};
 
 // Static fallback role questions config - applied to ALL roles
 const universalQuestions: Question[] = [
@@ -95,36 +106,6 @@ const universalQuestions: Question[] = [
       'jobDetails_option_5_plus_years',
     ],
   },
-  // {
-  //   id: 'languages',
-  //   question: 'jobDetails_question_languages',
-  //   type: 'multi',
-  //   options: [
-  //     'jobDetails_option_hindi',
-  //     'jobDetails_option_english',
-  //     'jobDetails_option_local_language',
-  //   ],
-  // },
-  // {
-  //   id: 'shift',
-  //   question: 'jobDetails_question_shift',
-  //   type: 'single',
-  //   options: [
-  //     'jobDetails_option_day_shift',
-  //     'jobDetails_option_night_shift',
-  //     'jobDetails_option_flexible_shift',
-  //   ],
-  // },
-  // {
-  //   id: 'workMode',
-  //   question: 'jobDetails_question_work_mode',
-  //   type: 'single',
-  //   options: [
-  //     'jobDetails_option_on_site',
-  //     'jobDetails_option_hybrid',
-  //     'jobDetails_option_remote',
-  //   ],
-  // },
 ];
 
 // This config now applies SAME questions for ALL roles
@@ -135,7 +116,6 @@ const roleQuestionsConfig: RoleQuestionsConfig = {
     questions: universalQuestions,
   },
 };
-
 
 const JobDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t } = useTranslation();
@@ -148,11 +128,13 @@ const JobDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
   );
 
   const currentRole: JobRole = selectedRoles[currentRoleIndex];
-const roleConfig: RoleConfig = roleQuestionsConfig[currentRole.id] || roleQuestionsConfig.default;
+  const roleConfig: RoleConfig = roleQuestionsConfig[currentRole.id] || roleQuestionsConfig.default;
 
   const [dynamicJobData, setDynamicJobData] = useState<SeekerCategoryItem | null>(null);
   const [selectedExperience, setSelectedExperience] = useState<string | null>(null);
   const [selectedMulti, setSelectedMulti] = useState<Record<string, Set<string>>>({});
+  const [savingExperienceKey, setSavingExperienceKey] = useState<string | null>(null);
+  const [existingExperienceId, setExistingExperienceId] = useState<number | null>(null);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -183,10 +165,104 @@ const roleConfig: RoleConfig = roleQuestionsConfig[currentRole.id] || roleQuesti
     }
   }, [categories, currentRole]);
 
+  // Fetch existing experience for current category on mount
+  useEffect(() => {
+    const fetchExistingExperience = async () => {
+      try {
+        if (currentRole.categoryId && userId) {
+          console.log('🔍 Fetching existing experience for categoryId:', currentRole.categoryId);
+          const response = await seekerExperienceService.getSeekerExperienceByCategoryAndUser(
+            currentRole.categoryId,
+            Number(userId)
+          );
+
+          if (response.data?.data && response.data.data.length > 0) {
+            const existingExperience = response.data.data[0];
+            console.log('✅ Found existing experience:', existingExperience);
+            setExistingExperienceId(existingExperience.id);
+          }
+        }
+      } catch (error) {
+        console.log('ℹ️ No existing experience found or error fetching:', error);
+      }
+    };
+
+    fetchExistingExperience();
+  }, [currentRole.categoryId, userId]);
+
   const progressPercentage = ((currentRoleIndex + 1) / totalRoles) * 100;
 
-  const handleSingleSelect = (value: string): void => {
+  const handleSingleSelect = async (value: string): Promise<void> => {
     setSelectedExperience(value);
+    setSavingExperienceKey(value);
+
+    try {
+      // Get the actual experience text from the mapping
+      const experienceText = experienceTextMap[value];
+
+      const payload = {
+        categoryId: currentRole.categoryId || 0,
+        userId: Number(userId),
+        experience: experienceText,
+        status: 1,
+        createdBy: Number(userId),
+      };
+
+      console.log('========================================');
+      if (existingExperienceId) {
+        console.log('📤 SEEKER EXPERIENCE API CALL (UPDATE)');
+      } else {
+        console.log('📤 SEEKER EXPERIENCE API CALL (CREATE)');
+      }
+      console.log('========================================');
+      console.log('🔗 Endpoint: ' + (existingExperienceId ? 'PUT' : 'POST') + ' /api/seeker-experience' + (existingExperienceId ? `/${existingExperienceId}` : ''));
+      console.log('📦 Payload:', payload);
+      console.log('  - categoryId:', payload.categoryId);
+      console.log('  - userId:', payload.userId);
+      console.log('  - experience:', payload.experience);
+      console.log('  - status:', payload.status);
+      console.log('  - createdBy:', payload.createdBy);
+      console.log('========================================');
+
+      let response;
+      if (existingExperienceId) {
+        // Update existing experience
+        response = await seekerExperienceService.updateSeekerExperience(existingExperienceId, payload);
+      } else {
+        // Create new experience
+        response = await seekerExperienceService.saveSeekerExperience(payload);
+      }
+
+      console.log('========================================');
+      console.log('✅ SEEKER EXPERIENCE SAVED SUCCESSFULLY');
+      console.log('========================================');
+      console.log('📥 Response Status:', response.status);
+      console.log('📥 Response Data:', response.data);
+      console.log('========================================');
+
+      // Store the experience ID if it's a new creation
+      if (!existingExperienceId && response.data?.data?.id) {
+        setExistingExperienceId(response.data.data.id);
+        console.log('📌 Stored experience ID:', response.data.data.id);
+      }
+    } catch (error: any) {
+      console.log('========================================');
+      console.log('❌ ERROR SAVING SEEKER EXPERIENCE');
+      console.log('========================================');
+      console.log('🚨 Error Status:', error?.response?.status);
+      console.log('🚨 Error Message:', error?.message);
+      console.log('🚨 Response Data:', error?.response?.data);
+      console.log('🚨 Full Error:', error);
+      console.log('========================================');
+
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to save experience. Please try again.';
+      Alert.alert(t('validationTitle'), errorMessage);
+    } finally {
+      setSavingExperienceKey(null);
+    }
   };
 
   const handleMultiSelect = (questionId: string, value: string): void => {
@@ -252,17 +328,20 @@ const roleConfig: RoleConfig = roleQuestionsConfig[currentRole.id] || roleQuesti
     }
   };
 
-  const renderChip = ({ label, isSelected, onTap, showIcon }: ChipProps) => (
+  const renderChip = ({ label, isSelected, onTap, showIcon, isSaving }: ChipProps) => (
     <TouchableOpacity
       style={[styles.chip, isSelected && styles.chipSelected]}
       onPress={onTap}
+      disabled={isSaving}
     >
       <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
         {t(label)}
       </Text>
       {showIcon && (
         <View style={{ marginLeft: 6 }}>
-          {isSelected ? (
+          {isSaving ? (
+            <ActivityIndicator size="small" color="#71695f" />
+          ) : isSelected ? (
             <Ionicons name="checkmark" size={16} color="#71695f" />
           ) : (
             <Ionicons name="add" size={16} color="#999" />
@@ -284,6 +363,7 @@ const roleConfig: RoleConfig = roleQuestionsConfig[currentRole.id] || roleQuesti
                 ? selectedExperience === option
                 : (selectedMulti[question.id] || new Set()).has(option),
               showIcon: question.type === 'multi',
+              isSaving: question.type === 'single' && savingExperienceKey === option,
               onTap: () =>
                 question.type === 'single'
                   ? handleSingleSelect(option)
@@ -308,7 +388,7 @@ const roleConfig: RoleConfig = roleQuestionsConfig[currentRole.id] || roleQuesti
   }
 
   // Determine which image and title to display
-  const displayJobImage = dynamicJobData?.category_image 
+  const displayJobImage = dynamicJobData?.category_image
     ? { uri: dynamicJobData.category_image }
     : roleConfig?.image || require('../../../assets/images/sales-job.jpg');
 
@@ -327,18 +407,12 @@ const roleConfig: RoleConfig = roleQuestionsConfig[currentRole.id] || roleQuesti
 
       {/* Role Header */}
       <View style={styles.header}>
-      <View style={styles.headerCenter}>
-  <Image source={displayJobImage} style={styles.jobImage} />
-  <Text style={styles.jobTitleCenter} numberOfLines={2}>
-    {displayJobTitle}
-  </Text>
-  {/* {dynamicJobData && (
-    <Text style={styles.jobSubtitleCenter}>
-      {t('jobDetails_role_selected')}
-    </Text>
-  )} */}
-</View>
-
+        <View style={styles.headerCenter}>
+          <Image source={displayJobImage} style={styles.jobImage} />
+          <Text style={styles.jobTitleCenter} numberOfLines={2}>
+            {displayJobTitle}
+          </Text>
+        </View>
       </View>
 
       {/* Questions */}
@@ -352,7 +426,10 @@ const roleConfig: RoleConfig = roleQuestionsConfig[currentRole.id] || roleQuesti
 
       {/* Button */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+        <TouchableOpacity
+          style={[styles.nextButton]}
+          onPress={handleNext}
+        >
           <Text style={styles.nextButtonText}>{t('jobDetails_next')}</Text>
         </TouchableOpacity>
       </View>
@@ -375,29 +452,23 @@ const styles = StyleSheet.create({
   },
   progressBar: { height: '100%', backgroundColor: AppColors.themeColor, borderRadius: 10 },
   header: { paddingHorizontal: 20, paddingVertical: 16, backgroundColor: '#fff', borderBottomColor: '#f0f0f0' },
-  // jobInfoContainer: { flexDirection: 'row', alignItems: 'center' },
   jobImage: { width: 70, height: 70, borderRadius: 8, marginRight: 15, resizeMode: 'cover' },
-  // jobTextContainer: { flex: 1 },
   headerCenter: {
-  alignItems: 'flex-start',
-  paddingVertical: 16,
-},
-
-jobTitleCenter: {
-  fontSize: 20,
-  fontWeight: '700',
-  color: '#000',
-  marginTop: 12,
-  // textAlign: 'center',
-},
-
-jobSubtitleCenter: {
-  fontSize: 12,
-  color: '#999',
-  marginTop: 4,
-  textAlign: 'center',
-},
-
+    alignItems: 'flex-start',
+    paddingVertical: 16,
+  },
+  jobTitleCenter: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000',
+    marginTop: 12,
+  },
+  jobSubtitleCenter: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 4,
+    textAlign: 'center',
+  },
   jobTitle: { fontSize: 18, fontWeight: '600', color: '#000', marginBottom: 4 },
   jobSubtitle: { fontSize: 12, color: '#999' },
   scrollView: { flex: 1 },

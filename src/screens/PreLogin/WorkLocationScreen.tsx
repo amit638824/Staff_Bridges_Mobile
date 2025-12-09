@@ -230,11 +230,7 @@ export default function WorkLocationScreen() {
                 <Text style={[styles.dropdownText, { color: value ? '#000' : '#999' }]}>
                   {value ? value : t("chooseCity")}
                 </Text>
-                {loadingCities ? (
-                  <ActivityIndicator size="small" color={AppColors.buttons} />
-                ) : (
-                  <Icon name="keyboard-arrow-down" size={22} />
-                )}
+                <Icon name="keyboard-arrow-down" size={22} />
               </TouchableOpacity>
 
               {errors.city && <Text style={styles.errorText}>{errors.city.message}</Text>}
@@ -264,11 +260,7 @@ export default function WorkLocationScreen() {
                 <Text style={[styles.dropdownText, { color: value ? '#000' : '#999' }]}>
                   {value ? value : t("chooseLocality")}
                 </Text>
-                {loadingLocalities ? (
-                  <ActivityIndicator size="small" color={AppColors.buttons} />
-                ) : (
-                  <Icon name="keyboard-arrow-down" size={22} />
-                )}
+                <Icon name="keyboard-arrow-down" size={22} />
               </TouchableOpacity>
 
               {errors.locality && (

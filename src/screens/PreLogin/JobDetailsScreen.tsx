@@ -81,13 +81,13 @@ const jobDetailsSchema = Yup.object().shape({
 
 // Mapping of translation keys to actual experience text
 const experienceTextMap: Record<string, string> = {
-  'jobDetails_option_fresher': 'Fresher',
-  'jobDetails_option_1_6_months': '1-6 months',
-  'jobDetails_option_1_year': '1 year',
-  'jobDetails_option_2_years': '2 years',
-  'jobDetails_option_3_years': '3 years',
-  'jobDetails_option_4_years': '4 years',
-  'jobDetails_option_5_plus_years': '5 years',
+  'jobDetails_option_fresher': '0',
+  'jobDetails_option_1_6_months': '0.5',
+  'jobDetails_option_1_year': '1',
+  'jobDetails_option_2_years': '2',
+  'jobDetails_option_3_years': '3',
+  'jobDetails_option_4_years': '4',
+  'jobDetails_option_5_plus_years': '5',
 };
 
 // Static fallback role questions config - applied to ALL roles

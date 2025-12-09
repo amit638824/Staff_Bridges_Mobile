@@ -1,6 +1,6 @@
 // src/screens/PreLogin/JobDetailsScreen.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,12 +12,16 @@ import {
   StatusBar,
   Platform,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppColors } from '../../constants/AppColors';
 import { RootStackParamList } from '../../../App';
 import { useTranslation } from 'react-i18next';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchSeekerCategories } from '../../redux/slices/seekerCategorySlice';
+import { RootState } from '../../redux/store';
 import * as Yup from 'yup';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobDetailsScreen'>;
@@ -26,6 +30,7 @@ interface JobRole {
   id: string;
   title: string;
   image: any;
+  categoryId?: number;
 }
 
 interface Question {
@@ -62,253 +67,72 @@ interface ChipProps {
   showIcon: boolean;
 }
 
-const jobDetailsSchema = Yup.object().shape({
-  experience: Yup.string()
-    .required('jobDetails_validationExperience'),
+interface SeekerCategoryItem {
+  job_id: number;
+  job_categoryid: number;
+  category_name: string;
+  category_image: string | null;
+}
 
-  multi: Yup.object()
-    .test('multi-selected', (value) => {
-      // Always valid because multi-selection isn't mandatory
-      return true;
-    }),
+const jobDetailsSchema = Yup.object().shape({
+  experience: Yup.string().required('jobDetails_validationExperience'),
+  multi: Yup.object().test('multi-selected', () => true),
 });
 
-// Role-specific questions config
+// Static fallback role questions config - applied to ALL roles
+const universalQuestions: Question[] = [
+  {
+    id: 'experience',
+    question: 'jobDetails_question_experience',
+    type: 'single',
+    options: [
+      'jobDetails_option_fresher',
+      'jobDetails_option_1_6_months',
+      'jobDetails_option_1_year',
+      'jobDetails_option_2_years',
+      'jobDetails_option_3_years',
+      'jobDetails_option_4_years',
+      'jobDetails_option_5_plus_years',
+    ],
+  },
+  // {
+  //   id: 'languages',
+  //   question: 'jobDetails_question_languages',
+  //   type: 'multi',
+  //   options: [
+  //     'jobDetails_option_hindi',
+  //     'jobDetails_option_english',
+  //     'jobDetails_option_local_language',
+  //   ],
+  // },
+  // {
+  //   id: 'shift',
+  //   question: 'jobDetails_question_shift',
+  //   type: 'single',
+  //   options: [
+  //     'jobDetails_option_day_shift',
+  //     'jobDetails_option_night_shift',
+  //     'jobDetails_option_flexible_shift',
+  //   ],
+  // },
+  // {
+  //   id: 'workMode',
+  //   question: 'jobDetails_question_work_mode',
+  //   type: 'single',
+  //   options: [
+  //     'jobDetails_option_on_site',
+  //     'jobDetails_option_hybrid',
+  //     'jobDetails_option_remote',
+  //   ],
+  // },
+];
+
+// This config now applies SAME questions for ALL roles
 const roleQuestionsConfig: RoleQuestionsConfig = {
-  delivery: {
-    image: require('../../../assets/images/delvery.jpg'),
-    title: 'jobDetails_role_delivery',
-    questions: [
-      {
-        id: 'experience',
-        question: 'jobDetails_question_experience',
-        type: 'single',
-        options: [
-          'jobDetails_option_fresher',
-          'jobDetails_option_1_6_months',
-          'jobDetails_option_1_year',
-          'jobDetails_option_2_years',
-          'jobDetails_option_3_years',
-          'jobDetails_option_4_years',
-          'jobDetails_option_5_plus_years',
-        ],
-      },
-      {
-        id: 'vehicle',
-        question: 'jobDetails_question_vehicle',
-        type: 'multi',
-        options: [
-          'jobDetails_option_bike',
-          'jobDetails_option_scooter',
-          'jobDetails_option_car',
-          'jobDetails_option_none',
-        ],
-      },
-      {
-        id: 'documents',
-        question: 'jobDetails_question_documents',
-        type: 'multi',
-        options: [
-          'jobDetails_option_aadhar',
-          'jobDetails_option_pan_card',
-          'jobDetails_option_voter_id',
-          'jobDetails_option_dl',
-          'jobDetails_option_passport',
-        ],
-      },
-    ],
-  },
-
-  customer_support: {
-    image: require('../../../assets/images/cs_and_telecler.jpg'),
-    title: 'jobDetails_role_customer_support',
-    questions: [
-      {
-        id: 'experience',
-        question: 'jobDetails_question_experience',
-        type: 'single',
-        options: [
-          'jobDetails_option_fresher',
-          'jobDetails_option_1_6_months',
-          'jobDetails_option_1_year',
-          'jobDetails_option_2_years',
-          'jobDetails_option_3_years',
-          'jobDetails_option_4_years',
-          'jobDetails_option_5_plus_years',
-        ],
-      },
-      {
-        id: 'workExp',
-        question: 'jobDetails_question_workExp',
-        type: 'multi',
-        options: [
-          'jobDetails_option_computer_knowledge',
-          'jobDetails_option_domestic_calling',
-          'jobDetails_option_international_calling',
-          'jobDetails_option_query_resolution',
-          'jobDetails_option_non_voice_chat',
-          'jobDetails_option_none',
-        ],
-      },
-      {
-        id: 'haveItems',
-        question: 'jobDetails_question_haveItems',
-        type: 'multi',
-        options: [
-          'jobDetails_option_bike',
-          'jobDetails_option_internet_connection',
-          'jobDetails_option_laptop_desktop',
-          'jobDetails_option_none',
-        ],
-      },
-      {
-        id: 'documents',
-        question: 'jobDetails_question_documents',
-        type: 'multi',
-        options: [
-          'jobDetails_option_aadhar',
-          'jobDetails_option_pan_card',
-          'jobDetails_option_voter_id',
-          'jobDetails_option_dl',
-          'jobDetails_option_passport',
-        ],
-      },
-    ],
-  },
-
-  field_sales: {
-    image: require('../../../assets/images/field_sales.jpg'),
-    title: 'jobDetails_role_field_sales',
-    questions: [
-      {
-        id: 'experience',
-        question: 'jobDetails_question_experience',
-        type: 'single',
-        options: [
-          'jobDetails_option_fresher',
-          'jobDetails_option_1_6_months',
-          'jobDetails_option_1_year',
-          'jobDetails_option_2_years',
-          'jobDetails_option_3_years',
-          'jobDetails_option_4_years',
-          'jobDetails_option_5_plus_years',
-        ],
-      },
-      {
-        id: 'skills',
-        question: 'jobDetails_question_skills',
-        type: 'multi',
-        options: ['jobDetails_option_sales_pitch', 'jobDetails_option_negotiation', 'jobDetails_option_client_meeting'],
-      },
-    ],
-  },
-
-  sales_bd: {
+  default: {
     image: require('../../../assets/images/sales-job.jpg'),
-    title: 'jobDetails_role_sales_bd',
-    questions: [
-      {
-        id: 'experience',
-        question: 'jobDetails_question_experience',
-        type: 'single',
-        options: [
-          'jobDetails_option_fresher',
-          'jobDetails_option_1_6_months',
-          'jobDetails_option_1_year',
-          'jobDetails_option_2_years',
-          'jobDetails_option_3_years',
-          'jobDetails_option_4_years',
-          'jobDetails_option_5_plus_years',
-        ],
-      },
-      {
-        id: 'skills',
-        question: 'jobDetails_question_skills',
-        type: 'multi',
-        options: ['jobDetails_option_leads_generation', 'jobDetails_option_proposals', 'jobDetails_option_closing'],
-      },
-    ],
-  },
-
-  digital_marketing: {
-    image: require('../../../assets/images/backoffice.jpg'),
-    title: 'jobDetails_role_digital_marketing',
-    questions: [
-      {
-        id: 'experience',
-        question: 'jobDetails_question_experience',
-        type: 'single',
-        options: [
-          'jobDetails_option_fresher',
-          'jobDetails_option_1_6_months',
-          'jobDetails_option_1_year',
-          'jobDetails_option_2_years',
-          'jobDetails_option_3_years',
-          'jobDetails_option_4_years',
-          'jobDetails_option_5_plus_years',
-        ],
-      },
-      {
-        id: 'tools',
-        question: 'jobDetails_question_tools',
-        type: 'multi',
-        options: ['jobDetails_option_seo', 'jobDetails_option_sem', 'jobDetails_option_smm', 'jobDetails_option_email_marketing'],
-      },
-    ],
-  },
-
-  retail_sales: {
-    image: require('../../../assets/images/counter-sales.jpg'),
-    title: 'jobDetails_role_retail_sales',
-    questions: [
-      {
-        id: 'experience',
-        question: 'jobDetails_question_experience',
-        type: 'single',
-        options: [
-          'jobDetails_option_fresher',
-          'jobDetails_option_1_6_months',
-          'jobDetails_option_1_year',
-          'jobDetails_option_2_years',
-          'jobDetails_option_3_years',
-          'jobDetails_option_4_years',
-          'jobDetails_option_5_plus_years',
-        ],
-      },
-      {
-        id: 'skills',
-        question: 'jobDetails_question_skills',
-        type: 'multi',
-        options: ['jobDetails_option_customer_handling', 'jobDetails_option_inventory', 'jobDetails_option_cash_management'],
-      },
-    ],
-  },
-
-  recruiter_hr: {
-    image: require('../../../assets/images/hradmin.jpg'),
-    title: 'jobDetails_role_hr_admin',
-    questions: [
-      {
-        id: 'experience',
-        question: 'jobDetails_question_experience',
-        type: 'single',
-        options: [
-          'jobDetails_option_fresher',
-          'jobDetails_option_1_6_months',
-          'jobDetails_option_1_year',
-          'jobDetails_option_2_years',
-          'jobDetails_option_3_years',
-          'jobDetails_option_4_years',
-          'jobDetails_option_5_plus_years',
-        ],
-      },
-      {
-        id: 'skills',
-        question: 'jobDetails_question_skills',
-        type: 'multi',
-        options: ['jobDetails_option_recruitment', 'jobDetails_option_interviews', 'jobDetails_option_onboarding'],
-      },
-    ],
+    title: 'jobDetails_default_title',
+    questions: universalQuestions,
   },
 };
 
@@ -317,11 +141,47 @@ const JobDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t } = useTranslation();
   const { selectedRoles, currentRoleIndex, completedRoles, totalRoles } = route.params;
 
-  const currentRole: JobRole = selectedRoles[currentRoleIndex];
-  const roleConfig: RoleConfig = roleQuestionsConfig[currentRole.id];
+  const dispatch = useDispatch();
+  const userId = useSelector((state: RootState) => state.auth.userId);
+  const { categories, fetchLoading } = useSelector(
+    (state: RootState) => state.seekerCategory
+  );
 
+  const currentRole: JobRole = selectedRoles[currentRoleIndex];
+const roleConfig: RoleConfig = roleQuestionsConfig[currentRole.id] || roleQuestionsConfig.default;
+
+  const [dynamicJobData, setDynamicJobData] = useState<SeekerCategoryItem | null>(null);
   const [selectedExperience, setSelectedExperience] = useState<string | null>(null);
   const [selectedMulti, setSelectedMulti] = useState<Record<string, Set<string>>>({});
+
+  // Fetch categories on mount
+  useEffect(() => {
+    console.log('🚀 JobDetailsScreen mounted, fetching categories for userId:', userId);
+    if (userId) {
+      dispatch(
+        fetchSeekerCategories({ page: 1, limit: 100, userId: Number(userId) }) as any
+      );
+    }
+  }, [dispatch, userId]);
+
+  // Find matching job data for current role
+  useEffect(() => {
+    console.log('📍 Current Role ID:', currentRole.id);
+    console.log('📊 Available Categories:', categories.length);
+
+    if (categories.length > 0 && currentRole.categoryId) {
+      const matchedCategory = categories.find(
+        (cat) => cat.job_categoryid === currentRole.categoryId
+      );
+
+      if (matchedCategory) {
+        console.log('✅ Found matching category:', matchedCategory);
+        setDynamicJobData(matchedCategory);
+      } else {
+        console.log('❌ No matching category found for categoryId:', currentRole.categoryId);
+      }
+    }
+  }, [categories, currentRole]);
 
   const progressPercentage = ((currentRoleIndex + 1) / totalRoles) * 100;
 
@@ -340,57 +200,57 @@ const JobDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
       return { ...prev, [questionId]: newSet };
     });
   };
-const handleNext = async (): Promise<void> => {
-  try {
-    await jobDetailsSchema.validate(
-      {
-        experience: selectedExperience,
-        multi: selectedMulti,
-      },
-      { abortEarly: false }
-    );
-  } catch (err: any) {
-    if (err.inner && err.inner.length > 0) {
-      const message = err.inner[0].message;
-      Alert.alert(t('validationTitle'), t(message));
-    } else {
-      Alert.alert(t('validationTitle'), t('jobDetails_validationExperience'));
-    }
-    return;
-  }
 
-  const updatedAnswers: CompletedRoles = {
-    ...completedRoles,
-    [currentRole.id]: {
-      role: currentRole.title,
-      selectedExperience,
-      selectedMulti,
-    },
-  };
-
-  if (currentRoleIndex === totalRoles - 1) {
-    navigation.reset({
-      index: 0,
-      routes: [
+  const handleNext = async (): Promise<void> => {
+    try {
+      await jobDetailsSchema.validate(
         {
-          name: 'HomeScreen',
-          params: { roleAnswers: updatedAnswers, fromJobInfo: true },
+          experience: selectedExperience,
+          multi: selectedMulti,
         },
-      ],
-    });
-  } else {
-    navigation.replace('JobDetailsScreen', {
-      selectedRoles,
-      currentRoleIndex: currentRoleIndex + 1,
-      completedRoles: updatedAnswers,
-      totalRoles,
-    });
+        { abortEarly: false }
+      );
+    } catch (err: any) {
+      if (err.inner && err.inner.length > 0) {
+        const message = err.inner[0].message;
+        Alert.alert(t('validationTitle'), t(message));
+      } else {
+        Alert.alert(t('validationTitle'), t('jobDetails_validationExperience'));
+      }
+      return;
+    }
 
-    setSelectedExperience(null);
-    setSelectedMulti({});
-  }
-};
+    const updatedAnswers: CompletedRoles = {
+      ...completedRoles,
+      [currentRole.id]: {
+        role: currentRole.title,
+        selectedExperience,
+        selectedMulti,
+      },
+    };
 
+    if (currentRoleIndex === totalRoles - 1) {
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'HomeScreen',
+            params: { roleAnswers: updatedAnswers, fromJobInfo: true },
+          },
+        ],
+      });
+    } else {
+      navigation.replace('JobDetailsScreen', {
+        selectedRoles,
+        currentRoleIndex: currentRoleIndex + 1,
+        completedRoles: updatedAnswers,
+        totalRoles,
+      });
+
+      setSelectedExperience(null);
+      setSelectedMulti({});
+    }
+  };
 
   const renderChip = ({ label, isSelected, onTap, showIcon }: ChipProps) => (
     <TouchableOpacity
@@ -435,6 +295,25 @@ const handleNext = async (): Promise<void> => {
     </View>
   );
 
+  // Show loading while fetching categories
+  if (fetchLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={AppColors.themeColor} />
+          <Text style={{ marginTop: 10, color: '#999' }}>Loading job details...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Determine which image and title to display
+  const displayJobImage = dynamicJobData?.category_image 
+    ? { uri: dynamicJobData.category_image }
+    : roleConfig?.image || require('../../../assets/images/sales-job.jpg');
+
+  const displayJobTitle = dynamicJobData?.category_name || t(roleConfig?.title || '');
+
   return (
     <SafeAreaView
       style={[styles.container, { paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }]}
@@ -448,12 +327,18 @@ const handleNext = async (): Promise<void> => {
 
       {/* Role Header */}
       <View style={styles.header}>
-        <View style={styles.jobInfoContainer}>
-          <Image source={roleConfig.image} style={styles.jobImage} />
-          <View style={styles.jobTextContainer}>
-            <Text style={styles.jobTitle}>{t(roleConfig.title)}</Text>
-          </View>
-        </View>
+      <View style={styles.headerCenter}>
+  <Image source={displayJobImage} style={styles.jobImage} />
+  <Text style={styles.jobTitleCenter} numberOfLines={2}>
+    {displayJobTitle}
+  </Text>
+  {/* {dynamicJobData && (
+    <Text style={styles.jobSubtitleCenter}>
+      {t('jobDetails_role_selected')}
+    </Text>
+  )} */}
+</View>
+
       </View>
 
       {/* Questions */}
@@ -462,7 +347,7 @@ const handleNext = async (): Promise<void> => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollViewContent}
       >
-        {roleConfig.questions.map((q) => renderQuestion(q))}
+        {roleConfig?.questions && roleConfig.questions.map((q) => renderQuestion(q))}
       </ScrollView>
 
       {/* Button */}
@@ -490,10 +375,31 @@ const styles = StyleSheet.create({
   },
   progressBar: { height: '100%', backgroundColor: AppColors.themeColor, borderRadius: 10 },
   header: { paddingHorizontal: 20, paddingVertical: 16, backgroundColor: '#fff', borderBottomColor: '#f0f0f0' },
-  jobInfoContainer: { flexDirection: 'row', alignItems: 'center' },
+  // jobInfoContainer: { flexDirection: 'row', alignItems: 'center' },
   jobImage: { width: 70, height: 70, borderRadius: 8, marginRight: 15, resizeMode: 'cover' },
-  jobTextContainer: { flex: 1 },
-  jobTitle: { fontSize: 18, fontWeight: '600', color: '#000' },
+  // jobTextContainer: { flex: 1 },
+  headerCenter: {
+  alignItems: 'flex-start',
+  paddingVertical: 16,
+},
+
+jobTitleCenter: {
+  fontSize: 20,
+  fontWeight: '700',
+  color: '#000',
+  marginTop: 12,
+  // textAlign: 'center',
+},
+
+jobSubtitleCenter: {
+  fontSize: 12,
+  color: '#999',
+  marginTop: 4,
+  textAlign: 'center',
+},
+
+  jobTitle: { fontSize: 18, fontWeight: '600', color: '#000', marginBottom: 4 },
+  jobSubtitle: { fontSize: 12, color: '#999' },
   scrollView: { flex: 1 },
   scrollViewContent: { paddingHorizontal: 20, paddingVertical: 20 },
   questionSection: { marginBottom: 25 },

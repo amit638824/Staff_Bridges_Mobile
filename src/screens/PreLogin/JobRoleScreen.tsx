@@ -19,7 +19,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppColors } from '../../constants/AppColors';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from "react-redux";
-import { fetchJobRoles, resetJobRoles } from "../../redux/slices/jobRoleSlice";
+import { fetchJobRoles, resetJobRoles, setSearchQuery } from "../../redux/slices/jobRoleSlice";
 import { fetchSeekerCategories } from "../../redux/slices/seekerCategorySlice";
 import { RootState } from "../../redux/store";
 import { useForm } from "react-hook-form";
@@ -43,7 +43,7 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
   const { t } = useTranslation();
 
   const dispatch = useDispatch();
-  const { roles, page, totalPages, loading, error, hasMore } = useSelector(
+  const { roles, page, totalPages, loading, error, hasMore, searchQuery } = useSelector(
     (state: RootState) => state.jobRoles
   );
 
@@ -55,6 +55,9 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
   const userId = useSelector((state: RootState) => state.auth.userId);
 
   const [loadingMore, setLoadingMore] = useState(false);
+  const [searchQueryLocal, setSearchQueryLocal] = useState<string>('');
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [debugInfo, setDebugInfo] = useState({
     initialLoadDone: false,
     rolesInState: 0,
@@ -104,6 +107,34 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
     console.log(`📊 Redux State: ${roles.length} roles loaded, Page ${page}/${totalPages}, HasMore: ${hasMore}`);
   }, [roles, page, totalPages, hasMore]);
 
+  // Handle search with debounce
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      console.log('🔍 Search triggered with query:', searchQueryLocal);
+      dispatch(setSearchQuery(searchQueryLocal) as any);
+      dispatch(resetJobRoles() as any);
+      
+      // Fetch with search query
+      dispatch(
+        fetchJobRoles({ 
+          page: 1, 
+          limit: 10,
+          name: searchQueryLocal
+        }) as any
+      );
+    }, 500); // 500ms debounce
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQueryLocal, dispatch]);
+
   const loadMore = () => {
     console.log(`=== LOAD MORE CALLED ===`);
     console.log(`Conditions - loadingMore: ${loadingMore}, loading: ${loading}, hasMore: ${hasMore}, page: ${page}, totalPages: ${totalPages}`);
@@ -130,7 +161,13 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
 
     console.log(`✅ Fetching page ${page + 1}`);
     setLoadingMore(true);
-    dispatch(fetchJobRoles({ page: page + 1, limit: 10 }) as any);
+    dispatch(
+      fetchJobRoles({ 
+        page: page + 1, 
+        limit: 10,
+        name: searchQueryLocal
+      }) as any
+    );
   };
 
   // Reset loadingMore when loading finishes
@@ -151,7 +188,6 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
   }, [roles]);
 
   const [selectedRoles, setSelectedRoles] = useState<Set<string>>(new Set());
-  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const {
     handleSubmit,
@@ -165,14 +201,6 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
   });
 
   const isMaxSelected = selectedRoles.size >= 4;
-
-  const filteredRoles = useMemo(() => {
-    const filtered = jobRoles.filter((role: JobRole) =>
-      role.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    console.log(`🔍 Filtered: ${filtered.length} from ${jobRoles.length}`);
-    return filtered;
-  }, [searchQuery, jobRoles]);
 
   const handleRoleToggle = (roleId: string): void => {
     let newSelected = new Set(selectedRoles);
@@ -326,8 +354,8 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
             style={styles.searchInput}
             placeholder={t("searchPlaceholder")}
             placeholderTextColor="#999"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
+            value={searchQueryLocal}
+            onChangeText={setSearchQueryLocal}
           />
           <Ionicons name="search" size={20} color="#999" />
         </View>
@@ -347,14 +375,18 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
         ) : (
           /* Role List */
           <FlatList
-            data={filteredRoles}
+            data={jobRoles}
             renderItem={renderRoleItem}
             keyExtractor={(item) => item.id}
             ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <Text style={styles.emptyText}>
-                  {jobRoles.length === 0 ? "No roles loaded from API" : t("noJobRolesFound")}
+                  {jobRoles.length === 0 && searchQueryLocal.length > 0 
+                    ? t("noJobRolesFound") 
+                    : jobRoles.length === 0 
+                    ? "No roles found" 
+                    : t("noJobRolesFound")}
                 </Text>
               </View>
             }

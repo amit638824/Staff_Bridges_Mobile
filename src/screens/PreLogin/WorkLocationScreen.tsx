@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -48,7 +48,14 @@ export default function WorkLocationScreen() {
   const [cities, setCities] = useState<City[]>([]);
   const [localities, setLocalities] = useState<Locality[]>([]);
 
-  const [searchText, setSearchText] = useState("");
+  const [citySearchText, setCitySearchText] = useState("");
+  const [localitySearchText, setLocalitySearchText] = useState("");
+
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [loadingLocalities, setLoadingLocalities] = useState(false);
+
+  const citySearchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const localitySearchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     control,
@@ -65,48 +72,112 @@ export default function WorkLocationScreen() {
 
   const [loading, setLoading] = useState(false);
 
-  // ---------------- Fetch Cities with Pagination -----------------
-  const fetchAllCities = async () => {
+  // ---------------- Fetch All Cities with Pagination and optional search -----------------
+  const fetchAllCities = async (searchName?: string) => {
+    setLoadingCities(true);
     let allCities: City[] = [];
     let page = 1;
 
-    while (true) {
-      const res = await locationService.getCitiesByState(26, page);
-      const items = res.data.data.items;
-      const totalPages = res.data.data.totalPages;
+    try {
+      while (true) {
+        console.log(`📍 Fetching cities - Page: ${page}, Search: ${searchName || 'none'}`);
+        const res = await locationService.getCitiesByState(26, page, searchName);
+        const items = res.data.data.items;
+        const totalPages = res.data.data.totalPages;
 
-      allCities = [...allCities, ...items];
+        allCities = [...allCities, ...items];
 
-      if (page >= totalPages) break;
-      page++;
+        console.log(`✅ Got ${items.length} cities for page ${page}/${totalPages}`);
+
+        if (page >= totalPages) break;
+        page++;
+      }
+
+      setCities(allCities);
+      console.log(`✅ Total cities loaded: ${allCities.length}`);
+    } catch (error) {
+      console.error("❌ Error fetching cities:", error);
+    } finally {
+      setLoadingCities(false);
     }
-
-    setCities(allCities);
   };
 
-  // ---------------- Fetch Localities -----------------
-  const fetchAllLocalities = async (cityId: number) => {
+  // ---------------- Fetch All Localities with Pagination and optional search -----------------
+  const fetchAllLocalities = async (cityId: number, searchName?: string) => {
+    setLoadingLocalities(true);
     let allLocalities: Locality[] = [];
     let page = 1;
 
-    while (true) {
-      const res = await locationService.getLocalitiesByCity(cityId, page);
-      const items = res.data.data.items;
-      const totalPages = res.data.data.totalPages;
+    try {
+      while (true) {
+        console.log(`📍 Fetching localities - CityId: ${cityId}, Page: ${page}, Search: ${searchName || 'none'}`);
+        const res = await locationService.getLocalitiesByCity(cityId, page, searchName);
+        const items = res.data.data.items;
+        const totalPages = res.data.data.totalPages;
 
-      allLocalities = [...allLocalities, ...items];
+        allLocalities = [...allLocalities, ...items];
 
-      if (page >= totalPages) break;
-      page++;
+        console.log(`✅ Got ${items.length} localities for page ${page}/${totalPages}`);
+
+        if (page >= totalPages) break;
+        page++;
+      }
+
+      setLocalities(allLocalities);
+      console.log(`✅ Total localities loaded: ${allLocalities.length}`);
+    } catch (error) {
+      console.error("❌ Error fetching localities:", error);
+    } finally {
+      setLoadingLocalities(false);
     }
-
-    setLocalities(allLocalities);
   };
 
-  // Run on screen load
+  // Run on screen load - fetch initial cities
   useEffect(() => {
     fetchAllCities();
   }, []);
+
+  // Debounced city search
+  useEffect(() => {
+    if (citySearchTimeoutRef.current) {
+      clearTimeout(citySearchTimeoutRef.current);
+    }
+
+    citySearchTimeoutRef.current = setTimeout(() => {
+      console.log('🔍 City search triggered with query:', citySearchText);
+      fetchAllCities(citySearchText);
+    }, 500); // 500ms debounce
+
+    return () => {
+      if (citySearchTimeoutRef.current) {
+        clearTimeout(citySearchTimeoutRef.current);
+      }
+    };
+  }, [citySearchText]);
+
+  // Debounced locality search
+  useEffect(() => {
+    if (localitySearchTimeoutRef.current) {
+      clearTimeout(localitySearchTimeoutRef.current);
+    }
+
+    localitySearchTimeoutRef.current = setTimeout(() => {
+      console.log('🔍 Locality search triggered with query:', localitySearchText);
+      const selectedCity = control._formValues.city;
+      
+      // Find city ID from cities array
+      const cityItem = cities.find(c => c.name === selectedCity);
+      if (cityItem) {
+        fetchAllLocalities(cityItem.id, localitySearchText);
+      }
+    }, 500); // 500ms debounce
+
+    return () => {
+      if (localitySearchTimeoutRef.current) {
+        clearTimeout(localitySearchTimeoutRef.current);
+      }
+    };
+  }, [localitySearchText]);
 
   const onSubmit = async (data: any) => {
     setLoading(true);
@@ -117,12 +188,8 @@ export default function WorkLocationScreen() {
     }, 800);
   };
 
-  const filteredLocalities = localities.filter((item) =>
-    item.name.toLowerCase().includes(searchText.toLowerCase())
-  );
-
   return (
-     <SafeAreaView
+    <SafeAreaView
       style={[
         styles.safeArea,
         { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 },
@@ -151,9 +218,16 @@ export default function WorkLocationScreen() {
             <>
               <TouchableOpacity
                 style={styles.dropdown}
-                onPress={() => setShowCityModal(true)}
+                onPress={() => {
+                  setCitySearchText("");
+                  setShowCityModal(true);
+                  // Fetch cities when modal opens (in case they were cleared)
+                  if (cities.length === 0) {
+                    fetchAllCities();
+                  }
+                }}
               >
-                <Text style={styles.dropdownText}>
+                <Text style={[styles.dropdownText, { color: value ? '#000' : '#999' }]}>
                   {value ? value : t("chooseCity")}
                 </Text>
                 <Icon name="keyboard-arrow-down" size={22} />
@@ -178,9 +252,12 @@ export default function WorkLocationScreen() {
                   styles.dropdown,
                   { opacity: control._formValues.city ? 1 : 0.5 },
                 ]}
-                onPress={() => setShowLocalityModal(true)}
+                onPress={() => {
+                  setLocalitySearchText("");
+                  setShowLocalityModal(true);
+                }}
               >
-                <Text style={styles.dropdownText}>
+                <Text style={[styles.dropdownText, { color: value ? '#000' : '#999' }]}>
                   {value ? value : t("chooseLocality")}
                 </Text>
                 <Icon name="keyboard-arrow-down" size={22} />
@@ -226,26 +303,48 @@ export default function WorkLocationScreen() {
               </TouchableOpacity>
             </View>
 
-          
+            {/* City Search Bar */}
+            <TextInput
+              placeholder={t("searchPlaceholder") || "Search city..."}
+              style={styles.searchBar}
+              value={citySearchText}
+              onChangeText={setCitySearchText}
+              placeholderTextColor="#999"
+            />
+
+            {loadingCities ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={AppColors.buttons} />
+                <Text style={styles.loadingText}>Loading cities...</Text>
+              </View>
+            ) : (
               <FlatList
                 data={cities}
                 keyExtractor={(item) => String(item.id)}
                 renderItem={({ item, index }) => (
                   <TouchableOpacity
-                                    style={[styles.cityItem, { backgroundColor: index % 2 === 0 ? "#fff" : "#f7f7f7" }]}
-
-                  onPress={() => {
-                    setValue("city", item.name);
-                    setValue("locality", "");
-
-                    fetchAllLocalities(item.id);
-                    setShowCityModal(false);
-                  }}
-                >
-                  <Text style={styles.cityText}>{item.name}</Text>
-                </TouchableOpacity>
-              )}
-            />
+                    style={[
+                      styles.cityItem,
+                      { backgroundColor: index % 2 === 0 ? "#fff" : "#f7f7f7" },
+                    ]}
+                    onPress={() => {
+                      setValue("city", item.name);
+                      setValue("locality", "");
+                      setLocalitySearchText("");
+                      fetchAllLocalities(item.id);
+                      setShowCityModal(false);
+                    }}
+                  >
+                    <Text style={styles.cityText}>{item.name}</Text>
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={
+                  <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>No cities found</Text>
+                  </View>
+                }
+              />
+            )}
           </View>
         </View>
       </Modal>
@@ -262,27 +361,44 @@ export default function WorkLocationScreen() {
             </View>
 
             <TextInput
-              placeholder={t("typeLocality")}
+              placeholder={t("typeLocality") || "Search locality..."}
               style={styles.searchBar}
-              value={searchText}
-              onChangeText={setSearchText}
+              value={localitySearchText}
+              onChangeText={setLocalitySearchText}
+              placeholderTextColor="#999"
             />
- <FlatList
-                data={filteredLocalities}
+
+            {loadingLocalities ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={AppColors.buttons} />
+                <Text style={styles.loadingText}>Loading localities...</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={localities}
                 keyExtractor={(item) => String(item.id)}
                 renderItem={({ item, index }) => (
                   <TouchableOpacity
-                    style={[styles.listItem, { backgroundColor: index % 2 === 0 ? "#ffffff" : "#f2f2f2" }]}
+                    style={[
+                      styles.listItem,
+                      { backgroundColor: index % 2 === 0 ? "#ffffff" : "#f2f2f2" },
+                    ]}
                     onPress={() => {
-                    setValue("locality", item.name);
-                    setSearchText("");
-                    setShowLocalityModal(false);
-                  }}
-                >
-                  <Text style={styles.listItemText}>{item.name}</Text>
-                </TouchableOpacity>
-              )}
-            />
+                      setValue("locality", item.name);
+                      setLocalitySearchText("");
+                      setShowLocalityModal(false);
+                    }}
+                  >
+                    <Text style={styles.listItemText}>{item.name}</Text>
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={
+                  <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>No localities found</Text>
+                  </View>
+                }
+              />
+            )}
           </View>
         </View>
       </Modal>
@@ -293,7 +409,7 @@ export default function WorkLocationScreen() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#fff" },
   scrollContent: { padding: 20 },
-    progressContainer: {
+  progressContainer: {
     height: 10,
     width: "100%",
     backgroundColor: "#cacaca",
@@ -363,9 +479,14 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     margin: 10,
     padding: 12,
+    fontSize: 14,
   },
-   modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-    sheetTitle: { fontSize: 18, fontWeight: "bold" },
+  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
+  sheetTitle: { fontSize: 18, fontWeight: "bold" },
   listItem: { padding: 18, borderBottomWidth: 1, borderColor: "#eee" },
   listItemText: { fontSize: 15 },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  loadingText: { marginTop: 10, color: "#999", fontSize: 14 },
+  emptyContainer: { alignItems: "center", paddingVertical: 40 },
+  emptyText: { fontSize: 14, color: "#999", fontWeight: "500" },
 });

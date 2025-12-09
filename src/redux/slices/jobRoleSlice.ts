@@ -19,6 +19,7 @@ interface JobRoleState {
   totalRecords: number;
   hasMore: boolean;
   isInitialized: boolean;
+  searchQuery: string;
 }
 
 const initialState: JobRoleState = {
@@ -31,25 +32,33 @@ const initialState: JobRoleState = {
   totalRecords: 0,
   hasMore: false,
   isInitialized: false,
+  searchQuery: '',
 };
 
 export const fetchJobRoles = createAsyncThunk(
   "jobRoles/fetchAll",
-  async ({ page, limit }: { page: number; limit: number }, { rejectWithValue }) => {
+  async ({ page, limit, name }: { page: number; limit: number; name?: string }, { rejectWithValue }) => {
     try {
-      console.log(`🔄 API Request: Page ${page}, Limit ${limit}`);
-      const response = await axiosInstance.get(
-        `/api/master-category?page=${page}&limit=${limit}`
-      );
+      let url = `/api/master-category?page=${page}&limit=${limit}`;
+      
+      // Add name parameter only if search query has data
+      if (name && name.trim().length > 0) {
+        url += `&name=${encodeURIComponent(name.trim())}`;
+      }
+
+      console.log(`🔄 API Request: ${url}`);
+      const response = await axiosInstance.get(url);
 
       if (response.data.success) {
         const { items, currentPage, totalPages, totalRecords } = response.data.data;
         console.log(`✅ API Response: Page ${currentPage}/${totalPages}, Items: ${items.length}`);
+        console.log(`   Search Query: ${name || 'none'}`);
         return {
           items,
           currentPage,
           totalPages,
           totalRecords,
+          searchQuery: name || '',
         };
       }
 
@@ -78,6 +87,10 @@ const jobRoleSlice = createSlice({
       state.error = null;
       state.loading = false;
       state.isInitialized = false;
+      state.searchQuery = '';
+    },
+    setSearchQuery(state, action: PayloadAction<string>) {
+      state.searchQuery = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -89,7 +102,7 @@ const jobRoleSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchJobRoles.fulfilled, (state, action: any) => {
-        const { items, currentPage, totalPages, totalRecords } = action.payload;
+        const { items, currentPage, totalPages, totalRecords, searchQuery } = action.payload;
 
         console.log(`📥 FULFILLED: Page ${currentPage}/${totalPages}, Items: ${items.length}`);
         console.log(`   Before: ${state.roles.length} items`);
@@ -112,6 +125,7 @@ const jobRoleSlice = createSlice({
         state.loading = false;
         state.error = null;
         state.isInitialized = true;
+        state.searchQuery = searchQuery;
 
         console.log(`   State: Page ${state.page}/${state.totalPages}, HasMore: ${state.hasMore}, Total Items: ${state.roles.length}`);
       })
@@ -124,5 +138,5 @@ const jobRoleSlice = createSlice({
   },
 });
 
-export const { clearJobRoleError, resetJobRoles } = jobRoleSlice.actions;
+export const { clearJobRoleError, resetJobRoles, setSearchQuery } = jobRoleSlice.actions;
 export default jobRoleSlice.reducer;

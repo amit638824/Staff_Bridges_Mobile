@@ -80,21 +80,18 @@ export default function WorkLocationScreen() {
 
     try {
       while (true) {
-        console.log(`📍 Fetching cities - Page: ${page}, Search: ${searchName || 'none'}`);
         const res = await locationService.getCitiesByState(26, page, searchName);
         const items = res.data.data.items;
         const totalPages = res.data.data.totalPages;
 
         allCities = [...allCities, ...items];
 
-        console.log(`✅ Got ${items.length} cities for page ${page}/${totalPages}`);
 
         if (page >= totalPages) break;
         page++;
       }
 
       setCities(allCities);
-      console.log(`✅ Total cities loaded: ${allCities.length}`);
     } catch (error) {
       console.error("❌ Error fetching cities:", error);
     } finally {
@@ -117,14 +114,12 @@ export default function WorkLocationScreen() {
 
         allLocalities = [...allLocalities, ...items];
 
-        console.log(`✅ Got ${items.length} localities for page ${page}/${totalPages}`);
 
         if (page >= totalPages) break;
         page++;
       }
 
       setLocalities(allLocalities);
-      console.log(`✅ Total localities loaded: ${allLocalities.length}`);
     } catch (error) {
       console.error("❌ Error fetching localities:", error);
     } finally {
@@ -144,7 +139,6 @@ export default function WorkLocationScreen() {
     }
 
     citySearchTimeoutRef.current = setTimeout(() => {
-      console.log('🔍 City search triggered with query:', citySearchText);
       fetchAllCities(citySearchText);
     }, 500); // 500ms debounce
 
@@ -162,7 +156,6 @@ export default function WorkLocationScreen() {
     }
 
     localitySearchTimeoutRef.current = setTimeout(() => {
-      console.log('🔍 Locality search triggered with query:', localitySearchText);
       const selectedCity = control._formValues.city;
       
       // Find city ID from cities array

@@ -28,14 +28,11 @@ interface FetchSeekerCategoriesParams {
 export const createSeekerCategory = createAsyncThunk(
   "seekerCategory/create",
   async (payload: SeekerCategoryRequest, { rejectWithValue }) => {
-    console.log("🚀 Create Category Thunk Triggered. Payload:", payload);
 
     try {
       const response = await axiosInstance.post("/api/seeker-category", payload);
-      console.log("✅ Create API Response:", response.data);
       return response.data;
     } catch (error: any) {
-      console.log("❌ Create API Error in Thunk:", error.response?.data);
       return rejectWithValue(error.response?.data || "Something went wrong");
     }
   }
@@ -48,9 +45,7 @@ export const fetchSeekerCategories = createAsyncThunk(
     { page, limit, userId }: FetchSeekerCategoriesParams,
     { rejectWithValue }
   ) => {
-    console.log(
-      `🚀 Fetch Categories Thunk Triggered. Page: ${page}, Limit: ${limit}, UserId: ${userId}`
-    );
+   
 
     try {
       const response = await axiosInstance.get("/api/seeker-category", {
@@ -61,10 +56,8 @@ export const fetchSeekerCategories = createAsyncThunk(
         },
       });
 
-      console.log("✅ Fetch Categories Response:", response.data);
       return response.data;
     } catch (error: any) {
-      console.log("❌ Fetch Categories Error in Thunk:", error.response?.data);
       return rejectWithValue(error.response?.data || "Something went wrong");
     }
   }

@@ -67,20 +67,15 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
 
   // Reset Redux on mount to ensure fresh start
   useEffect(() => {
-    console.log('=== 🎯 COMPONENT MOUNTED ===');
-    console.log('Current Redux state - Roles:', roles.length, 'Page:', page);
     dispatch(resetJobRoles() as any);
     
     return () => {
-      console.log('=== 🎯 COMPONENT UNMOUNTED ===');
     };
   }, [dispatch]);
 
   // Initial load - only once after reset
   useEffect(() => {
-    console.log('=== 📡 INITIAL FETCH EFFECT ===');
     const timer = setTimeout(() => {
-      console.log('Dispatching fetchJobRoles for page 1');
       dispatch(fetchJobRoles({ page: 1, limit: 10 }) as any);
       setDebugInfo(prev => ({ ...prev, initialLoadDone: true }));
     }, 200);
@@ -104,7 +99,6 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
       currentPage: page,
       totalPages: totalPages,
     });
-    console.log(`📊 Redux State: ${roles.length} roles loaded, Page ${page}/${totalPages}, HasMore: ${hasMore}`);
   }, [roles, page, totalPages, hasMore]);
 
   // Handle search with debounce
@@ -114,7 +108,6 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
     }
 
     searchTimeoutRef.current = setTimeout(() => {
-      console.log('🔍 Search triggered with query:', searchQueryLocal);
       dispatch(setSearchQuery(searchQueryLocal) as any);
       dispatch(resetJobRoles() as any);
       
@@ -136,30 +129,23 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
   }, [searchQueryLocal, dispatch]);
 
   const loadMore = () => {
-    console.log(`=== LOAD MORE CALLED ===`);
-    console.log(`Conditions - loadingMore: ${loadingMore}, loading: ${loading}, hasMore: ${hasMore}, page: ${page}, totalPages: ${totalPages}`);
 
     if (loadingMore) {
-      console.log('❌ Already loading more');
       return;
     }
 
     if (loading) {
-      console.log('❌ Initial load in progress');
       return;
     }
 
     if (!hasMore) {
-      console.log('❌ No more pages');
       return;
     }
 
     if (page >= totalPages) {
-      console.log('❌ Already on last page');
       return;
     }
 
-    console.log(`✅ Fetching page ${page + 1}`);
     setLoadingMore(true);
     dispatch(
       fetchJobRoles({ 
@@ -173,13 +159,11 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
   // Reset loadingMore when loading finishes
   useEffect(() => {
     if (loadingMore && !loading) {
-      console.log('✅ Pagination complete, resetting loadingMore');
       setLoadingMore(false);
     }
   }, [loading, loadingMore]);
 
   const jobRoles = useMemo(() => {
-    console.log(`🔄 jobRoles memo recalculated: ${roles.length} items`);
     return roles.map((item: any) => ({
       id: String(item.id),
       title: item.name,
@@ -206,10 +190,8 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
     let newSelected = new Set(selectedRoles);
 
     if (newSelected.has(roleId)) {
-      console.log("❌ Removing category:", roleId);
       newSelected.delete(roleId);
     } else if (newSelected.size < 4) {
-      console.log("✅ Adding category:", roleId);
       newSelected.add(roleId);
 
       // ---- CALL API WHEN CATEGORY ADDED ----
@@ -220,15 +202,13 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
         createdBy: Number(userId),
       };
 
-      console.log("📤 Sending API Payload:", payload);
 
       dispatch(createSeekerCategory(payload) as any)
         .unwrap()
         .then((res: any) => {
-          console.log("📥 API Success Response:", res);
+         
         })
         .catch((err: any) => {
-          console.log("❌ API Error:", err);
         });
     }
 
@@ -242,8 +222,6 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
       selectedRoles.has(role.id)
     );
 
-    console.log('Navigating with selected roles:', selectedRoleDetails.length);
-    console.log('Available categories:', categories.length);
     
     // Map selected roles to include categoryId from the fetched categories
     const enrichedRoles = selectedRoleDetails.map((role) => {
@@ -252,7 +230,6 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
         (cat: any) => String(cat.job_categoryid) === role.id
       );
       
-      console.log(`Role ${role.id} - Matching category:`, matchingCategory);
 
       return {
         ...role,
@@ -261,7 +238,6 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
       };
     });
 
-    console.log('Enriched roles:', enrichedRoles);
 
     navigation.push("JobDetailsScreen", {
       selectedRoles: enrichedRoles,
@@ -392,7 +368,6 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
             }
             onEndReachedThreshold={0.5}
             onEndReached={({ distanceFromEnd }) => {
-              console.log(`📍 FlatList end reached, distance from end: ${distanceFromEnd}`);
               loadMore();
             }}
             ListFooterComponent={

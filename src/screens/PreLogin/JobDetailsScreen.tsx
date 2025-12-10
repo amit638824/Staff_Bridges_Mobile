@@ -138,7 +138,6 @@ const JobDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
 
   // Fetch categories on mount
   useEffect(() => {
-    console.log('🚀 JobDetailsScreen mounted, fetching categories for userId:', userId);
     if (userId) {
       dispatch(
         fetchSeekerCategories({ page: 1, limit: 100, userId: Number(userId) }) as any
@@ -148,8 +147,6 @@ const JobDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
 
   // Find matching job data for current role
   useEffect(() => {
-    console.log('📍 Current Role ID:', currentRole.id);
-    console.log('📊 Available Categories:', categories.length);
 
     if (categories.length > 0 && currentRole.categoryId) {
       const matchedCategory = categories.find(
@@ -157,10 +154,8 @@ const JobDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
       );
 
       if (matchedCategory) {
-        console.log('✅ Found matching category:', matchedCategory);
         setDynamicJobData(matchedCategory);
       } else {
-        console.log('❌ No matching category found for categoryId:', currentRole.categoryId);
       }
     }
   }, [categories, currentRole]);
@@ -170,7 +165,6 @@ const JobDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
     const fetchExistingExperience = async () => {
       try {
         if (currentRole.categoryId && userId) {
-          console.log('🔍 Fetching existing experience for categoryId:', currentRole.categoryId);
           const response = await seekerExperienceService.getSeekerExperienceByCategoryAndUser(
             currentRole.categoryId,
             Number(userId)
@@ -178,12 +172,10 @@ const JobDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
 
           if (response.data?.data && response.data.data.length > 0) {
             const existingExperience = response.data.data[0];
-            console.log('✅ Found existing experience:', existingExperience);
             setExistingExperienceId(existingExperience.id);
           }
         }
       } catch (error) {
-        console.log('ℹ️ No existing experience found or error fetching:', error);
       }
     };
 
@@ -208,21 +200,11 @@ const JobDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
         createdBy: Number(userId),
       };
 
-      console.log('========================================');
       if (existingExperienceId) {
-        console.log('📤 SEEKER EXPERIENCE API CALL (UPDATE)');
       } else {
-        console.log('📤 SEEKER EXPERIENCE API CALL (CREATE)');
+      
       }
-      console.log('========================================');
-      console.log('🔗 Endpoint: ' + (existingExperienceId ? 'PUT' : 'POST') + ' /api/seeker-experience' + (existingExperienceId ? `/${existingExperienceId}` : ''));
-      console.log('📦 Payload:', payload);
-      console.log('  - categoryId:', payload.categoryId);
-      console.log('  - userId:', payload.userId);
-      console.log('  - experience:', payload.experience);
-      console.log('  - status:', payload.status);
-      console.log('  - createdBy:', payload.createdBy);
-      console.log('========================================');
+ 
 
       let response;
       if (existingExperienceId) {
@@ -233,27 +215,11 @@ const JobDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
         response = await seekerExperienceService.saveSeekerExperience(payload);
       }
 
-      console.log('========================================');
-      console.log('✅ SEEKER EXPERIENCE SAVED SUCCESSFULLY');
-      console.log('========================================');
-      console.log('📥 Response Status:', response.status);
-      console.log('📥 Response Data:', response.data);
-      console.log('========================================');
-
       // Store the experience ID if it's a new creation
       if (!existingExperienceId && response.data?.data?.id) {
         setExistingExperienceId(response.data.data.id);
-        console.log('📌 Stored experience ID:', response.data.data.id);
       }
     } catch (error: any) {
-      console.log('========================================');
-      console.log('❌ ERROR SAVING SEEKER EXPERIENCE');
-      console.log('========================================');
-      console.log('🚨 Error Status:', error?.response?.status);
-      console.log('🚨 Error Message:', error?.message);
-      console.log('🚨 Response Data:', error?.response?.data);
-      console.log('🚨 Full Error:', error);
-      console.log('========================================');
 
       const errorMessage =
         error?.response?.data?.message ||

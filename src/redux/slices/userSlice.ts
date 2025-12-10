@@ -58,7 +58,6 @@ export const updateBasicInfo = createAsyncThunk<
         experienced: experienceValue   // <-- FIXED
       };
 
-      console.log("FINAL PAYLOAD SENT TO API:", payload);
 
       const response = await axiosInstance.put(
         "/auth/user-profile-update-basicinfo",

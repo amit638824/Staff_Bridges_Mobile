@@ -70,8 +70,6 @@ export default function AboutYourselfScreen() {
   // Check auth on mount
   // ===========================
   useEffect(() => {
-    console.log('=== AboutYourselfScreen Mount ===');
-    console.log('Full Auth State:', JSON.stringify(authState, null, 2));
 
     const timer = setTimeout(() => {
       if (!authUserId || !authToken) {
@@ -133,7 +131,6 @@ export default function AboutYourselfScreen() {
   // Submit handler
   // ===========================
   const onSubmit = async (data: any) => {
-    console.log("🚀 Form Data:", data);
 
     if (!authUserId) {
       Alert.alert("Error", "User ID not found. Please login again.");

@@ -23,7 +23,6 @@ axiosInstance.interceptors.request.use(
       // Add token to headers if it exists
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-        console.log('Token added to request:', token.substring(0, 20) + '...');
       }
 
       return config;
@@ -48,7 +47,6 @@ axiosInstance.interceptors.response.use(
 
     // Handle 401 Unauthorized (token expired or invalid)
     if (error.response?.status === 401) {
-      console.log('Token expired, clearing auth state');
       store.dispatch({ type: 'auth/resetAuth' });
       
       // Optional: You can navigate to login screen here

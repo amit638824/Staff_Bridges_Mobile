@@ -80,7 +80,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
                 {showLocation && (
                   <View style={styles.locationContainer}>
-                    <Icon name="location-on" size={18} color={AppColors.buttons} />
+                    <Icon name="location-on" size={20} color={AppColors.buttons} />
 <Text style={styles.locationText}>{t(location)}</Text>
                   </View>
                 )}
@@ -159,15 +159,15 @@ const styles = StyleSheet.create({
   },
   leftSection: {
     flexDirection: "row",
-    marginLeft: 10,
+    // marginLeft: 10,
   },
   leftInner: {
     flexDirection: "row",
     alignItems: "center",
   },
   logo: {
-    height: 35,
-    width: 120,
+    height: 50,
+    width: 105,
   },
   locationContainer: {
     flexDirection: "row",
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     color: AppColors.buttons,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "600",
     marginLeft: 4,
   },
@@ -192,12 +192,12 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: "absolute",
-    right: 6,
-    top: 6,
-    width: 14,
-    height: 14,
-    backgroundColor: "#FF6B00",
-    borderRadius: 7,
+    right: 0,
+    top: -1,
+    width: 18,
+    height: 18,
+    backgroundColor: "#e06417",
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
   },

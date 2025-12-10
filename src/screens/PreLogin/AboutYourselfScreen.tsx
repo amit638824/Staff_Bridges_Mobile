@@ -11,7 +11,8 @@ import {
   StatusBar,
   Platform,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  KeyboardAvoidingView
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { useNavigation } from "@react-navigation/native";
@@ -186,21 +187,38 @@ export default function AboutYourselfScreen() {
     }
   };
 
-  // ===========================
-  // Render
-  // ===========================
-  return (
-    <SafeAreaView style={[styles.safeArea, { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }]}>
-      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        {/* Progress Bar */}
+return (
+  <SafeAreaView
+    style={[
+      styles.safeArea,
+      { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 },
+    ]}
+  >
+    <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+
+    {/* ✅ ADDED KeyboardAvoidingView */}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+    >
+      {/* ✅ KEPT YOUR SCROLLVIEW — JUST WRAPPED INSIDE KAView */}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={true}
+      >
+        {/* 🔻 YOUR ORIGINAL CONTENT STARTS — NOTHING REMOVED 🔻 */}
+
         <View style={styles.progressContainer}>
           <View style={styles.progressFill} />
         </View>
 
-        {/* Icon */}
         <View style={styles.imageContainer}>
-          <Image source={require("../../../assets/images/list.png")} style={styles.icon} />
+          <Image
+            source={require("../../../assets/images/list.png")}
+            style={styles.icon}
+          />
         </View>
 
         <Text style={styles.title}>{t("aboutYourself")}</Text>
@@ -219,7 +237,9 @@ export default function AboutYourselfScreen() {
                 onChangeText={onChange}
                 placeholderTextColor="#999"
               />
-              {errors.fullName && <Text style={styles.errorText}>{errors.fullName.message}</Text>}
+              {errors.fullName && (
+                <Text style={styles.errorText}>{errors.fullName.message}</Text>
+              )}
             </>
           )}
         />
@@ -233,18 +253,23 @@ export default function AboutYourselfScreen() {
             <View style={styles.row}>
               {[
                 { key: "male", label: t("male"), icon: "male" },
-                { key: "female", label: t("female"), icon: "female" }
+                { key: "female", label: t("female"), icon: "female" },
               ].map((item) => (
                 <TouchableOpacity
                   key={item.key}
-                  style={[styles.chip, value === item.key && styles.chipSelected]}
+                  style={[
+                    styles.chip,
+                    value === item.key && styles.chipSelected,
+                  ]}
                   onPress={() => onChange(item.key)}
                 >
                   <Icon name={item.icon} size={16} color="black" />
                   <Text style={styles.chipText}>{item.label}</Text>
                 </TouchableOpacity>
               ))}
-              {errors.gender && <Text style={styles.errorText}>{errors.gender.message}</Text>}
+              {errors.gender && (
+                <Text style={styles.errorText}>{errors.gender.message}</Text>
+              )}
             </View>
           )}
         />
@@ -259,13 +284,18 @@ export default function AboutYourselfScreen() {
               {educationOptions.map((item) => (
                 <TouchableOpacity
                   key={item.key}
-                  style={[styles.chip, value === item.key && styles.chipSelected]}
+                  style={[
+                    styles.chip,
+                    value === item.key && styles.chipSelected,
+                  ]}
                   onPress={() => onChange(item.key)}
                 >
                   <Text style={styles.chipText}>{item.label}</Text>
                 </TouchableOpacity>
               ))}
-              {errors.education && <Text style={styles.errorText}>{errors.education.message}</Text>}
+              {errors.education && (
+                <Text style={styles.errorText}>{errors.education.message}</Text>
+              )}
             </View>
           )}
         />
@@ -280,13 +310,20 @@ export default function AboutYourselfScreen() {
               {["experienced", "fresher"].map((item) => (
                 <TouchableOpacity
                   key={item}
-                  style={[styles.chip, value === item && styles.chipSelected]}
+                  style={[
+                    styles.chip,
+                    value === item && styles.chipSelected,
+                  ]}
                   onPress={() => onChange(item)}
                 >
                   <Text style={styles.chipText}>{t(item)}</Text>
                 </TouchableOpacity>
               ))}
-              {errors.experience && <Text style={styles.errorText}>{errors.experience.message}</Text>}
+              {errors.experience && (
+                <Text style={styles.errorText}>
+                  {errors.experience.message}
+                </Text>
+              )}
             </View>
           )}
         />
@@ -303,26 +340,38 @@ export default function AboutYourselfScreen() {
                 placeholder={t("salaryPlaceholder")}
                 placeholderTextColor="#888"
                 keyboardType="numeric"
-value={value || ""}
+                value={value || ""}
                 onChangeText={onChange}
               />
               <Text style={styles.suffixText}>{t("perMonth")}</Text>
-              {errors.salary && <Text style={styles.errorText}>{errors.salary.message}</Text>}
+              {errors.salary && (
+                <Text style={styles.errorText}>{errors.salary.message}</Text>
+              )}
             </View>
           )}
         />
 
+      
+        {/* 🔺 YOUR CONTENT ENDS HERE — NONE REMOVED 🔺 */}
+      </ScrollView>
         {/* Submit Button */}
         <TouchableOpacity
           style={styles.primaryButton}
           onPress={handleSubmit(onSubmit)}
           disabled={loading}
         >
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{t("next")}</Text>}
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.btnText}>{t("next")}</Text>
+          )}
         </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
-  );
+
+    </KeyboardAvoidingView>
+  </SafeAreaView>
+);
+
+
 }
 
 const styles = StyleSheet.create({
@@ -334,16 +383,26 @@ const styles = StyleSheet.create({
   icon: { width: 60, height: 60 },
   title: { fontSize: 20, fontWeight: "bold", marginVertical: 20 },
   label: { marginTop: 10, fontSize: 15, fontWeight: "600" },
-  input: { borderWidth: 1, borderColor: "#ccc", padding: 12, borderRadius: 10, marginTop: 6, color: "black" },
+  input: { borderWidth: 1, borderColor: "#ccc", padding: 12, borderRadius: 6, marginTop: 6, color: "black" },
   row: { flexDirection: "row", gap: 10, marginVertical: 8 },
   wrap: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginVertical: 10 },
   chip: { flexDirection: "row", alignItems: "center", borderWidth: 1, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 20, borderColor: "#ccc" },
   chipSelected: { backgroundColor: "#e7f6f6", borderColor: "#099ca4" },
   chipText: { marginLeft: 5, fontSize: 13 },
-  salaryBox: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#ccc", borderRadius: 10, paddingHorizontal: 12, marginTop: 6 },
+  salaryBox: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#ccc", borderRadius: 6, paddingHorizontal: 12, marginTop: 6 },
   salaryInputField: { flex: 1, paddingVertical: 12, color: "black", fontSize: 15 },
   suffixText: { color: "#555", fontSize: 14, marginLeft: 5 },
-  primaryButton: { backgroundColor: AppColors.buttons, padding: 16, alignItems: "center", borderRadius: 30, marginVertical: 25 },
+primaryButton: {
+  position: 'absolute',   // <-- make it fixed
+  bottom: 0,             // <-- 30px from bottom
+  left: 20,               // <-- spacing from left
+  right: 20,              // <-- spacing from right
+  backgroundColor: AppColors.buttons,
+  padding: 16,
+  alignItems: 'center',
+  borderRadius: 30,
+  zIndex: 10,             // ensure it stays above other content
+},
   btnText: { fontSize: 16, fontWeight: "700", color: "#fff" },
   errorText: { color: "red", fontSize: 12, marginTop: 2 },
 });

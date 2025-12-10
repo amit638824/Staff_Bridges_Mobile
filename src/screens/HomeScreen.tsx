@@ -116,11 +116,11 @@ const HomeScreen: React.FC<{ navigation: any, route: any }> = ({ navigation, rou
         </View>
 
         <ScrollView
-          contentContainerStyle={{ paddingBottom: 20, paddingTop: 10 }}
+          contentContainerStyle={{ paddingBottom: 20, paddingTop: 0 }}
           style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
         >
-          <View style={{ paddingHorizontal: 18, marginTop: 10 }}>
+          <View style={{ paddingHorizontal: 18, marginTop: 0 }}>
             <Text style={styles.subGreetingText}>{t('home_greeting_hey', { name: 'Asmit' })}</Text>
             <Text style={styles.subGreetingText}>{t('home_greeting_jobs_waiting')}</Text>
           </View>
@@ -345,7 +345,7 @@ const SuccessStoriesSection = () => {
 
         <Text style={styles.title}>
           <Text style={styles.titleBlack}>{t('home_success_stories_title_black')}</Text>
-          <Text style={styles.titleTeal}>{t('home_success_stories_title_teal')}</Text>
+          <Text style={styles.titleTeal}> {t('home_success_stories_title_teal')}</Text>
         </Text>
 
         <View style={styles.avatarRow}>

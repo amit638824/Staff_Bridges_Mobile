@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   Image,
   Dimensions,
@@ -12,7 +11,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { AppColors } from '../../constants/AppColors';
-
+import { SafeAreaView } from "react-native-safe-area-context";
 const { width, height } = Dimensions.get('window');
 
 const SplashScreen = ({ navigation }: any) => {

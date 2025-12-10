@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../../services/authService";
+export type { SeekerCategoryItem };
 
 interface SeekerCategoryRequest {
   categoryId: number;

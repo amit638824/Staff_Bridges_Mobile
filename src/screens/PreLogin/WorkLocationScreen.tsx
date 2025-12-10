@@ -107,7 +107,6 @@ export default function WorkLocationScreen() {
 
     try {
       while (true) {
-        console.log(`📍 Fetching localities - CityId: ${cityId}, Page: ${page}, Search: ${searchName || 'none'}`);
         const res = await locationService.getLocalitiesByCity(cityId, page, searchName);
         const items = res.data.data.items;
         const totalPages = res.data.data.totalPages;
@@ -263,28 +262,30 @@ export default function WorkLocationScreen() {
           )}
         />
 
-        {/* NEXT BTN */}
-        <TouchableOpacity
-          style={[
-            styles.button,
-            {
-              backgroundColor:
-                control._formValues.city && control._formValues.locality
-                  ? AppColors.buttons
-                  : "#ccc",
-            },
-          ]}
-          onPress={handleSubmit(onSubmit)}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.btnText}>{t("next")}</Text>
-          )}
-        </TouchableOpacity>
+ 
       </ScrollView>
-
+       {/* NEXT BTN */}
+          <View style={styles.fixedFooter}>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                backgroundColor:
+                  control._formValues.city && control._formValues.locality
+                    ? AppColors.buttons
+                    : "#ccc",
+              },
+            ]}
+            onPress={handleSubmit(onSubmit)}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.btnText}>{t("next")}</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       {/* CITY MODAL */}
       <Modal visible={showCityModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
@@ -298,7 +299,7 @@ export default function WorkLocationScreen() {
 
             {/* City Search Bar */}
             <TextInput
-              placeholder={t("searchPlaceholder") || "Search city..."}
+              placeholder={t("searchCityPlaceholder") || "Search city..."}
               style={styles.searchBar}
               value={citySearchText}
               onChangeText={setCitySearchText}
@@ -431,6 +432,11 @@ const styles = StyleSheet.create({
   },
   dropdownText: { fontSize: 14 },
   errorText: { color: "red", fontSize: 13, marginTop: 5, marginLeft: 5 },
+  fixedFooter:{
+paddingBottom:30,
+paddingHorizontal:20,
+backgroundColor:'#fff',
+  },
   button: {
     marginTop: 50,
     padding: 15,

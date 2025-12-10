@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { AppColors } from "../constants/AppColors";
-import { useTranslation } from "react-i18next";   // 👈 ADD THIS
+import { useTranslation } from "react-i18next";   
 
 interface AppFooterProps {
   currentIndex: number;
@@ -16,10 +16,10 @@ const AppFooter: React.FC<AppFooterProps> = ({ currentIndex, onTap }) => {
   const { t } = useTranslation();  // 👈 TRANSLATION HOOK
 
   const navItems = [
-    { label: t("home"), solid: "home", outline: "home-outline", route: "HomeScreen" },
-    { label: t("jobs"), solid: "work", outline: "briefcase-outline", route: "JobsScreen" },
-    { label: t("responses"), solid: "chat", outline: "chat-outline", route: "ResponsesScreen" },
-    { label: t("profile"), solid: "person", outline: "account-outline", route: "ProfileScreen" },
+    { label: t("footer_home"), solid: "home", outline: "home-outline", route: "HomeScreen" },
+    { label: t("footer_jobs"), solid: "work", outline: "briefcase-outline", route: "JobsScreen" },
+    { label: t("footer_responses"), solid: "chat", outline: "chat-outline", route: "ResponsesScreen" },
+    { label: t("footer_profile"), solid: "person", outline: "account-outline", route: "ProfileScreen" },
   ];
 
   const handlePress = (index: number, route: string) => {
@@ -66,6 +66,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
+    paddingBottom:25
   },
   navBar: {
     flexDirection: "row",

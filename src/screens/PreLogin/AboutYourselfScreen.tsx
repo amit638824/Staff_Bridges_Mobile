@@ -196,181 +196,171 @@ return (
   >
     <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
-    {/* ✅ ADDED KeyboardAvoidingView */}
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+    {/* ScrollView */}
+    <ScrollView
+      contentContainerStyle={styles.scrollContent}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={true}
     >
-      {/* ✅ KEPT YOUR SCROLLVIEW — JUST WRAPPED INSIDE KAView */}
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={true}
-      >
-        {/* 🔻 YOUR ORIGINAL CONTENT STARTS — NOTHING REMOVED 🔻 */}
 
-        <View style={styles.progressContainer}>
-          <View style={styles.progressFill} />
-        </View>
+      <View style={styles.progressContainer}>
+        <View style={styles.progressFill} />
+      </View>
 
-        <View style={styles.imageContainer}>
-          <Image
-            source={require("../../../assets/images/list.png")}
-            style={styles.icon}
-          />
-        </View>
-
-        <Text style={styles.title}>{t("aboutYourself")}</Text>
-
-        {/* Full Name */}
-        <Text style={styles.label}>{t("yourName")} *</Text>
-        <Controller
-          control={control}
-          name="fullName"
-          render={({ field: { value, onChange } }) => (
-            <>
-              <TextInput
-                placeholder={t("fullName")}
-                style={styles.input}
-                value={value}
-                onChangeText={onChange}
-                placeholderTextColor="#999"
-              />
-              {errors.fullName && (
-                <Text style={styles.errorText}>{errors.fullName.message}</Text>
-              )}
-            </>
-          )}
+      <View style={styles.imageContainer}>
+        <Image
+          source={require("../../../assets/images/list.png")}
+          style={styles.icon}
         />
+      </View>
 
-        {/* Gender */}
-        <Text style={styles.label}>{t("gender")} *</Text>
-        <Controller
-          control={control}
-          name="gender"
-          render={({ field: { value, onChange } }) => (
-            <View style={styles.row}>
-              {[
-                { key: "male", label: t("male"), icon: "male" },
-                { key: "female", label: t("female"), icon: "female" },
-              ].map((item) => (
-                <TouchableOpacity
-                  key={item.key}
-                  style={[
-                    styles.chip,
-                    value === item.key && styles.chipSelected,
-                  ]}
-                  onPress={() => onChange(item.key)}
-                >
-                  <Icon name={item.icon} size={16} color="black" />
-                  <Text style={styles.chipText}>{item.label}</Text>
-                </TouchableOpacity>
-              ))}
-              {errors.gender && (
-                <Text style={styles.errorText}>{errors.gender.message}</Text>
-              )}
-            </View>
-          )}
-        />
+      <Text style={styles.title}>{t("aboutYourself")}</Text>
 
-        {/* Education */}
-        <Text style={styles.label}>{t("education")} *</Text>
-        <Controller
-          control={control}
-          name="education"
-          render={({ field: { value, onChange } }) => (
-            <View style={styles.wrap}>
-              {educationOptions.map((item) => (
-                <TouchableOpacity
-                  key={item.key}
-                  style={[
-                    styles.chip,
-                    value === item.key && styles.chipSelected,
-                  ]}
-                  onPress={() => onChange(item.key)}
-                >
-                  <Text style={styles.chipText}>{item.label}</Text>
-                </TouchableOpacity>
-              ))}
-              {errors.education && (
-                <Text style={styles.errorText}>{errors.education.message}</Text>
-              )}
-            </View>
-          )}
-        />
+      {/* Full Name */}
+      <Text style={styles.label}>{t("yourName")} *</Text>
+      <Controller
+        control={control}
+        name="fullName"
+        render={({ field: { value, onChange } }) => (
+          <>
+            <TextInput
+              placeholder={t("fullName")}
+              style={styles.input}
+              value={value}
+              onChangeText={onChange}
+              placeholderTextColor="#999"
+            />
+            {errors.fullName && (
+              <Text style={styles.errorText}>{errors.fullName.message}</Text>
+            )}
+          </>
+        )}
+      />
 
-        {/* Experience */}
-        <Text style={styles.label}>{t("workExperience")}</Text>
-        <Controller
-          control={control}
-          name="experience"
-          render={({ field: { value, onChange } }) => (
-            <View style={styles.row}>
-              {["experienced", "fresher"].map((item) => (
-                <TouchableOpacity
-                  key={item}
-                  style={[
-                    styles.chip,
-                    value === item && styles.chipSelected,
-                  ]}
-                  onPress={() => onChange(item)}
-                >
-                  <Text style={styles.chipText}>{t(item)}</Text>
-                </TouchableOpacity>
-              ))}
-              {errors.experience && (
-                <Text style={styles.errorText}>
-                  {errors.experience.message}
-                </Text>
-              )}
-            </View>
-          )}
-        />
+      {/* Gender */}
+      <Text style={styles.label}>{t("gender")} *</Text>
+      <Controller
+        control={control}
+        name="gender"
+        render={({ field: { value, onChange } }) => (
+          <View style={styles.row}>
+            {[
+              { key: "male", label: t("male"), icon: "male" },
+              { key: "female", label: t("female"), icon: "female" },
+            ].map((item) => (
+              <TouchableOpacity
+                key={item.key}
+                style={[
+                  styles.chip,
+                  value === item.key && styles.chipSelected,
+                ]}
+                onPress={() => onChange(item.key)}
+              >
+                <Icon name={item.icon} size={16} color="black" />
+                <Text style={styles.chipText}>{item.label}</Text>
+              </TouchableOpacity>
+            ))}
+            {errors.gender && (
+              <Text style={styles.errorText}>{errors.gender.message}</Text>
+            )}
+          </View>
+        )}
+      />
 
-        {/* Salary */}
-        <Text style={styles.label}>{t("monthlySalary")}</Text>
-        <Controller
-          control={control}
-          name="salary"
-          render={({ field: { value, onChange } }) => (
-            <View style={styles.salaryBox}>
-              <TextInput
-                style={styles.salaryInputField}
-                placeholder={t("salaryPlaceholder")}
-                placeholderTextColor="#888"
-                keyboardType="numeric"
-                value={value || ""}
-                onChangeText={onChange}
-              />
-              <Text style={styles.suffixText}>{t("perMonth")}</Text>
-              {errors.salary && (
-                <Text style={styles.errorText}>{errors.salary.message}</Text>
-              )}
-            </View>
-          )}
-        />
+      {/* Education */}
+      <Text style={styles.label}>{t("education")} *</Text>
+      <Controller
+        control={control}
+        name="education"
+        render={({ field: { value, onChange } }) => (
+          <View style={styles.wrap}>
+            {educationOptions.map((item) => (
+              <TouchableOpacity
+                key={item.key}
+                style={[
+                  styles.chip,
+                  value === item.key && styles.chipSelected,
+                ]}
+                onPress={() => onChange(item.key)}
+              >
+                <Text style={styles.chipText}>{item.label}</Text>
+              </TouchableOpacity>
+            ))}
+            {errors.education && (
+              <Text style={styles.errorText}>{errors.education.message}</Text>
+            )}
+          </View>
+        )}
+      />
 
-      
-        {/* 🔺 YOUR CONTENT ENDS HERE — NONE REMOVED 🔺 */}
-      </ScrollView>
-        {/* Submit Button */}
-        <TouchableOpacity
-          style={styles.primaryButton}
-          onPress={handleSubmit(onSubmit)}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.btnText}>{t("next")}</Text>
-          )}
-        </TouchableOpacity>
+      {/* Experience */}
+      <Text style={styles.label}>{t("workExperience")}</Text>
+      <Controller
+        control={control}
+        name="experience"
+        render={({ field: { value, onChange } }) => (
+          <View style={styles.row}>
+            {["experienced", "fresher"].map((item) => (
+              <TouchableOpacity
+                key={item}
+                style={[
+                  styles.chip,
+                  value === item && styles.chipSelected,
+                ]}
+                onPress={() => onChange(item)}
+              >
+                <Text style={styles.chipText}>{t(item)}</Text>
+              </TouchableOpacity>
+            ))}
+            {errors.experience && (
+              <Text style={styles.errorText}>
+                {errors.experience.message}
+              </Text>
+            )}
+          </View>
+        )}
+      />
 
-    </KeyboardAvoidingView>
+      {/* Salary */}
+      <Text style={styles.label}>{t("monthlySalary")}</Text>
+      <Controller
+        control={control}
+        name="salary"
+        render={({ field: { value, onChange } }) => (
+          <View style={styles.salaryBox}>
+            <TextInput
+              style={styles.salaryInputField}
+              placeholder={t("salaryPlaceholder")}
+              placeholderTextColor="#888"
+              keyboardType="numeric"
+              value={value || ""}
+              onChangeText={onChange}
+            />
+            <Text style={styles.suffixText}>{t("perMonth")}</Text>
+            {errors.salary && (
+              <Text style={styles.errorText}>{errors.salary.message}</Text>
+            )}
+          </View>
+        )}
+      />
+
+    </ScrollView>
+
+    {/* Submit Button (Fixed at bottom always) */}
+    <TouchableOpacity
+      style={styles.primaryButton}
+      onPress={handleSubmit(onSubmit)}
+      disabled={loading}
+    >
+      {loading ? (
+        <ActivityIndicator color="#fff" />
+      ) : (
+        <Text style={styles.btnText}>{t("next")}</Text>
+      )}
+    </TouchableOpacity>
+
   </SafeAreaView>
 );
-
 
 }
 
@@ -392,17 +382,17 @@ const styles = StyleSheet.create({
   salaryBox: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#ccc", borderRadius: 6, paddingHorizontal: 12, marginTop: 6 },
   salaryInputField: { flex: 1, paddingVertical: 12, color: "black", fontSize: 15 },
   suffixText: { color: "#555", fontSize: 14, marginLeft: 5 },
-primaryButton: {
-  position: 'absolute',   // <-- make it fixed
-  bottom: -16,             // <-- 30px from bottom
-  left: 20,               // <-- spacing from left
-  right: 20,              // <-- spacing from right
-  backgroundColor: AppColors.buttons,
-  padding: 16,
-  alignItems: 'center',
-  borderRadius: 30,
-  zIndex: 10,             // ensure it stays above other content
-},
+  primaryButton: {
+    position: 'absolute',
+    bottom: 30,
+    left: 20,
+    right: 20,
+    backgroundColor: AppColors.buttons,
+    padding: 16,
+    alignItems: 'center',
+    borderRadius: 30,
+    zIndex: 10,
+  },
   btnText: { fontSize: 16, fontWeight: "700", color: "#fff" },
   errorText: { color: "red", fontSize: 12, marginTop: 2 },
 });

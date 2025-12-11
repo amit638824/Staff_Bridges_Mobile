@@ -99,31 +99,3 @@ export const AppConstants = {
     bottom: height * 0.03,
   },
 } as const;
-
-// 🎯 Example Usage Guide:
-// ===========================
-// 1. Basic spacing:
-//    marginHorizontal: AppConstants.padding.md
-//
-// 2. Font sizes:
-//    fontSize: AppConstants.fontSize.lg
-//
-// 3. Icon sizes:
-//    width: AppConstants.iconSize.md,
-//    height: AppConstants.iconSize.md,
-//
-// 4. Button styling:
-//    height: AppConstants.buttonHeight.md,
-//    borderRadius: AppConstants.borderRadius.md,
-//    paddingHorizontal: AppConstants.padding.lg,
-//
-// 5. Input styling:
-//    height: AppConstants.inputHeight.md,
-//    paddingHorizontal: AppConstants.padding.md,
-//
-// 6. Cards/Images:
-//    width: AppConstants.image.cardWidth,
-//    height: AppConstants.image.cardHeight,
-//
-// 7. Platform check:
-//    if (AppConstants.isAndroid) { /* Android specific code */ }

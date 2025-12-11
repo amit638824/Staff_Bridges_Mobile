@@ -7,6 +7,7 @@ export const AppColors = {
   themeBorder: '#03416B',
   gradientLight: '#d9f5f5',
   gradientDark: '#75dae0', 
+  placeholderColor:'#606060',
   lightText:'#bfbfbf',
   cardBg: '#dae5ff', 
   cardLightBg: '#f4f6ff', 

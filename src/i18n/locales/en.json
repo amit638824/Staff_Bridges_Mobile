@@ -1,11 +1,11 @@
 {
   "phoneTitle": "Let's start with your phone number",
-  "enterPhone": "Enter mobile number",
+  "enterPhone": "Enter mobile number to get OTP",
   "sendOtp": "Send OTP",
   "agreeTerms": "By clicking agree, you accept our Terms of Service and Privacy Policy.",
   "termsOfService": "Terms of Service",
   "privacyPolicy": "Privacy Policy",
-  "chooseLanguage": "Choose Language",
+  "chooseLanguage": "Choose your language",
   "next": "Next",
   "loading":"loading..",
   "enterOtp": "Enter OTP",

@@ -22,6 +22,7 @@ import { AppDispatch, RootState } from '../redux/store';
 import { sendOtp, loginWithOtp, setMobile, clearError } from '../redux/slices/authSlice';
 import { setUserProfile } from '../redux/slices/userSlice';
 import { AppColors } from '../constants/AppColors';
+import { AppConstants } from '../constants/AppConstants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n/i18n';
@@ -55,14 +56,15 @@ const PhoneLoginScreen: React.FC = () => {
   // -----------------------
   // React Hook Form setup
   // -----------------------
-  const {
-    control,
-    handleSubmit,
-    formState: { errors: phoneErrors },
-  } = useForm({
-    resolver: yupResolver(phoneSchema),
-    defaultValues: { mobile, isChecked: true },
-  });
+  
+const { control, handleSubmit, watch, formState: { errors: phoneErrors } } = useForm({
+  resolver: yupResolver(phoneSchema),
+  defaultValues: { mobile, isChecked: true },
+});
+
+const watchMobile = watch("mobile");
+const isMobileValid = watchMobile && watchMobile.length === 10;
+
 
   const {
     control: otpControl,
@@ -138,10 +140,10 @@ const PhoneLoginScreen: React.FC = () => {
               onPress={() => setLanguageModalVisible(true)}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={{ marginRight: 6, paddingHorizontal: 4 }}>
+                <Text style={{ marginRight: AppConstants.spacing.xs, paddingHorizontal:AppConstants.padding.xs }}>
                   {i18n.language === 'hi' ? 'हिंदी' : 'English'}
                 </Text>
-                <Ionicons name="chevron-down" size={18} color={AppColors.themeColor} />
+                <Ionicons name="chevron-down" size={AppConstants.iconSize.sm} color={AppColors.themeColor} />
               </View>
             </TouchableOpacity>
           </View>
@@ -161,7 +163,7 @@ const PhoneLoginScreen: React.FC = () => {
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={styles.countryCode}>+91</Text>
               <View
-                style={{ width: 1, height: 20, backgroundColor: '#ccc', marginHorizontal: 8 }}
+                style={styles.divider}
               />
             </View>
 
@@ -173,7 +175,7 @@ const PhoneLoginScreen: React.FC = () => {
                 <TextInput
                   style={styles.phoneInput}
                   placeholder={t('enterPhone')}
-                  placeholderTextColor={AppColors.lightText}
+                  placeholderTextColor={AppColors.placeholderColor}
                   keyboardType="phone-pad"
                   maxLength={10}
                   value={value}
@@ -184,7 +186,26 @@ const PhoneLoginScreen: React.FC = () => {
           </View>
           {phoneErrors.mobile && <Text style={styles.errorText}>{phoneErrors.mobile.message}</Text>}
 
-          {/* Terms Checkbox */}
+       
+          {/* Send OTP Button */}
+<TouchableOpacity
+  style={[
+    styles.sendOtpButton,
+    (!isMobileValid || sendOtpLoading || otpSent) && { backgroundColor: "#ccc" }
+  ]}
+  onPress={handleSendOtp}
+  disabled={!isMobileValid || sendOtpLoading || otpSent}
+>
+  {sendOtpLoading ? (
+    <ActivityIndicator color="#fff" />
+  ) : (
+    <Text style={styles.sendOtpText}>
+      {otpSent ? t('otpSent') : t('sendOtp')}
+    </Text>
+  )}
+</TouchableOpacity>
+
+             {/* Terms Checkbox */}
           <Controller
             control={control}
             name="isChecked"
@@ -203,18 +224,6 @@ const PhoneLoginScreen: React.FC = () => {
             <Text style={styles.errorText}>{phoneErrors.isChecked.message}</Text>
           )}
 
-          {/* Send OTP Button */}
-          <TouchableOpacity
-            style={[styles.sendOtpButton, otpSent && { backgroundColor: '#ccc' }]}
-            onPress={handleSendOtp}
-            disabled={sendOtpLoading || otpSent}
-          >
-            {sendOtpLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.sendOtpText}>{otpSent ? t('otpSent') : t('sendOtp')}</Text>
-            )}
-          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -225,54 +234,71 @@ const PhoneLoginScreen: React.FC = () => {
       />
 
       {/* OTP Bottom Sheet */}
-      <RBSheet
-        ref={refRBSheet}
-        height={320}
-        openDuration={250}
-        draggable
-        customStyles={{
-          wrapper: { backgroundColor: 'rgba(0,0,0,0.5)' },
-          draggableIcon: { backgroundColor: '#000' },
-          container: { borderTopLeftRadius: 20, borderTopRightRadius: 20 },
-        }}
-      >
-        <View style={styles.otpBottomSheet}>
-          <Text style={styles.otpTitle}>{t('enterOtp')}</Text>
-          <Text style={styles.otpSubtitle}>{t('otpSentMessage', { phone: mobile })}</Text>
+    <RBSheet
+  ref={refRBSheet}
+  height={AppConstants.screenHeight * 0.30}
+  openDuration={250}
+  draggable
+  customStyles={{
+    wrapper: { backgroundColor: 'rgba(0,0,0,0.5)' },
+    draggableIcon: { backgroundColor: '#bbb', width: 60, height: 6, borderRadius: 3,marginBottom:AppConstants.spacing.md },
+    container: {
+      borderTopLeftRadius: AppConstants.borderRadius.lg,
+      borderTopRightRadius: AppConstants.borderRadius.lg,
+      paddingHorizontal: AppConstants.padding.xs,
+      paddingTop: AppConstants.padding.xs,
+      paddingBottom:AppConstants.padding.sm
+    },
+  }}
+>
+  <View>
+    <Text style={styles.otpTitle}>{t('enterOtp')}</Text>
 
-          {/* OTP Input */}
-          <Controller
-            control={otpControl}
-            name="otp"
-            render={({ field: { onChange, value } }) => (
-              <TextInput
-                style={styles.otpInput}
-                placeholder={t('enterOtpPlaceholder')}
-                 placeholderTextColor={AppColors.lightText}
-                keyboardType="number-pad"
-                maxLength={6}
-                value={value}
-                onChangeText={onChange}
-              />
-            )}
-          />
-          {otpErrors.otp && <Text style={styles.errorText}>{otpErrors.otp.message}</Text>}
-          {error && <Text style={styles.errorText}>{error}</Text>}
+    <Text style={styles.otpSubtitle}>
+      {t('otpSentMessage', { phone: mobile })}
+    </Text>
 
-          {/* Verify Button */}
-          <TouchableOpacity
-            style={styles.verifyOtpButton}
-            onPress={handleLoginWithOtp}
-            disabled={loginLoading}
-          >
-            {loginLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.verifyOtpText}>{t('verifyContinue')}</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </RBSheet>
+    {/* OTP Input */}
+    <Controller
+      control={otpControl}
+      name="otp"
+      render={({ field: { onChange, value } }) => (
+        <TextInput
+          style={styles.otpInput}
+          placeholder={t('enterOtpPlaceholder')}
+          placeholderTextColor={AppColors.lightText}
+          keyboardType="number-pad"
+          maxLength={6}
+          value={value}
+          onChangeText={onChange}
+        />
+      )}
+    />
+
+    {otpErrors.otp && (
+      <Text style={styles.errorText}>{otpErrors.otp.message}</Text>
+    )}
+
+    {error && (
+      <Text style={styles.errorText}>{error}</Text>
+    )}
+
+    {/* Verify Button */}
+    <TouchableOpacity
+      style={styles.verifyOtpButton}
+      onPress={handleLoginWithOtp}
+      disabled={loginLoading}
+    >
+      {loginLoading ? (
+        <ActivityIndicator color="#fff" />
+      ) : (
+        <Text style={styles.verifyOtpText}>{t('verifyContinue')}</Text>
+      )}
+    </TouchableOpacity>
+
+  </View>
+</RBSheet>
+
     </SafeAreaView>
   );
 };
@@ -280,25 +306,161 @@ const PhoneLoginScreen: React.FC = () => {
 export default PhoneLoginScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  pagePadding: { padding: 16 },
-  logoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  logo: { height: 60, width: 120, resizeMode: 'contain' },
-  languageSelector: { paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderRadius: 20, borderColor: AppColors.themeBorder },
-  banner: { width: '100%', height: 220, marginVertical: 0 },
-  phoneLabel: { fontSize: 16, fontWeight: '600', marginBottom: 12 },
-  phoneInputContainer: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#DDD', borderRadius: 40, paddingHorizontal: 12, paddingVertical: 4, marginBottom: 16 },
-  countryCode: { fontSize: 16, fontWeight: '600', marginRight: 8, color: AppColors.lightText },
-  phoneInput: { flex: 1, fontSize: 16, padding: 4 },
-  sendOtpButton: { backgroundColor: AppColors.themeColor, borderRadius: 40, height: 48, justifyContent: 'center', alignItems: 'center', marginTop: 15 },
-  sendOtpText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  termsRow: { flexDirection: 'row', alignItems: 'center', marginTop: 16 },
-  termsText: { flex: 1, marginLeft: 8, fontSize: 13, color: '#555' },
-  otpBottomSheet: { padding: 20 },
-  otpTitle: { fontSize: 18, fontWeight: '700', textAlign: 'center', marginBottom: 8 },
-  otpSubtitle: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 },
-  otpInput: { borderWidth: 1, borderColor: '#DDD', borderRadius: 10, height: 50, textAlign: 'center', fontSize: 18, letterSpacing: 6, marginBottom: 16 },
-  errorText: { color: 'red', fontSize: 12, textAlign: 'center', marginBottom: 10 },
-  verifyOtpButton: { backgroundColor: AppColors.themeColor, borderRadius: 40, height: 48, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
-  verifyOtpText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#fff' 
+  },
+  
+  pagePadding: { 
+    padding: AppConstants.padding.md 
+  },
+  
+  logoRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: AppConstants.spacing.md 
+  },
+  
+  logo: { 
+    height: AppConstants.screenHeight * 0.08, 
+    width: AppConstants.screenWidth * 0.3, 
+    resizeMode: 'contain' 
+  },
+  
+  languageSelector: { 
+    paddingHorizontal: AppConstants.padding.sm, 
+    paddingVertical: AppConstants.padding.xxs, 
+    borderWidth: 1, 
+    borderRadius: AppConstants.borderRadius.lg, 
+    borderColor: AppColors.themeBorder 
+  },
+  
+  banner: { 
+    width: '100%', 
+    height: AppConstants.screenHeight * 0.25, 
+    marginVertical: 0 
+  },
+  
+  phoneLabel: { 
+    fontSize: AppConstants.fontSize.md, 
+    fontWeight: '600', 
+    marginBottom: AppConstants.spacing.md 
+  },
+  
+ phoneInputContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  borderWidth: 1,
+  borderColor: '#DDD',
+  borderRadius: AppConstants.borderRadius.lg,
+
+  // 🔽 Reduce horizontal padding
+  paddingHorizontal: AppConstants.padding.md,
+  paddingVertical:AppConstants.padding.xs,
+},
+
+countryCode: {
+  fontSize: AppConstants.fontSize.sm,
+  fontWeight: '600',
+  marginRight: AppConstants.spacing.xs,
+  color: AppColors.placeholderColor,
+},
+
+// Divider
+divider: {
+  width: 1,
+  height: AppConstants.inputHeight.sm - 8, // 🔽 gives vertical spacing
+  backgroundColor: '#ccc',
+  marginHorizontal: AppConstants.spacing.sm, // 🔽 less margin
+},
+
+  
+ phoneInput: {
+  flex: 1,
+  fontSize: AppConstants.fontSize.sm,
+  padding: 0,        // remove all internal padding
+  paddingLeft: 0,    // 🔥 specifically remove left padding
+  marginLeft: 4,    // 🔥 optional: tighten even more if needed
+},
+
+  
+  sendOtpButton: { 
+    backgroundColor: AppColors.themeColor, 
+    borderRadius: AppConstants.borderRadius.lg, 
+    height: AppConstants.buttonHeight.md, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginTop: AppConstants.spacing.md 
+  },
+  
+  sendOtpText: { 
+    color: '#fff', 
+    fontSize: AppConstants.fontSize.md, 
+    fontWeight: '600' 
+  },
+  
+  termsRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginTop: AppConstants.spacing.md
+  },
+  
+  termsText: { 
+    flex: 1, 
+    marginLeft: AppConstants.spacing.xs, 
+    fontSize: AppConstants.fontSize.sm, 
+    color: '#555' 
+  },
+    errorText: { 
+    color: 'red', 
+    fontSize: AppConstants.fontSize.sm, 
+    textAlign: 'center', 
+    marginBottom: AppConstants.spacing.md 
+  },
+  otpTitle: {
+  fontSize: AppConstants.fontSize.xl,
+  fontWeight: '700',
+  textAlign: 'center',
+  color: '#111',
+  marginBottom: AppConstants.spacing.sm,
+},
+
+otpSubtitle: {
+  fontSize: AppConstants.fontSize.md,
+  color: '#666',
+  textAlign: 'center',
+  marginBottom: AppConstants.spacing.md,
+  lineHeight: 20,
+},
+
+otpInput: {
+  borderWidth: 1,
+  borderColor: '#DDD',
+  borderRadius: AppConstants.borderRadius.lg,
+  height: AppConstants.inputHeight.md,
+  fontSize: AppConstants.fontSize.lg,
+  textAlign: 'center',
+  letterSpacing: 8,
+  backgroundColor: '#fafafa',
+  marginBottom: AppConstants.spacing.md,
+},
+
+verifyOtpButton: {
+  backgroundColor: AppColors.themeColor,
+  height: AppConstants.buttonHeight.md,
+  justifyContent: 'center',
+  alignItems: 'center',
+  borderRadius: AppConstants.borderRadius.lg,
+marginBottom:0
+  // same horizontal safe padding as language modal
+  // marginTop: AppConstants.spacing.md,
+},
+
+verifyOtpText: {
+  color: '#fff',
+  fontSize: AppConstants.fontSize.md,
+  fontWeight: '600',
+},
+
 });

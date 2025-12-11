@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   suffixText: { color: "#555", fontSize: 14, marginLeft: 5 },
 primaryButton: {
   position: 'absolute',   // <-- make it fixed
-  bottom: 0,             // <-- 30px from bottom
+  bottom: -16,             // <-- 30px from bottom
   left: 20,               // <-- spacing from left
   right: 20,              // <-- spacing from right
   backgroundColor: AppColors.buttons,

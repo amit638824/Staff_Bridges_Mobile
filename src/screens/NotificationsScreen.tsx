@@ -10,6 +10,7 @@ import {
 import Icon from "react-native-vector-icons/MaterialIcons";
 import AppHeader from "../components/AppHeader";
 import { AppColors } from "../constants/AppColors";
+import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { useTranslation } from 'react-i18next';
 
 interface NotificationItem {
@@ -89,7 +90,7 @@ const NotificationsScreen: React.FC = () => {
         <View style={styles.logoTipIcon}>
           <Image
             source={require("../../assets/images/logo-removebg-preview.png")}
-            style={{ width: 28, height: 28, resizeMode: "contain" }}
+            style={{ width: 30, height: 30, resizeMode: "contain" }}
           />
         </View>
 
@@ -127,7 +128,7 @@ const NotificationsScreen: React.FC = () => {
       >
         <View style={styles.cardHeader}>
           <View style={styles.iconContainer}>
-            <Icon name="work" size={20} color="#af4900" />
+            <Icon name="work" size={25} color="#af4900" />
           </View>
 
           <View style={styles.cardContent}>
@@ -173,7 +174,7 @@ const NotificationsScreen: React.FC = () => {
     <View key={item.id} style={[styles.notificationCard, styles.lightBlueBg]}>
       <View style={styles.cardHeader}>
         <View style={[styles.iconContainer, styles.profileIcon]}>
-          <Icon name="person" size={20} color={AppColors.themeColor} />
+          <Icon name="person" size={25} color={AppColors.themeColor} />
         </View>
 
         <View style={styles.cardContent}>
@@ -231,7 +232,6 @@ const NotificationsScreen: React.FC = () => {
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -241,38 +241,40 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
-    paddingLeft: 8,
+    paddingLeft: scale(6), // was 8 * 0.8
+    paddingBottom:scale(10),
   },
 
   headerTitle: {
-    fontSize: 18,
+    // fontSize: moderateScale(14.4), // 18 * 0.8
+        fontSize: scale(13.5), 
     fontWeight: "600",
     color: "#000",
   },
 
   divider: {
-    height: 1,
+    height: verticalScale(0.8), // 1 * 0.8
     backgroundColor: "#E8E8E8",
   },
 
   scrollContent: {
-    paddingBottom: 30,
+    paddingBottom: verticalScale(24), // 30 * 0.8
     backgroundColor: "#fff",
   },
 
   sectionHeader: {
-    fontSize: 14,
+    fontSize: moderateScale(11.2), // 14 * 0.8
     fontWeight: "600",
     color: "#999",
-    marginTop: 16,
-    marginBottom: 10,
-    marginLeft: 16,
+    marginTop: verticalScale(12.8), // 16 * 0.8
+    marginBottom: verticalScale(8), // 10 * 0.8
+    marginLeft: scale(12.8), // 16 * 0.8
   },
 
   notificationCard: {
-    padding: 16,
+    padding: moderateScale(12.8), // 16 * 0.8
     borderColor: "#E8E8E8",
-    borderWidth: 1,
+    borderWidth: scale(0.8), // 1 * 0.8
   },
 
   whiteCardBg: {
@@ -280,7 +282,7 @@ const styles = StyleSheet.create({
   },
 
   lightBlueBg: {
-    backgroundColor: "#F2F8FF",
+    backgroundColor: "#f0ffff",
   },
 
   cardHeader: {
@@ -288,25 +290,25 @@ const styles = StyleSheet.create({
   },
 
   iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 1,
+    width: scale(35.2), // 44 * 0.8
+    height: scale(35.2),
+    borderRadius: scale(17.6), // 22 * 0.8
+    borderWidth: scale(0.8), // 1 * 0.8
     borderColor: "#af4900",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: scale(9.6), // 12 * 0.8
   },
 
   logoTipIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 50,
+    width: scale(35.2),
+    height: scale(35.2),
+    borderRadius: scale(40), // 50 * 0.8
     borderColor: "#b9c2ceff",
-    borderWidth: 1,
+    borderWidth: scale(0.8),
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: scale(9.6),
   },
 
   profileIcon: {
@@ -320,98 +322,99 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 4,
+    marginBottom: verticalScale(3.2), // 4 * 0.8
   },
 
   jobTitle: {
-    fontSize: 16,
+    fontSize: moderateScale(12.8), // 16 * 0.8
     fontWeight: "600",
     color: "#000",
     flex: 1,
-    marginRight: 10,
+    marginRight: scale(8), // 10 * 0.8
   },
 
   newBadge: {
-    backgroundColor: "#E6F0FF",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 5,
+    backgroundColor: "#d9dfff",
+    paddingHorizontal: scale(12), // 8 * 0.8
+    paddingVertical: verticalScale(4), // 2 * 0.8
+    borderRadius: moderateScale(4), // 5 * 0.8
   },
 
   newBadgeText: {
-    fontSize: 10,
+    fontSize: moderateScale(8), // 10 * 0.8
     fontWeight: "600",
-    color: "#4A90E2",
+    color: "#637cff",
   },
 
   salary: {
-    fontSize: 14,
+    fontSize: moderateScale(11.2), // 14 * 0.8
     fontWeight: "600",
     color: "#000",
-    marginBottom: 6,
+    marginBottom: verticalScale(4.8), // 6 * 0.8
   },
 
   detailRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 3,
+    marginBottom: verticalScale(2.4), // 3 * 0.8
   },
 
   detailText: {
-    fontSize: 12,
+    fontSize: moderateScale(9.6), // 12 * 0.8
     color: "#666",
-    marginLeft: 4,
+    marginLeft: scale(3.2), // 4 * 0.8
   },
 
   cardFooter: {
-    marginTop: 10,
+    marginTop: verticalScale(8), // 10 * 0.8
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
 
   viewJobButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    borderWidth: 1.4,
+    paddingVertical: verticalScale(4.8), // 6 * 0.8
+    paddingHorizontal: scale(12.8), // 16 * 0.8
+    borderRadius: moderateScale(16), // 20 * 0.8
+    borderWidth: scale(1.12), // 1.4 * 0.8
     borderColor: AppColors.themeColor,
   },
 
   viewJobText: {
     color: AppColors.themeColor,
-    fontSize: 12,
+    fontSize: moderateScale(9.6), // 12 * 0.8
     fontWeight: "600",
   },
 
   timeText: {
-    fontSize: 11,
+    fontSize: moderateScale(8.8), // 11 * 0.8
     color: "#999",
   },
 
   profileTitle: {
-    fontSize: 15,
+    fontSize: moderateScale(12), // 15 * 0.8
     fontWeight: "500",
     color: "#000",
-    marginBottom: 8,
+    marginBottom: verticalScale(6.4), // 8 * 0.8
   },
 
   updateButton: {
     flexDirection: "row",
-    borderWidth: 1.4,
+    borderWidth: scale(1.12), // 1.4 * 0.8
     borderColor: AppColors.themeColor,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 20,
+    paddingHorizontal: scale(9.6), // 12 * 0.8
+    paddingVertical: verticalScale(4), // 5 * 0.8
+    borderRadius: moderateScale(16), // 20 * 0.8
     alignItems: "center",
   },
 
   updateButtonText: {
     color: AppColors.themeColor,
-    marginLeft: 4,
+    marginLeft: scale(3.2), // 4 * 0.8
     fontWeight: "600",
-    fontSize: 12,
+    fontSize: moderateScale(9.6), // 12 * 0.8
   },
 });
+
 
 export default NotificationsScreen;

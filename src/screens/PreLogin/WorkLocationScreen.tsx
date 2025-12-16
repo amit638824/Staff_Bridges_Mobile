@@ -6,6 +6,7 @@ import {
   Modal,
   FlatList,
   StyleSheet,
+  Alert,
   Image,
   TextInput,
   ScrollView,
@@ -24,6 +25,9 @@ import { RootStackParamList } from "../../../App";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { workLocationSchema } from "../../validation/workLocationSchema";
+import { scale, verticalScale, moderateScale } from "react-native-size-matters";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
 
 import { locationService } from "../../services/locationService";
 
@@ -56,6 +60,10 @@ export default function WorkLocationScreen() {
 
   const citySearchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const localitySearchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+const userId = useSelector((state: RootState) => state.auth?.userId);
+const latitude = useSelector((state: RootState) => state.user?.location?.latitude);
+const longitude = useSelector((state: RootState) => state.user?.location?.longitude);
 
   const {
     control,
@@ -93,7 +101,7 @@ export default function WorkLocationScreen() {
 
       setCities(allCities);
     } catch (error) {
-      console.error("❌ Error fetching cities:", error);
+      // console.error("❌ Error fetching cities:", error);
     } finally {
       setLoadingCities(false);
     }
@@ -120,7 +128,7 @@ export default function WorkLocationScreen() {
 
       setLocalities(allLocalities);
     } catch (error) {
-      console.error("❌ Error fetching localities:", error);
+      // console.error("❌ Error fetching localities:", error);
     } finally {
       setLoadingLocalities(false);
     }
@@ -171,14 +179,49 @@ export default function WorkLocationScreen() {
     };
   }, [localitySearchText]);
 
-  const onSubmit = async (data: any) => {
+const onSubmit = async (data: any) => {
+
+
+  if (!userId) {
+    Alert.alert("User not found, please login again");
+    return;
+  }
+
+  if (!latitude || !longitude) {
+    Alert.alert("Location not captured");
+    return;
+  }
+
+  try {
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
+    const payload = {
+      userId,
+      countryId: 1,
+      stateId: 10,
+      city: data.city,
+      locality: data.locality,
+      latitude,
+      longitude,
+    };
+
+
+    const res = await locationService.updateUserLocation(payload);
+
+
+    if (res.data?.success) {
       navigation.navigate("JobRoleScreen");
-    }, 800);
-  };
+    } else {
+      Alert.alert(res.data?.message || "Failed to update location");
+    }
+  } catch (error) {
+    // console.error("❌ Location update error:", error);
+    Alert.alert("Something went wrong while saving location");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <SafeAreaView
@@ -293,9 +336,10 @@ export default function WorkLocationScreen() {
             <View style={styles.sheetHeader}>
               <Text style={styles.modalTitle}>{t("chooseCity")}</Text>
               <TouchableOpacity onPress={() => setShowCityModal(false)}>
-                <Icon name="close" size={26} />
+                <Icon name="close" size={20} />
               </TouchableOpacity>
             </View>
+            <View style={styles.divider}></View>
 
             {/* City Search Bar */}
             <TextInput
@@ -350,10 +394,10 @@ export default function WorkLocationScreen() {
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>{t("chooseLocality")}</Text>
               <TouchableOpacity onPress={() => setShowLocalityModal(false)}>
-                <Icon name="close" size={26} />
+                <Icon name="close" size={20} />
               </TouchableOpacity>
             </View>
-
+ <View style={styles.divider}></View>
             <TextInput
               placeholder={t("typeLocality") || "Search locality..."}
               style={styles.searchBar}
@@ -401,91 +445,198 @@ export default function WorkLocationScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#fff" },
-  scrollContent: { padding: 20 },
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+
+  scrollContent: {
+    padding: scale(12),
+  },
+
   progressContainer: {
-    height: 10,
+    height: verticalScale(6),
     width: "100%",
     backgroundColor: "#cacaca",
-    borderRadius: 5,
-    marginBottom: 20,
+    borderRadius: scale(4),
+    marginBottom: verticalScale(12),
   },
+
   progressFill: {
     height: "100%",
-    width: "20%",
+    width: "30%",
     backgroundColor: AppColors.buttons,
-    borderRadius: 5,
+    borderRadius: scale(4),
   },
-  imageContainer: { alignItems: "flex-start", marginBottom: 10 },
-  icon: { width: 60, height: 60 },
-  title: { fontSize: 20, fontWeight: "bold", marginBottom: 25 },
-  label: { marginTop: 10, fontWeight: "600" },
+
+  imageContainer: {
+    marginBottom: verticalScale(6),
+    alignItems: "flex-start",
+  },
+
+  icon: {
+    width: scale(45),
+    height: scale(45),
+    resizeMode: "contain",
+  },
+
+  title: {
+    fontSize: moderateScale(15),
+    fontWeight: "bold",
+    marginVertical: verticalScale(12),
+  },
+
+  label: { 
+    marginTop: verticalScale(8), 
+    fontWeight: "600",
+    fontSize: moderateScale(13),
+  },
+
   dropdown: {
     borderWidth: 1,
     borderColor: "#ccc",
-    padding: 14,
-    borderRadius: 10,
-    marginTop: 6,
+    paddingVertical: verticalScale(10),
+    paddingHorizontal: scale(12),
+    borderRadius: scale(5),
+    marginTop: verticalScale(4),
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  dropdownText: { fontSize: 14 },
-  errorText: { color: "red", fontSize: 13, marginTop: 5, marginLeft: 5 },
-  fixedFooter:{
-paddingBottom:30,
-paddingHorizontal:20,
-backgroundColor:'#fff',
+
+  dropdownText: { 
+    fontSize: moderateScale(12),
+    color: "#555"
   },
+
+  errorText: {
+    color: "red",
+    fontSize: moderateScale(10),
+    marginTop: verticalScale(3),
+    marginLeft: scale(5),
+  },
+
+  fixedFooter: {
+    paddingBottom: verticalScale(22),
+    paddingHorizontal: scale(16),
+    backgroundColor: "#fff",
+  },
+
   button: {
-    marginTop: 50,
-    padding: 15,
-    borderRadius: 30,
+    paddingVertical: verticalScale(12),
+    borderRadius: scale(24),
     alignItems: "center",
+    marginTop: verticalScale(20),
   },
-  btnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+
+  btnText: {
+    color: "#fff",
+    fontSize: moderateScale(13),
+    fontWeight: "700",
+  },
+
   modalOverlay: {
     flex: 1,
     justifyContent: "flex-end",
     backgroundColor: "rgba(0,0,0,0.3)",
   },
+
   modalBox: {
     backgroundColor: "#fff",
-    height: "70%",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    height: "65%",
+    borderTopLeftRadius: scale(20),
+    borderTopRightRadius: scale(20),
   },
+
   sheetHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: 20,
+    padding: scale(16),
   },
-  cityItem: { padding: 18, borderBottomWidth: 1, borderColor: "#eee" },
-  cityText: { fontSize: 16 },
+
+  modalTitle: { 
+    fontSize: moderateScale(15), 
+    fontWeight: "700" 
+  },
+
+  cityItem: {
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: scale(12),
+  marginHorizontal:scale(8),
+    borderBottomWidth: 1,
+    borderColor: "#eee",
+  },
+
+  cityText: { 
+    fontSize: moderateScale(13) 
+  },
+
   bottomSheetOverlay: {
     flex: 1,
     justifyContent: "flex-end",
     backgroundColor: "rgba(0,0,0,0.4)",
   },
+
   bottomSheet: {
     backgroundColor: "#fff",
-    height: "70%",
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
+    height: "65%",
+    borderTopLeftRadius: scale(22),
+    borderTopRightRadius: scale(22),
   },
+
+  sheetTitle: {
+    fontSize: moderateScale(14),
+    fontWeight: "700",
+  },
+
+divider:{
+// height:0.5,
+ borderColor: "#ccc",
+ borderWidth: 0.3,
+ marginBottom: verticalScale(15),
+},
   searchBar: {
     borderWidth: 1,
     borderColor: "#ccc",
-    margin: 10,
-    padding: 12,
-    fontSize: 14,
+    margin: scale(10),
+    paddingVertical: verticalScale(8),
+    paddingHorizontal: scale(10),
+    fontSize: moderateScale(12),
+    borderRadius: scale(4),
   },
-  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-  sheetTitle: { fontSize: 18, fontWeight: "bold" },
-  listItem: { padding: 18, borderBottomWidth: 1, borderColor: "#eee" },
-  listItemText: { fontSize: 15 },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  loadingText: { marginTop: 10, color: "#999", fontSize: 14 },
-  emptyContainer: { alignItems: "center", paddingVertical: 40 },
-  emptyText: { fontSize: 14, color: "#999", fontWeight: "500" },
+
+  listItem: {
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: scale(12),
+  marginHorizontal:scale(8),
+      borderBottomWidth: 1,
+    borderColor: "#eee",
+  },
+
+  listItemText: { 
+    fontSize: moderateScale(13) 
+  },
+
+  loadingContainer: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center" 
+  },
+
+  loadingText: { 
+    marginTop: verticalScale(8), 
+    color: "#999", 
+    fontSize: moderateScale(12) 
+  },
+
+  emptyContainer: { 
+    alignItems: "center", 
+    paddingVertical: verticalScale(30) 
+  },
+
+  emptyText: { 
+    fontSize: moderateScale(12), 
+    color: "#999", 
+    fontWeight: "500" 
+  },
 });

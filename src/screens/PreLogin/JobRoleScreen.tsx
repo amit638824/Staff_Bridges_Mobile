@@ -26,7 +26,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { selectJobRoleSchema } from "../../validation/selectJobRoleSchema";
 import { createSeekerCategory } from "../../redux/slices/seekerCategorySlice";
-
+import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 
 interface JobRole {
   id: string;
@@ -163,13 +163,18 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
     }
   }, [loading, loadingMore]);
 
-  const jobRoles = useMemo(() => {
-    return roles.map((item: any) => ({
+const jobRoles = useMemo(() => {
+  const unique = new Map();
+  roles.forEach((item: any) => {
+    unique.set(String(item.id), {
       id: String(item.id),
       title: item.name,
       image: item.image ? { uri: item.image } : require("../../../assets/images/sales-job.jpg"),
-    }));
-  }, [roles]);
+    });
+  });
+  return Array.from(unique.values());
+}, [roles]);
+
 
   const [selectedRoles, setSelectedRoles] = useState<Set<string>>(new Set());
 
@@ -239,12 +244,19 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
     });
 
 
-    navigation.push("JobDetailsScreen", {
-      selectedRoles: enrichedRoles,
-      currentRoleIndex: 0,
-      completedRoles: {},
-      totalRoles: enrichedRoles.length,
-    });
+navigation.push("JobDetailsScreen", {
+  selectedRoles: enrichedRoles.map(r => ({
+    ...r,
+    id: String(r.id),           // ensure serializable
+    title: r.title,
+    image: r.image,             // already serializable (uri / require)
+    categoryId: r.categoryId,
+    userId: r.userId,
+  })),
+  currentRoleIndex: 0,
+  completedRoles: {},
+  totalRoles: enrichedRoles.length,
+});
   };
 
   const renderRoleItem = ({ item }: { item: JobRole }): React.ReactElement => {
@@ -310,19 +322,23 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
 
       <View style={styles.content}>
         {/* Progress Bar */}
-        <View style={styles.progressBarContainer}>
-          <View style={[styles.progressBar, { width: '20%' }]} />
-        </View>
+ {/* Progress Bar */}
+<View style={styles.progressContainer}>
+  <View style={styles.progressFill} />
+</View>
 
-        {/* Header */}
-        <View style={styles.headerContainer}>
-          <Image
-            source={require('../../../assets/images/job.png')}
-            style={styles.headerIcon}
-          />
-          <Text style={styles.headerTitle}>{t("selectJobRoles")}</Text>
+{/* Image */}
+<View style={styles.imageContainer}>
+  <Image
+    source={require('../../../assets/images/job.png')}
+    style={styles.icon}
+  />
+</View>
+
+{/* Title */}
+<Text style={styles.title}>{t("selectJobRoles")}</Text>
+
           <Text style={styles.headerSubtitle}>{t("selectUpToFiveRoles")}</Text>
-        </View>
 
         {/* Search */}
         <View style={styles.searchContainer}>
@@ -333,7 +349,7 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
             value={searchQueryLocal}
             onChangeText={setSearchQueryLocal}
           />
-          <Ionicons name="search" size={20} color="#999" />
+          <Ionicons name="search" size={20} color="#999" style={{marginRight: scale(8)}} />
         </View>
 
         <Text style={styles.selectedCountText}>
@@ -411,95 +427,171 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
 export default SelectJobRoleScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  content: { flex: 1, paddingHorizontal: 20, paddingVertical: 10 },
+  container: { flex: 1, backgroundColor: "#fff" },
 
-  progressBarContainer: {
-    height: 10,
-    width: '100%',
-    backgroundColor: '#e0e0e0',
-    borderRadius: 5,
-    marginBottom: 20,
-    overflow: 'hidden',
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: AppColors.themeColor,
-    borderRadius: 5,
+  content: {
+    flex: 1,
+    paddingHorizontal: scale(16),
+    paddingVertical: verticalScale(8),
   },
 
-  headerContainer: { marginBottom: 20 },
-  headerIcon: { width: 60, height: 60, marginBottom: 10, resizeMode: 'contain' },
-  headerTitle: { fontSize: 18, fontWeight: '600', color: '#000', marginBottom: 4 },
-  headerSubtitle: { fontSize: 14, color: '#999' },
+progressContainer: {
+  height: verticalScale(6),
+  width: "100%",
+  backgroundColor: "#cacaca",
+  borderRadius: scale(4),
+  marginBottom: verticalScale(12),
+},
+
+progressFill: {
+  height: "100%",
+  width: "40%", // ✅ 40% as requested
+  backgroundColor: AppColors.themeColor,
+  borderRadius: scale(4),
+},
+
+imageContainer: {
+  marginBottom: verticalScale(6),
+  alignItems: "flex-start",
+},
+
+icon: {
+  width: scale(45),
+  height: scale(45),
+  resizeMode: "contain",
+},
+
+title: {
+  fontSize: moderateScale(15),
+  fontWeight: "bold",
+  marginTop: verticalScale(12),
+},
+
+
+  headerSubtitle: {
+    fontSize: moderateScale(12),
+    color: "#999",
+      marginBottom: verticalScale(12),
+      marginTop: verticalScale(2),
+
+  },
 
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#999',
-    borderRadius: 30,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    marginBottom: 16,
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: scale(1),
+    borderColor: "#ccc",
+    borderRadius: scale(24),
+    // paddingHorizontal: scale(8),
+    paddingVertical: verticalScale(4),
+    marginBottom: verticalScale(12),
+    backgroundColor: "#fff",
   },
-  searchInput: { flex: 1, marginLeft: 10, fontSize: 13, color: '#000' },
+
+  searchInput: {
+    flex: 1,
+    marginLeft: scale(8),
+    fontSize: moderateScale(12),
+    color: "#000",
+  },
 
   selectedCountText: {
-    fontSize: 12,
+    fontSize: moderateScale(11),
     color: AppColors.themeColor,
-    fontWeight: '600',
-    marginBottom: 12,
+    fontWeight: "600",
+    marginBottom: verticalScale(10),
   },
 
   roleCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderWidth: 1.3,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    padding: scale(8),
+    borderWidth: scale(1),
+    borderColor: "#ddd",
+    borderRadius: scale(8),
+    backgroundColor: "#fff",
   },
+
   roleCardSelected: {
     borderColor: AppColors.themeColor,
-    backgroundColor: '#E3F2FD',
-    elevation: 3,
+    backgroundColor: "#E3F2FD",
+    elevation: 2,
   },
-  roleCardDisabled: { opacity: 0.6 },
 
-  roleImage: { width: 45, height: 45, borderRadius: 8, resizeMode: 'cover' },
-  roleImageDisabled: { opacity: 0.5 },
+  roleCardDisabled: {
+    opacity: 0.5,
+  },
 
-  roleTitle: { flex: 1, fontSize: 15, fontWeight: '500', color: '#000', marginHorizontal: 14 },
-  roleTitleDisabled: { color: '#ccc' },
+  roleImage: {
+    width: scale(38),
+    height: scale(38),
+    borderRadius: scale(6),
+    resizeMode: "cover",
+  },
+
+  roleImageDisabled: {
+    opacity: 0.4,
+  },
+
+  roleTitle: {
+    flex: 1,
+    fontSize: moderateScale(13),
+    fontWeight: "500",
+    color: "#000",
+    marginHorizontal: scale(10),
+  },
+
+  roleTitleDisabled: {
+    color: "#ccc",
+  },
 
   checkbox: {
-    width: 16,
-    height: 16,
-    borderWidth: 1.5,
-    borderColor: '#999',
-    borderRadius: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: scale(14),
+    height: scale(14),
+    borderWidth: scale(1),
+    borderColor: "#aaa",
+    borderRadius: scale(2),
+    justifyContent: "center",
+    alignItems: "center",
   },
+
   checkboxSelected: {
     backgroundColor: AppColors.themeColor,
     borderColor: AppColors.themeColor,
   },
 
-  emptyContainer: { alignItems: 'center', paddingVertical: 40 },
-  emptyText: { fontSize: 14, color: '#999', fontWeight: '500' },
-
-  buttonContainer: { paddingHorizontal: 20, paddingVertical: 16 },
-  nextButton: {
-    height: 50,
-    backgroundColor: AppColors.themeColor,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+  emptyContainer: {
+    alignItems: "center",
+    paddingVertical: verticalScale(30),
   },
-  nextButtonDisabled: { backgroundColor: '#ddd' },
-  nextButtonText: { fontSize: 16, fontWeight: '600', color: '#fff' },
+
+  emptyText: {
+    fontSize: moderateScale(12),
+    color: "#999",
+    fontWeight: "500",
+  },
+
+  buttonContainer: {
+    paddingHorizontal: scale(16),
+    // paddingVertical: verticalScale(12),
+  },
+
+  nextButton: {
+    height: verticalScale(36),
+    backgroundColor: AppColors.themeColor,
+    borderRadius: scale(26),
+    justifyContent: "center",
+    alignItems: "center",
+       marginBottom: verticalScale(23),
+  },
+
+  nextButtonDisabled: {
+    backgroundColor: "#ddd",
+  },
+
+  nextButtonText: {
+    fontSize: moderateScale(14),
+    fontWeight: "600",
+    color: "#fff",
+  },
 });

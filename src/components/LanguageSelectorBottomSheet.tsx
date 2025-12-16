@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import i18n from "../i18n/i18n";
 import { AppColors } from "../constants/AppColors";
 import { AppConstants } from "../constants/AppConstants";
+import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 
 const languages = [
   { code: "en", label: "English (English)" },
@@ -87,53 +88,50 @@ const LanguageSelectorBottomSheet = ({ visible, onClose }: any) => {
 
 export default LanguageSelectorBottomSheet;
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "flex-end",
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
   },
 
   sheet: {
-    backgroundColor: "#fff",
-    padding: AppConstants.padding.md,
-    borderTopLeftRadius: AppConstants.borderRadius.lg,
-    borderTopRightRadius: AppConstants.borderRadius.lg,
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
+    backgroundColor: '#fff',
+    padding: scale(16),
+    borderTopLeftRadius: scale(20),
+    borderTopRightRadius: scale(20),
   },
 
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
 
   title: {
-    fontSize: AppConstants.fontSize.lg,
-    fontWeight: "700",
+    fontSize: moderateScale(14),
+    fontWeight: '700',
   },
-dividerWrapper: {
-  marginHorizontal: -AppConstants.padding.md,  // removes left & right padding
-},
+
+  dividerWrapper: {
+    marginHorizontal: -scale(16),
+  },
 
   divider: {
-    height: AppConstants.screenHeight * 0.0015,
-    backgroundColor: "#ddd",
-    marginVertical: AppConstants.spacing.md,
-    marginBottom: AppConstants.spacing.lg,
+    height: verticalScale(1),
+    backgroundColor: '#ddd',
+    marginVertical: verticalScale(12),
   },
 
   card: {
-    padding: AppConstants.padding.sm,
-    borderRadius: AppConstants.borderRadius.sm,
+    paddingVertical: verticalScale(8),
+    paddingHorizontal: scale(12),
+    borderRadius: scale(10),
     borderWidth: 1,
     borderColor: AppColors.themeBorder,
-    marginBottom: AppConstants.spacing.md,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    marginBottom: verticalScale(10),
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     backgroundColor: AppColors.themeColorLight,
   },
 
@@ -142,18 +140,18 @@ dividerWrapper: {
   },
 
   label: {
-    fontSize: AppConstants.fontSize.md,
-    fontWeight: "500",
+    fontSize: moderateScale(14),
+    fontWeight: '500',
   },
 
   radioOuter: {
-    width: AppConstants.iconSize.sm,
-    height: AppConstants.iconSize.sm,
-    borderRadius: AppConstants.iconSize.sm,
+    width: scale(15),
+    height: scale(15),
+    borderRadius: scale(15),
     borderWidth: 2,
     borderColor: AppColors.themeColor,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   radioOuterActive: {
@@ -161,26 +159,26 @@ dividerWrapper: {
   },
 
   radioInner: {
-    width: AppConstants.iconSize.xxs,
-    height: AppConstants.iconSize.xxs,
+    width: scale(8),
+    height: scale(8),
     backgroundColor: AppColors.themeColor,
-    borderRadius: AppConstants.iconSize.xxs,
+    borderRadius: scale(8),
   },
 
   nextBtn: {
     backgroundColor: AppColors.themeColor,
-    paddingVertical: AppConstants.padding.sm,
-    borderRadius: AppConstants.borderRadius.lg,
-    marginTop: AppConstants.spacing.sm,
-    marginBottom: AppConstants.spacing.lg,
-    height: AppConstants.buttonHeight.md,
-    justifyContent: "center",
+    paddingVertical: verticalScale(10),
+    borderRadius: scale(20),
+    marginTop: verticalScale(10),
+    marginBottom: verticalScale(16),
+    height: verticalScale(36),
+    justifyContent: 'center',
   },
 
   nextBtnText: {
-    color: "#fff",
-    fontSize: AppConstants.fontSize.md,
-    textAlign: "center",
-    fontWeight: "600",
+    color: '#fff',
+    fontSize: moderateScale(14),
+    textAlign: 'center',
+    fontWeight: '600',
   },
 });

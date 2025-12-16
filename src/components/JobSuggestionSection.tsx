@@ -2,6 +2,8 @@ import React from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useTranslation } from "react-i18next";
+import { scale, verticalScale, moderateScale } from "react-native-size-matters";
+import { AppColors } from "../constants/AppColors";
 
 interface JobCardProps {
   title: string;
@@ -20,9 +22,13 @@ const JobCard: React.FC<JobCardProps> = ({ title, salary, company, location, bad
     let textStyle = [styles.tagText] as any;
 
     const translatedBadge = t(
-      badge === "New Job" ? "card_new_job" :
-      badge === "Verified" ? "card_verified" :
-      badge === "Urgent Hiring" ? "card_urgent_hiring" : badge
+      badge === "New Job"
+        ? "card_new_job"
+        : badge === "Verified"
+        ? "card_verified"
+        : badge === "Urgent Hiring"
+        ? "card_urgent_hiring"
+        : badge
     );
 
     if (badge === "New Job") {
@@ -31,13 +37,21 @@ const JobCard: React.FC<JobCardProps> = ({ title, salary, company, location, bad
     }
 
     if (badge === "Verified") {
-      icon = <Ionicons name="checkmark-done-circle" size={13} color="#007BFF" />;
+      icon = (
+        <Ionicons
+          name="checkmark-done-circle"
+          size={moderateScale(11)}
+          color="#007BFF"
+        />
+      );
       tagStyle.push(styles.verifiedTag);
       textStyle.push({ color: "#000" });
     }
 
     if (badge === "Urgent Hiring") {
-      icon = <Ionicons name="time-outline" size={13} color="#dc935e" />;
+      icon = (
+        <Ionicons name="time-outline" size={moderateScale(11)} color="#dc935e" />
+      );
       tagStyle.push(styles.urgentTag);
       textStyle.push({ color: "#dc935e" });
     }
@@ -61,43 +75,52 @@ const JobCard: React.FC<JobCardProps> = ({ title, salary, company, location, bad
       <Text style={styles.salary}>{salary}</Text>
 
       <View style={styles.locationRow}>
-        <Ionicons name="briefcase-outline" size={14} color="#777" />
+        <Ionicons
+          name="briefcase-outline"
+          size={moderateScale(12)}
+          color="#777"
+        />
         <Text style={styles.company}>{company}</Text>
       </View>
 
       <View style={styles.locationRow}>
-        <Ionicons name="location-outline" size={14} color="#777" />
+        <Ionicons
+          name="location-outline"
+          size={moderateScale(12)}
+          color="#777"
+        />
         <Text style={styles.location}>{location}</Text>
       </View>
 
       {/* Badge Row */}
       <View style={styles.tagContainer}>{badges.map(renderBadge)}</View>
 
-      <View style={styles.divider} />
+<View style={styles.dividerWrapper}>
+          <View style={styles.divider} />
+</View>
     </View>
   );
 };
 
 const JobSuggestionSection = () => {
- const { t } = useTranslation();
+  const { t } = useTranslation();
 
-const jobs = [
-  
-  {
-    title: t("job1_title"),
-    salary: t("job1_salary"),
-    company: "Rudrab—emis",
-    location: t("job1_location"),
-    badges: ["New Job", "Verified", "Urgent Hiring"],
-  },
-  {
-    title: t("job2_title"),
-    salary: t("job2_salary"),
-    company: "Samruddhy Bmart Entertainment Pvt. Ltd",
-    location: t("job2_location"),
-    badges: ["Verified", "Urgent Hiring"],
-  },
-];
+  const jobs = [
+    {
+      title: t("job1_title"),
+      salary: t("job1_salary"),
+      company: "Rudrab—emis",
+      location: t("job1_location"),
+      badges: ["New Job", "Verified", "Urgent Hiring"],
+    },
+    {
+      title: t("job2_title"),
+      salary: t("job2_salary"),
+      company: "Samruddhy Bmart Entertainment Pvt. Ltd",
+      location: t("job2_location"),
+      badges: ["Verified", "Urgent Hiring"],
+    },
+  ];
 
   return (
     <View style={styles.section}>
@@ -114,121 +137,129 @@ export default JobSuggestionSection;
 
 const styles = StyleSheet.create({
   section: {
-    marginTop: 10,
-    paddingHorizontal: 15,
+    marginTop: verticalScale(0),
+    paddingHorizontal: scale(12),
   },
 
   card: {
-    width: 310,
+    width: scale(250),
     backgroundColor: "#fff",
-    borderRadius: 14,
-    shadowColor: "teal",
-    shadowOpacity: 0.6,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 4,
-    paddingTop: 0,
+    borderRadius: scale(12),
+    shadowColor: AppColors.primary ,
+    shadowOpacity: 0.5,
+    shadowRadius: scale(8),
+    shadowOffset: { width: 0, height: verticalScale(6) },
+    elevation: 15,
+    paddingTop: verticalScale(2),
     borderColor: "#ddd",
-    borderWidth: 1,
-    paddingBottom: 12,
-    paddingHorizontal: 12,
-    marginRight: 16,
-    marginBottom: 10,
+    borderWidth: scale(1),
+    paddingBottom: verticalScale(8),
+    paddingHorizontal: scale(10),
+    marginRight: scale(12),
+    marginBottom: verticalScale(4),
   },
 
   bestBadge: {
     backgroundColor: "#fde7da",
     alignSelf: "flex-end",
-    borderTopStartRadius: 6,
-    borderBottomLeftRadius: 6,
-    marginBottom: 6,
-    marginTop: 8,
-    paddingVertical: 3,
-    paddingHorizontal: 6,
-    marginRight: -12,
+    borderTopStartRadius: scale(5),
+    borderBottomLeftRadius: scale(5),
+    marginBottom: verticalScale(5),
+    marginTop: verticalScale(6),
+    paddingVertical: verticalScale(2),
+    paddingHorizontal: scale(5),
+    marginRight: scale(-10),
   },
 
   bestBadgeText: {
-    fontSize: 10,
+    fontSize: moderateScale(8),
     fontWeight: "700",
   },
 
   jobTitle: {
-    fontSize: 15,
+    fontSize: moderateScale(12),
     fontWeight: "600",
     color: "#000",
-    marginBottom: 3,
+    marginBottom: verticalScale(2),
   },
 
   salary: {
-    fontSize: 13,
+    fontSize: moderateScale(11),
     color: "#333",
     fontWeight: "500",
-    marginBottom: 8,
+    marginBottom: verticalScale(6),
   },
 
   company: {
-    fontSize: 13,
+    fontSize: moderateScale(10),
     color: "#444",
-    marginLeft: 4,
+    marginLeft: scale(3),
   },
 
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: verticalScale(8),
   },
 
   location: {
-    fontSize: 12,
+    fontSize: moderateScale(10),
     color: "#666",
-    marginLeft: 4,
+    marginLeft: scale(3),
   },
 
   tagContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 6,
+    gap: scale(5),
+  },
+
+  // divider: {
+  //   width: "100%",
+  //   height: verticalScale(1),
+  //   backgroundColor: "#ddd",
+  //   marginTop: verticalScale(12),
+  //   marginBottom: verticalScale(15),
+  // },
+  dividerWrapper: {
+    marginHorizontal: -scale(10),
   },
 
   divider: {
-    width: "100%",
-    height: 1,
-    backgroundColor: "#ddd",
-    marginTop: 15,
-    marginBottom: 20,
+    height: verticalScale(1),
+    backgroundColor: '#ddd',
+    marginVertical: verticalScale(12),
   },
-
   tag: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 2,
-    marginTop: 12,
+    gap: scale(4),
+    paddingHorizontal: scale(8),
+    paddingVertical: verticalScale(4),
+    // borderRadius: scale(2),
+    marginTop: verticalScale(10),
   },
 
   tagText: {
-    fontSize: 11,
+    fontSize: moderateScale(10),
     fontWeight: "600",
   },
 
   newTag: {
     backgroundColor: "#d9dfff",
-    borderWidth: 1,
+    borderWidth: scale(1),
     borderColor: "#d9dfff",
   },
 
   verifiedTag: {
     backgroundColor: "#e8e8e8",
-    borderWidth: 1,
+    borderWidth: scale(1),
     borderColor: "#e8e8e8",
   },
 
   urgentTag: {
     backgroundColor: "#ffcca7",
-    borderWidth: 1,
+    borderWidth: scale(1),
     borderColor: "#ffcca7",
   },
 });

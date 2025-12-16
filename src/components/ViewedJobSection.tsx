@@ -9,6 +9,8 @@ import {
 import LinearGradient from "react-native-linear-gradient";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { AppColors } from "../constants/AppColors";
+import { scale, verticalScale, moderateScale } from "react-native-size-matters";
+
 import { useTranslation } from "react-i18next";
 
 const ViewedJobsSection = () => {
@@ -96,130 +98,126 @@ const ViewedJobsSection = () => {
 
 export default ViewedJobsSection;
 
-
 const styles = StyleSheet.create({
   wrapper: {
-    marginBottom: 20,
+    marginBottom: verticalScale(16), // 20*0.8
   },
 
   headerLineContainer: {
     alignItems: "center",
-    marginTop: 15,
-    marginBottom: 10,
+    marginTop: verticalScale(12), // 15*0.8
+    marginBottom: verticalScale(8), //10*0.8
   },
 
   headerLine: {
-    width: 40,
-    height: 4,
+    width: scale(32), //40*0.8
+    height: verticalScale(3.2), //4*0.8
     backgroundColor: "#00b5b5",
-    borderRadius: 10,
+    borderRadius: moderateScale(8), //10*0.8
   },
 
   sectionTitle: {
     textAlign: "center",
-    fontSize: 14,
+    fontSize: moderateScale(11.2), //14*0.8
     fontWeight: "600",
     color: "#333",
-    marginBottom: 15,
+    marginBottom: verticalScale(12), //15*0.8
   },
 
   badgeLabel: {
     backgroundColor: "#FFE8D6",
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 4,
+    paddingVertical: verticalScale(4.8), //6*0.8
+    paddingHorizontal: scale(9.6), //12*0.8
+    borderRadius: moderateScale(3.2), //4*0.8
     alignSelf: "center",
-    marginBottom: 12,
+    marginBottom: verticalScale(9.6), //12*0.8
   },
 
   badgeLabelText: {
-    fontSize: 11,
+    fontSize: moderateScale(8.8), //11*0.8
     fontWeight: "700",
     color: "#D76B42",
     letterSpacing: 0.5,
   },
 
   card: {
-    // width: "92%",
     backgroundColor: "#fff",
-    borderRadius: 14,
+    borderRadius: moderateScale(11.2), //14*0.8
     shadowColor:'#81b5e6ff',
     shadowOpacity: 0.6,
-    shadowRadius: 10,
-    shadowOffset: { width: 8, height: 10 },
+    shadowRadius: moderateScale(8), //10*0.8
+    shadowOffset: { width: scale(6.4), height: verticalScale(8) }, //8*0.8, 10*0.8
     elevation: 10,
     borderColor: "#ddd",
-    borderWidth: 1,
-    paddingBottom: 12,
-    paddingHorizontal: 12,
-    marginHorizontal: 20,
+    borderWidth: scale(0.8), //1*0.8
+    paddingBottom: verticalScale(9.6), //12*0.8
+    paddingHorizontal: scale(9.6), //12*0.8
+    marginHorizontal: scale(16), //20*0.8
     paddingTop: 0,
     position: "relative",
   },
 
-bestBadge: {
+  bestBadge: {
     backgroundColor: "#fde7da",
     alignSelf: "flex-end",
-    borderTopStartRadius: 6,
-    borderBottomLeftRadius: 6,
-    marginBottom: 6,
-    marginTop: 8,
-    paddingVertical: 3,
-    paddingHorizontal: 6,
-    marginRight: -12,
+    borderTopStartRadius: moderateScale(4.8), //6*0.8
+    borderBottomLeftRadius: moderateScale(4.8),
+    marginBottom: verticalScale(4.8), //6*0.8
+    marginTop: verticalScale(6.4), //8*0.8
+    paddingVertical: verticalScale(2.4), //3*0.8
+    paddingHorizontal: scale(4.8), //6*0.8
+    marginRight: scale(-9.6), //-12*0.8
   },
 
   bestBadgeText: {
-    // color: "#b87025",
-    fontSize: 10,
-    fontWeight: "700",
+    fontSize: moderateScale(8), //10*0.8
+    fontWeight: "600",
   },
 
-
   jobTitle: {
-    fontSize: 15,
+    fontSize: moderateScale(12), //15*0.8
     fontWeight: "600",
     color: "#000",
-    marginBottom: 3,
+    marginBottom: verticalScale(2.4), //3*0.8
   },
 
   salary: {
-    fontSize: 13,
+    fontSize: moderateScale(10.4), //13*0.8
     color: "#333",
     fontWeight: "500",
-    marginBottom: 8,
+    marginBottom: verticalScale(6.4), //8*0.8
   },
 
   company: {
-    fontSize: 13,
+    fontSize: moderateScale(10.4), //13*0.8
     color: "#444",
-    marginLeft: 4,
+    marginLeft: scale(3.2), //4*0.8
   },
 
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: verticalScale(8), //10*0.8
   },
 
   location: {
-    fontSize: 12,
+    fontSize: moderateScale(9.6), //12*0.8
     color: "#666",
-    marginLeft: 4,
+    marginLeft: scale(3.2), //4*0.8
   },
 
   tagContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 6,
+    gap: scale(4.8), //6*0.8
   },
 
   tag: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginTop: 12,
+    paddingHorizontal: scale(8), //10*0.8
+    paddingVertical: verticalScale(3.2), //4*0.8
+    marginTop: verticalScale(9.6), //12*0.8
     backgroundColor: "#EAF6FF",
-    fontSize: 11,
+    fontSize: moderateScale(8.8), //11*0.8
     fontWeight: "600",
     color: "#0186c9",
   },
@@ -231,35 +229,36 @@ bestBadge: {
 
   divider: {
     width: "100%",
-    height: 1,
+    height: verticalScale(0.8), //1*0.8
     backgroundColor: "#ddd",
-    marginTop: 15,
-    marginBottom: 20,
+    marginTop: verticalScale(12), //15*0.8
+    marginBottom: verticalScale(16), //20*0.8
   },
 
   fullGradient: {
     width: "100%",
-    paddingVertical: 18,
+    paddingVertical: verticalScale(12), //18*0.8
     alignItems: "center",
     justifyContent: "center",
-    marginTop: -50,
+    marginTop: verticalScale(-40), //-50*0.8
   },
 
   button: {
     backgroundColor: AppColors.themeColor,
-    paddingVertical: 11,
-    paddingHorizontal: 45,
-    borderRadius: 25,
+    paddingVertical: verticalScale(8.8), //11*0.8
+    paddingHorizontal: scale(36), //45*0.8
+    borderRadius: moderateScale(20), //25*0.8
     elevation: 4,
     shadowColor: "#000",
     shadowOpacity: 0.15,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: moderateScale(3.2), //4*0.8
+    shadowOffset: { width: 0, height: verticalScale(1.6) }, //2*0.8
   },
 
   buttonText: {
-    fontSize: 14,
+    fontSize: moderateScale(11.2), //14*0.8
     fontWeight: "700",
     color: "#fff",
   },
 });
+

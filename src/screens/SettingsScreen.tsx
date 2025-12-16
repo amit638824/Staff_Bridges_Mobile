@@ -13,6 +13,7 @@ import FontAwesome from "react-native-vector-icons/FontAwesome";
 import AppHeader from "../components/AppHeader";
 import AppFooter from "../components/AppFooter";
 import { AppColors } from "../constants/AppColors";
+import { scale, verticalScale, moderateScale, moderateVerticalScale } from "react-native-size-matters";
 import { useTranslation } from 'react-i18next';
 
 const SettingsScreen: React.FC = () => {
@@ -133,161 +134,188 @@ const SettingsScreen: React.FC = () => {
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     backgroundColor: "#fff" 
   },
-  headerLeft: { 
-    flexDirection: "row", 
-    alignItems: "center", 
-    paddingLeft: 8 
-  },
+
+headerLeft: { 
+  flexDirection: "row",
+  alignItems: "center",
+  marginLeft: moderateScale(-5),   // <-- Pull the title closer to the back arrow
+},
+
+
   headerTitle: { 
-    fontSize: 18, 
+    fontSize: scale(13.5), 
     fontWeight: "600", 
     color: "#000" 
   },
+
   scrollView: { 
     flex: 1 
   },
+
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 16,
+    paddingHorizontal: moderateScale(10),
+    paddingTop: moderateVerticalScale(8),
+    paddingBottom: moderateVerticalScale(10),
     flexGrow: 1,
   },
+
   card: {
     backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: moderateScale(8),
+    padding: moderateScale(10),
     shadowColor: "#96fcfcff",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 6,
-    marginBottom: 12,
-    borderWidth: 1,
+    shadowOffset: { width: 0, height: moderateScale(1) },
+    shadowOpacity: 0.16,
+    shadowRadius: moderateScale(2.5),
+    elevation: 3,
+    marginBottom: moderateVerticalScale(8),
+    borderWidth: moderateScale(0.8),
     borderColor: "#E8E8E8",
   },
+
   smsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
+
   smsLabel: {
-    fontSize: 14,
+    fontSize: scale(10.5),
     color: "#666",
     flex: 1,
   },
+
   sectionTitle: {
-    fontSize: 15,
+    fontSize: scale(11.5),
     fontWeight: "600",
     color: "#000",
-    marginBottom: 12,
+    marginBottom: moderateVerticalScale(8),
   },
+
   customToggle: {
-    width: 48,
-    height: 24,
-    marginTop: 10,
-    borderRadius: 14,
+    width: moderateScale(34),
+    height: moderateScale(17),
+    marginTop: moderateVerticalScale(6),
+    borderRadius: moderateScale(10),
     backgroundColor: "#d1d1d1",
     justifyContent: "center",
     alignItems: "flex-start",
-    paddingHorizontal: 2,
+    paddingHorizontal: moderateScale(2),
   },
+
   toggleActive: {
     backgroundColor: AppColors.themeColor,
     alignItems: "flex-end",
   },
+
   toggleThumb: {
-    width: 18,
-    height: 18,
-    borderRadius: 12,
-    margin: 4,
+    width: moderateScale(11),
+    height: moderateScale(11),
+    borderRadius: moderateScale(8),
+    margin: moderateScale(2.5),
     backgroundColor: "#fff",
   },
+
   toggleThumbActive: {
     backgroundColor: "#fff",
   },
+
   rowWithButton: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
+
   descriptionText: {
-    fontSize: 13,
+    fontSize: scale(10),
     color: "#666",
     flex: 1,
-    marginRight: 12,
-    lineHeight: 18,
+    marginRight: moderateScale(8),
+    lineHeight: moderateVerticalScale(13),
   },
+
   outlineButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    borderWidth: 1.5,
+    paddingVertical: moderateVerticalScale(5),
+    paddingHorizontal: moderateScale(8),
+    borderRadius: moderateScale(14),
+    borderWidth: moderateScale(1),
     borderColor: AppColors.themeColor,
-    minWidth: 100,
+    minWidth: moderateScale(70),
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "center",
-    gap: 6,
+    gap: moderateScale(3),
   },
+
   whatsappIcon: {
-    marginRight: 4,
+    marginRight: moderateScale(3),
   },
+
   outlineButtonText: {
     color: AppColors.themeColor,
-    fontSize: 12,
+    fontSize: scale(9.5),
     fontWeight: "600",
   },
+
   divider: {
-    height: 1,
+    height: moderateScale(1),
     backgroundColor: "#E8E8E8",
-    marginVertical: 14,
+    marginVertical: moderateVerticalScale(10),
   },
+
   linkRow: {
     flexDirection: "row",
     alignItems: "center",
   },
+
   linkText: {
-    fontSize: 14,
+    fontSize: scale(10.5),
     color: AppColors.themeColor,
     fontWeight: "500",
   },
+
   linkIcon: {
-    marginLeft: 6,
+    marginLeft: moderateScale(4),
   },
+
   helpDescription: {
-    fontSize: 13,
+    fontSize: scale(10),
     color: "#888",
-    marginTop: 6,
-    marginBottom: 4,
-    lineHeight: 17,
+    marginTop: moderateVerticalScale(3),
+    marginBottom: moderateVerticalScale(3),
+    lineHeight: moderateVerticalScale(12),
   },
+
   spacer: {
     flex: 1,
-    minHeight: 20,
+    minHeight: moderateVerticalScale(14),
   },
+
   bottomActions: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 4,
-    marginTop: 16,
+    paddingHorizontal: moderateScale(3),
+    marginTop: moderateVerticalScale(10),
   },
+
   actionText: {
     color: AppColors.themeColor,
-    fontSize: 14,
+    fontSize: scale(11),
     fontWeight: "600",
   },
+
   versionContainer: {
     alignItems: "center",
-    paddingTop: 16,
+    paddingTop: moderateVerticalScale(10),
   },
+
   versionText: {
-    fontSize: 12,
+    fontSize: scale(9),
     color: "#999",
   },
 });

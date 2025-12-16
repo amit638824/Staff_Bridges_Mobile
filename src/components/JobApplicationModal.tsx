@@ -13,6 +13,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { AppColors } from '../constants/AppColors';
 import { useTranslation } from 'react-i18next';
+import { scale,moderateScale,verticalScale } from 'react-native-size-matters';
 
 const { height } = Dimensions.get('window');
 
@@ -104,11 +105,14 @@ const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
 
               <View style={styles.headerSubRow}>
                 <Text style={styles.subTitle}>{t("modal_new_jobs_unlocked")}</Text>
+                <View style={styles.paginationBox}>
+                  <Text style={styles.paginationText}>01/04</Text>
+                </View>
               </View>
             </View>
 
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={22} color="#3b3b3b" />
+              <Ionicons name="close" size={moderateScale(15)} color="#3b3b3b" />
             </TouchableOpacity>
           </View>
 
@@ -210,18 +214,9 @@ const styles = StyleSheet.create({
     width: '100%',
     height: height * 0.92,
     backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: scale(18),
+    borderTopRightRadius: scale(18),
     position: 'relative',
-  },
-
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingHorizontal: 18,
-    paddingTop: 12,
-    paddingBottom: 14,
   },
 
   headerTextContainer: {
@@ -229,55 +224,63 @@ const styles = StyleSheet.create({
   },
 
   modalTitle: {
-    fontSize: 17,
+    fontSize: moderateScale(13),
     fontWeight: '700',
     color: '#000',
   },
 
-  headerSubRow: {
-    flexDirection: 'row',
-    marginTop: 4,
-    gap: 8,
-  },
+  headerRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  paddingHorizontal: scale(16),
+  paddingTop: verticalScale(10),
+},
 
-  subTitle: {
-    fontSize: 12,
-    color: '#5E5E5E',
-    flex: 1,
-  },
+headerSubRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginTop: verticalScale(3),
+},
+subTitle: {
+  fontSize: moderateScale(13),
+  color: '#5E5E5E',
+  marginRight: scale(8),   // small spacing before pagination
+},
 
-  paginationBox: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
+paginationBox: {
+  backgroundColor: '#f5f5f5',
+  borderRadius: scale(5),
+  paddingHorizontal: scale(8),
+  paddingVertical: verticalScale(3),
+  alignSelf: 'center',
+},
 
   paginationText: {
-    fontSize: 12,
+    fontSize: moderateScale(10),
     color: '#444',
     fontWeight: '600',
   },
 
   scrollContent: {
-    paddingHorizontal: 18,
-    paddingBottom: 30,
+    paddingHorizontal: scale(8),
+    paddingBottom: verticalScale(20),
   },
 
   card: {
-    borderWidth: 1,
+    borderWidth: scale(1),
     borderColor: '#e5e5e5',
-    borderRadius: 10,
+    borderRadius: scale(8),
     padding: 0,
-    marginTop: 15,
-    paddingBottom: 10,
+    marginTop: verticalScale(4),
+    paddingBottom: verticalScale(8),
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5,
-    margin:10,
-    shadowRadius: 4,
-    boxShadow: '0 4px 4px rgba(0,0,0,0.1)',
-    marginBottom: 15,
+    shadowOffset: { width: 0, height: verticalScale(1) },
+    shadowOpacity: 0.4,
+    margin: scale(8),
+    shadowRadius: scale(3),
+     boxShadow: '0 4px 4px rgba(0,0,0,0.1)',
+    marginBottom: verticalScale(12),
     overflow: 'hidden',
   },
 
@@ -285,104 +288,104 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 15,
-    paddingTop: 15,
+    paddingHorizontal: scale(12),
+    paddingTop: verticalScale(12),
   },
 
   jobRole: {
-    fontSize: 15,
+    fontSize: moderateScale(13),
     fontWeight: '700',
     color: '#000',
     flex: 1,
   },
 
   companyName: {
-    fontSize: 12,
-    marginTop: 4,
+    fontSize: moderateScale(10),
+    marginTop: verticalScale(3),
     color: '#6b6b6b',
     fontWeight: '500',
-    paddingHorizontal: 15,
+    paddingHorizontal: scale(12),
   },
 
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginTop: 8,
-    paddingHorizontal: 15,
-    gap: 8,
+    marginTop: verticalScale(6),
+    paddingHorizontal: scale(12),
+    gap: scale(6),
   },
 
   jobInfo: {
-    fontSize: 12,
+    fontSize: moderateScale(10),
     color: '#585858',
     flex: 1,
-    lineHeight: 16,
+    lineHeight: moderateScale(14),
   },
 
   salary: {
-    fontSize: 12,
+    fontSize: moderateScale(10),
     fontWeight: '600',
     color: '#000',
     flex: 1,
-    lineHeight: 16,
+    lineHeight: moderateScale(14),
   },
 
   tagRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 12,
-    paddingHorizontal: 15,
+    gap: scale(6),
+    marginTop: verticalScale(10),
+    paddingHorizontal: scale(12),
     flexWrap: 'wrap',
   },
 
   tagContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: scale(3),
     backgroundColor: '#e8e8e8',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius:4,
+    paddingHorizontal: scale(8),
+    paddingVertical: verticalScale(3),
+    borderRadius: scale(3),
   },
 
   tag: {
-    fontSize: 11,
+    fontSize: moderateScale(9),
     color: '#444',
     fontWeight: '500',
   },
 
   divider: {
-    height: 1,
+    height: scale(0.8),
     backgroundColor: '#ededed',
-    marginVertical: 14,
+    marginVertical: verticalScale(10),
   },
 
   sectionTitle: {
-    fontSize: 13,
+    fontSize: moderateScale(11),
     fontWeight: '600',
     color: '#000',
-    paddingHorizontal: 15,
+    paddingHorizontal: scale(12),
   },
 
   bullet: {
-    fontSize: 12,
+    fontSize: moderateScale(10),
     color: '#5e5e5e',
-    marginTop: 4,
-    paddingHorizontal: 15,
-    lineHeight: 16,
+    marginTop: verticalScale(3),
+    paddingHorizontal: scale(12),
+    lineHeight: moderateScale(14),
   },
 
   dotsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 6,
-    marginVertical: 20,
+    gap: scale(5),
+    marginVertical: verticalScale(16),
   },
 
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: scale(6),
+    height: scale(6),
+    borderRadius: scale(3),
     backgroundColor: '#e0e0e0',
   },
 
@@ -391,7 +394,7 @@ const styles = StyleSheet.create({
   },
 
   bottomSpacing: {
-    height: 50,
+    height: verticalScale(40),
   },
 
   bottomButtons: {
@@ -401,30 +404,30 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: 15,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+    paddingTop: verticalScale(12),
+    paddingBottom: Platform.OS === 'ios' ? verticalScale(28) : verticalScale(23),
     backgroundColor: '#fff',
-    paddingHorizontal: 18,
-    gap: 12,
+    paddingHorizontal: scale(16),
+    gap: scale(10),
   },
 
   notNowBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: scale(1),
     borderColor: '#e0e0e0',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 30,
+    paddingVertical: verticalScale(10),
+    paddingHorizontal: scale(16),
+    borderRadius: scale(26),
     backgroundColor: '#f5f5f5',
     flex: 0.4,
   },
 
   notNowText: {
-    fontSize: 14,
+    fontSize: moderateScale(12),
     fontWeight: '600',
-    marginLeft: 6,
+    marginLeft: scale(5),
     color: '#666',
   },
 
@@ -433,16 +436,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: AppColors.themeColor,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 30,
+    paddingVertical: verticalScale(10),
+    paddingHorizontal: scale(16),
+    borderRadius: scale(26),
     flex: 0.6,
   },
 
   applyText: {
-    fontSize: 14,
+    fontSize: moderateScale(12),
     fontWeight: '700',
     color: '#fff',
-    marginLeft: 6,
+    marginLeft: scale(5),
   },
 });

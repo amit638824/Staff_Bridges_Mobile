@@ -12,6 +12,7 @@ export const AppColors = {
   cardBg: '#dae5ff', 
   cardLightBg: '#f4f6ff', 
   white: '#FFFFFF', 
+  shadow:'#e0efff',
   primary: '#00AEEF',      // Bright blue (Send OTP button) 
   accent: '#FF6F00',       // Orange (logo accent) 
   background: '#F8F9FA',   // Light background 

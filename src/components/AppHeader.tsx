@@ -14,7 +14,8 @@ import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../../App";
 import { AppColors } from "../constants/AppColors";
 import { useTranslation } from "react-i18next";
-import LanguageSelectorBottomSheet from "../components/LanguageSelectorBottomSheet"; // ✅ Add this
+import LanguageSelectorBottomSheet from "../components/LanguageSelectorBottomSheet";
+import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 
 interface AppHeaderProps {
   location?: string;
@@ -31,7 +32,7 @@ interface AppHeaderProps {
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({
-  location="location_dewa_road",
+  location = "location_dewa_road",
   title,
   showLogo = true,
   showLocation = true,
@@ -54,34 +55,39 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
+      <SafeAreaView style={headerStyles.safeArea}>
+        <View style={headerStyles.container}>
 
           {/* LEFT */}
-          <View style={styles.leftSection}>
+          <View style={headerStyles.leftSection}>
+           
             {showBackArrow && (
-              <TouchableOpacity style={styles.iconButton} onPress={onBackPressed}>
-                <Icon name="arrow-back" size={20} color="#080808ff" />
-              </TouchableOpacity>
-            )}
+  <TouchableOpacity 
+    style={[headerStyles.iconButton, { marginLeft: moderateScale(8) }]} 
+    onPress={onBackPressed}
+  >
+    <Icon name="arrow-back" size={moderateScale(18)} color="#080808ff" />
+  </TouchableOpacity>
+)}
+
 
             {customLeftWidget ? (
               customLeftWidget
             ) : (
-              <View style={styles.leftInner}>
+              <View style={headerStyles.leftInner}>
                 {showLogo && (
                   <Image
                     source={require("../../assets/images/staff_bridges_logo.png")}
-                    style={styles.logo}
+                    style={headerStyles.logo}
                     resizeMode="contain"
                   />
                 )}
-                {showLogo && <View style={{ width: 8 }} />}
+                {showLogo && <View style={{ width: scale(6) }} />}
 
                 {showLocation && (
-                  <View style={styles.locationContainer}>
-                    <Icon name="location-on" size={20} color={AppColors.buttons} />
-<Text style={styles.locationText}>{t(location)}</Text>
+                  <View style={headerStyles.locationContainer}>
+                    <Icon name="location-on" size={moderateScale(18)} color={AppColors.buttons} />
+                    <Text style={headerStyles.locationText}>{t(location)}</Text>
                   </View>
                 )}
               </View>
@@ -90,39 +96,39 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
           {/* RIGHT */}
           {showRightSection && (
-            <View style={styles.rightSection}>
+            <View style={headerStyles.rightSection}>
 
               {/* NOTIFICATION */}
               {showNotification && (
-                <View style={styles.notificationWrapper}>
+                <View style={headerStyles.notificationWrapper}>
                   <TouchableOpacity
-                    style={styles.iconButton}
+                    style={headerStyles.iconButton}
                     onPress={handleNotificationTap}
                   >
-                    <Icon name="notifications" size={26} color={AppColors.buttons} />
+                    <Icon name="notifications" size={moderateScale(22)} color={AppColors.buttons} />
                   </TouchableOpacity>
 
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>2</Text>
+                  <View style={headerStyles.badge}>
+                    <Text style={headerStyles.badgeText}>2</Text>
                   </View>
                 </View>
               )}
 
               {/* LANGUAGE */}
               {showLanguage && (
-                <View style={styles.languageWrapper}>
+                <View style={headerStyles.languageWrapper}>
                   <TouchableOpacity
-                    style={styles.iconButton}
+                    style={headerStyles.iconButton}
                     onPress={() => setShowLangModal(true)}
                   >
-                    <Icon name="translate" size={22} color={AppColors.buttons} />
+                    <Icon name="translate" size={moderateScale(20)} color={AppColors.buttons} />
                   </TouchableOpacity>
 
                   <Icon
                     name="keyboard-arrow-down"
-                    size={18}
+                    size={moderateScale(16)}
                     color={AppColors.buttons}
-                    style={{ marginLeft: 2 }}
+                    style={{ marginLeft: scale(1) }}
                   />
                 </View>
               )}
@@ -132,7 +138,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         </View>
       </SafeAreaView>
 
-      {/* ✅ REPLACED OLD MODAL WITH COMMON LANGUAGE SELECTOR */}
       <LanguageSelectorBottomSheet
         visible={showLangModal}
         onClose={() => setShowLangModal(false)}
@@ -143,8 +148,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
 export default AppHeader;
 
-
-const styles = StyleSheet.create({
+const headerStyles = StyleSheet.create({
   safeArea: {
     backgroundColor: "#fff",
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
@@ -153,21 +157,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 0,
-    paddingVertical: 20,
+    paddingHorizontal: scale(0),
+    paddingBottom: verticalScale(5),
     backgroundColor: "#fff",
   },
   leftSection: {
     flexDirection: "row",
-    // marginLeft: 10,
   },
   leftInner: {
     flexDirection: "row",
     alignItems: "center",
   },
   logo: {
-    height: 50,
-    width: 105,
+    height: verticalScale(39),
+    width: scale(90),
   },
   locationContainer: {
     flexDirection: "row",
@@ -175,76 +178,42 @@ const styles = StyleSheet.create({
   },
   locationText: {
     color: AppColors.buttons,
-    fontSize: 16,
+    fontSize: moderateScale(14),
     fontWeight: "600",
-    marginLeft: 4,
+    marginLeft: scale(3),
   },
   rightSection: {
     flexDirection: "row",
     alignItems: "center",
   },
   iconButton: {
-    padding: 4,
+    padding: scale(3),
+        marginRight:scale(5),
+
   },
   notificationWrapper: {
     position: "relative",
-    marginRight: 10,
+    marginRight: scale(4),
   },
   badge: {
     position: "absolute",
-    right: 0,
-    top: -1,
-    width: 18,
-    height: 18,
+    right: scale(4),
+    top: verticalScale(-2),
+    width: scale(14),
+    height: scale(14),
     backgroundColor: "#e06417",
-    borderRadius: 20,
+    borderRadius: scale(18),
     justifyContent: "center",
     alignItems: "center",
   },
   badgeText: {
     color: "#fff",
-    fontSize: 9,
+    fontSize: moderateScale(10),
     fontWeight: "bold",
   },
   languageWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    marginRight: 20,
-  },
-
-  /* BOTTOM SHEET */
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  modalContainer: {
-    backgroundColor: "#fff",
-    paddingVertical: 25,
-    paddingHorizontal: 25,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  langHeading: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 15,
-  },
-  langOption: {
-    paddingVertical: 12,
-  },
-  langText: {
-    fontSize: 16,
-  },
-  closeBtn: {
-    marginTop: 15,
-    backgroundColor: "#eee",
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  closeText: {
-    fontSize: 16,
-    fontWeight: "600",
+    marginRight: scale(16),
   },
 });

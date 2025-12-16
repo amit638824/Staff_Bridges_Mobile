@@ -17,7 +17,7 @@ import AppFooter from '../../components/AppFooter';
 import { AppColors } from '../../constants/AppColors';
 import { useTranslation } from 'react-i18next';
 import { profileSchema } from '../../validation/profileSchema';
-
+import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 
 const ProfileScreen: React.FC<{ navigation: any, route: any }> = ({ navigation, route }) => {
   const { t } = useTranslation();
@@ -275,7 +275,6 @@ const renderWorkExperience = (t: any) => (
     <Text style={[styles.subText, { fontWeight: '700', color: '#000' }]}>{t('graduate')}</Text>
   </View>
 );
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -286,143 +285,160 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 10,
-    paddingHorizontal: 18,
-    paddingBottom: 10,
+    paddingTop: Platform.OS === 'android'
+      ? verticalScale(StatusBar.currentHeight! -10)
+      : verticalScale(10),
+          paddingHorizontal: scale(14.4), // 18*0.8
+    paddingBottom: verticalScale(8), // 10*0.8
   },
 
-  title: { fontSize: 20, fontWeight: '700', color: '#000' },
+  title: {    fontSize: scale(13.5), fontWeight: '700', color: '#000' }, // 20*0.8
   headerRight: { flexDirection: 'row', alignItems: 'center' },
+
   shareButton: {
     flexDirection: 'row',
-    borderWidth: 1,
+    borderWidth: scale(0.8), // 1*0.8
     borderColor: '#FF6600',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    borderRadius: moderateScale(16), // 20*0.8
+    paddingHorizontal: scale(8), // 10*0.8
+    paddingVertical: verticalScale(3.2), // 4*0.8
     alignItems: 'center',
   },
-  shareText: { color: '#FF6600', marginLeft: 5, fontWeight: '600' },
-  scrollContainer: { padding: 15, paddingBottom: 80 },
+  shareText: { color: '#FF6600', marginLeft: scale(4), fontWeight: '600' }, // 5*0.8
+
+  scrollContainer: { padding: scale(12), paddingBottom: verticalScale(64) }, // 15*0.8, 80*0.8
+
   iconButtonBorder: {
-    padding: 8,
-    borderWidth: 1,
-    borderColor: '#f0f0f0',
-    borderRadius: 6,
+    padding: scale(5), // 8*0.8
+    borderWidth: scale(0.8), // 1*0.8
+    borderColor: '#ccc',
+    borderRadius: moderateScale(6), // 6*0.8
   },
+
   card: {
     backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 15,
-    borderWidth: 0.5,
+    borderRadius: moderateScale(8), // 10*0.8
+    padding: scale(12), // 15*0.8
+   marginBottom: verticalScale(12), // 15*0.8
+    borderWidth: scale(0.4), // 0.5*0.8
     borderColor: '#ddd',
     shadowColor: '#6dc4f7ff',
     shadowOpacity: 1,
-    shadowRadius: 10,
+    shadowRadius: moderateScale(8), // 10*0.8
     elevation: 3,
   },
-  profileName: { fontSize: 16, fontWeight: '700', color: '#000' },
-  profileSub: { fontSize: 13, color: 'gray' },
-  infoRow: { flexDirection: 'row', alignItems: 'center', marginTop: 5 },
-  infoText: { marginLeft: 5, fontSize: 13, color: '#333' },
+
+  profileName: { fontSize: moderateScale(12.8), fontWeight: '700', color: '#000' }, //16*0.8
+  profileSub: { fontSize: moderateScale(10.4), color: 'gray' }, //13*0.8
+
+  infoRow: { flexDirection: 'row', alignItems: 'center', marginTop: verticalScale(4) }, //5*0.8
+  infoText: { marginLeft: scale(4), fontSize: moderateScale(10.4), color: '#333' }, //5*0.8, 13*0.8
+
   chip: {
-    marginTop: 10,
+    marginTop: verticalScale(8), //10*0.8
     alignSelf: 'flex-start',
-    borderWidth: 1,
+    borderWidth: scale(0.8), //1*0.8
     borderColor: '#ddd',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
+    borderRadius: moderateScale(16), //20*0.8
+    paddingHorizontal: scale(9.6), //12*0.8
+    paddingVertical: verticalScale(4), //5*0.8
     color: '#555',
   },
-  completionContainer: { backgroundColor: '#fff0de', padding: 15, marginBottom: 15, marginHorizontal: -15 },
-  completionTitle: { fontWeight: '600', fontSize: 13, marginBottom: 10, color: '#000' },
+
+  completionContainer: { backgroundColor: '#fff0de', padding: scale(12), marginVertical: verticalScale(10), marginHorizontal: scale(-12) }, //15*0.8,15*0.8,-15*0.8
+  completionTitle: { fontWeight: '600', fontSize: moderateScale(10.4), marginBottom: verticalScale(8), color: '#000' }, //13*0.8,10*0.8
+
   completionRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+
   progressWrapper: {
-    width: 60,
-    height: 60,
+    width: scale(48), // 60*0.8
+    height: scale(48),
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: scale(12), // 15*0.8
   },
   progressBase: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: scale(48),
+    height: scale(48),
+    borderRadius: scale(24), //30*0.8
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    borderWidth: 4,
+    borderWidth: scale(3.2), //4*0.8
     borderColor: '#ffd7d9',
   },
   progressFill: {
     position: 'absolute',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: scale(48),
+    height: scale(48),
+    borderRadius: scale(24),
     borderTopColor: '#E91E63',
-    borderTopWidth: 5,
+    borderTopWidth: scale(4), //5*0.8
     borderRightColor: 'transparent',
-    borderRightWidth: 5,
+    borderRightWidth: scale(4),
     borderBottomColor: 'transparent',
-    borderBottomWidth: 5,
+    borderBottomWidth: scale(4),
     borderLeftColor: 'transparent',
-    borderLeftWidth: 5,
+    borderLeftWidth: scale(4),
     transform: [{ rotate: '65deg' }],
   },
   progressLabel: {
-    fontSize: 12,
+    fontSize: moderateScale(9.6), //12*0.8
     fontWeight: '700',
     color: '#000',
     textAlign: 'center',
   },
+
   completionCard: {
     flexDirection: 'row',
     backgroundColor: '#fff',
-    padding: 10,
-    marginRight: 10,
-    borderRadius: 8,
-    width: 200,
+    padding: scale(8), //10*0.8
+    marginRight: scale(8), //10*0.8
+    borderRadius: moderateScale(6.4), //8*0.8
+    width: scale(160), //200*0.8
     elevation: 2,
   },
-  iconBox: { width: 40, height: 40, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-  completionTitleText: { fontWeight: '600', color: '#333', fontSize: 12 },
-  completionSubText: { color: '#777', fontSize: 12 },
+  iconBox: { width: scale(32), height: scale(32), borderRadius: moderateScale(6.4), justifyContent: 'center', alignItems: 'center' }, //40,8
+  completionTitleText: { fontWeight: '600', color: '#333', fontSize: moderateScale(9.6) }, //12*0.8
+  completionSubText: { color: '#777', fontSize: moderateScale(9.6) },
+
   uploadCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 15,
-    marginBottom: 10,
+    padding: scale(12), //15*0.8
+    marginBottom: verticalScale(8), //10*0.8
   },
-  uploadText: { fontWeight: '600', fontSize: 13, color: '#000', marginLeft: 10 },
+  uploadText: { fontWeight: '600', fontSize: moderateScale(10.4), color: '#000', marginLeft: scale(8) }, //13*0.8,10*0.8
   uploadButton: {
-    borderWidth: 1,
+    borderWidth: scale(0.8), //1*0.8
     borderColor: AppColors.themeColor,
-    borderRadius: 20,
-    paddingHorizontal: 25,
-    paddingVertical: 4,
+    borderRadius: moderateScale(16),
+    paddingHorizontal: scale(20), //25*0.8
+    paddingVertical: verticalScale(3.2), //4*0.8
   },
   uploadButtonText: { color: AppColors.themeColor, fontWeight: '600' },
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#000', marginTop: 10, marginBottom: 5 },
-  subHeading: { fontSize: 14, fontWeight: '600', color: '#000', marginBottom: 5 },
-  subText: { color: '#555', fontSize: 13, marginBottom: 5 },
-  link: { color: AppColors.themeColor, fontSize: 13, fontWeight: '600', marginBottom: 5 },
+
+  sectionTitle: { fontSize: moderateScale(12), fontWeight: '700', color: '#000', marginTop: verticalScale(8), marginBottom: verticalScale(4) }, //15*0.8,10*0.8,5*0.8
+  subHeading: { fontSize: moderateScale(11.2), fontWeight: '600', color: '#000', marginBottom: verticalScale(4) }, //14*0.8,5*0.8
+  subText: { color: '#555', fontSize: moderateScale(10.4), marginBottom: verticalScale(4) }, //13*0.8,5*0.8
+  link: { color: AppColors.themeColor, fontSize: moderateScale(10.4), fontWeight: '600', marginBottom: verticalScale(4) },
+
   greenBox: {
     flexDirection: 'row',
-    padding: 15,
-    borderRadius: 10,
-    marginVertical: 10,
+    padding: scale(12), //15*0.8
+    borderRadius: moderateScale(8),
+    marginVertical: verticalScale(8), //10*0.8
   },
-  greenTextUp: { marginLeft: 8, color: '#333', fontSize: 14, flex: 1, fontWeight: '800' },
-  greenTextDown: { marginLeft: 8, color: '#333', fontSize: 12, flex: 1 },
+  greenTextUp: { marginLeft: scale(6.4), color: '#333', fontSize: moderateScale(11.2), flex: 1, fontWeight: '800' }, //14*0.8
+  greenTextDown: { marginLeft: scale(6.4), color: '#333', fontSize: moderateScale(9.6), flex: 1 }, //12*0.8
+
   boyImage: {
-    width: 50,
-    height: 50,
+    width: scale(40), //50*0.8
+    height: scale(40),
   },
 });
 

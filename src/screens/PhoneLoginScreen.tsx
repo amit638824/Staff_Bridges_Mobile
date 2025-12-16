@@ -26,6 +26,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n/i18n';
 import LanguageSelectorBottomSheet from '../components/LanguageSelectorBottomSheet';
+import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { phoneSchema, otpSchema } from '../validation/loginSchema';
@@ -89,10 +90,10 @@ const isMobileValid = watchMobile && watchMobile.length === 10;
 
     const result = await dispatch(sendOtp(formValues.mobile));
     if (sendOtp.fulfilled.match(result)) {
-      Alert.alert(t('otpSent'), t('otpSentCheck'));
+      // Alert.alert(t('otpSent'), t('otpSentCheck'));
       refRBSheet.current?.open();
     } else {
-      Alert.alert(t('failed'), error || t('failedSendOtp'));
+      // Alert.alert(t('failed'), error || t('failedSendOtp'));
     }
   });
 
@@ -112,7 +113,7 @@ const isMobileValid = watchMobile && watchMobile.length === 10;
       const isNewUser = !userData?.user_fullName;
       navigation.replace(isNewUser ? 'AboutYourselfScreen' : 'HomeScreen');
     } else {
-      Alert.alert(t('failed'), error || t('failedLogin'));
+      // Alert.alert(t('failed'), error || t('failedLogin'));
     }
   });
 
@@ -160,7 +161,7 @@ const isMobileValid = watchMobile && watchMobile.length === 10;
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={styles.countryCode}>+91</Text>
               <View
-                style={{ width: 1, height: 20, backgroundColor: '#ccc', marginHorizontal: 8 }}
+                style={{ width: 1, height: 30, backgroundColor: '#ccc', marginHorizontal: 8 }}
               />
             </View>
 
@@ -283,27 +284,145 @@ const isMobileValid = watchMobile && watchMobile.length === 10;
 };
 
 export default PhoneLoginScreen;
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  pagePadding: { padding: 16 },
-  logoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  logo: { height: 60, width: 120, resizeMode: 'contain' },
-  languageSelector: { paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderRadius: 20, borderColor: AppColors.themeBorder },
-  banner: { width: '100%', height: 220, marginVertical: 0 },
-  phoneLabel: { fontSize: 16, fontWeight: '600', marginBottom: 12 },
-  phoneInputContainer: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#DDD', borderRadius: 40, paddingHorizontal: 12, paddingVertical: 4, marginBottom: 16 },
-  countryCode: { fontSize: 16, fontWeight: '600', marginRight: 8, color: AppColors.lightText },
-  phoneInput: { flex: 1, fontSize: 16, padding: 4 },
-  sendOtpButton: { backgroundColor: AppColors.themeColor, borderRadius: 40, height: 48, justifyContent: 'center', alignItems: 'center', marginTop: 0 },
-  sendOtpText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  termsRow: { flexDirection: 'row', alignItems: 'center', marginTop: 16 },
-  termsText: { flex: 1, marginLeft: 8, fontSize: 13, color: '#555' },
-  otpBottomSheet: { padding: 20 },
-  otpTitle: { fontSize: 18, fontWeight: '700', textAlign: 'center', marginBottom: 8 },
-  otpSubtitle: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 },
-  otpInput: { borderWidth: 1, borderColor: '#DDD', borderRadius: 10, height: 50, textAlign: 'center', fontSize: 18, letterSpacing: 6, marginBottom: 16 },
-  errorText: { color: 'red', fontSize: 12, textAlign: 'center', marginBottom: 10 },
-  verifyOtpButton: { backgroundColor: AppColors.themeColor, borderRadius: 40, height: 48, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
-  verifyOtpText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+
+  pagePadding: { padding: 14 }, // slightly smaller
+
+  logoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+
+  logo: {
+    height: verticalScale(50),
+    width: scale(100),
+    resizeMode: 'contain',
+  },
+
+  languageSelector: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderRadius: 16,
+    borderColor: AppColors.themeBorder,
+  },
+
+  banner: {
+    width: '100%',
+    height: verticalScale(180),
+    marginVertical: 0,
+  },
+
+  phoneLabel: {
+    fontSize: moderateScale(14),
+    fontWeight: '600',
+    marginBottom: 15,
+  },
+
+  phoneInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#DDD',
+    borderRadius: 32,
+    paddingHorizontal: 10,
+    paddingVertical: 13,
+    marginBottom: 12,
+  },
+
+  countryCode: {
+    fontSize: moderateScale(14),
+    fontWeight: '600',
+    marginRight: 6,
+    color: AppColors.lightText,
+  },
+
+  phoneInput: {
+    flex: 1,
+    fontSize: moderateScale(14),
+    padding: 3,
+  },
+
+  sendOtpButton: {
+    backgroundColor: AppColors.themeColor,
+    borderRadius: 32,
+    height: verticalScale(36),
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom:15
+  },
+
+  sendOtpText: {
+    color: '#fff',
+    fontSize: moderateScale(14),
+    fontWeight: '600',
+  },
+
+  termsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+  },
+
+  termsText: {
+    flex: 1,
+    marginLeft: 6,
+    fontSize: moderateScale(12),
+    color: '#555',
+  },
+
+  otpBottomSheet: {
+    padding: 18,
+  },
+
+  otpTitle: {
+    fontSize: moderateScale(16),
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+
+  otpSubtitle: {
+    fontSize: moderateScale(12.5),
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+
+  otpInput: {
+    borderWidth: 1,
+    borderColor: '#DDD',
+    borderRadius: 50,
+    height: verticalScale(36),
+    textAlign: 'center',
+    fontSize: moderateScale(15),
+    letterSpacing: scale(3),
+    marginBottom: 20,
+  },
+
+  errorText: {
+    color: 'red',
+    fontSize: moderateScale(11),
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+
+  verifyOtpButton: {
+    backgroundColor: AppColors.themeColor,
+    borderRadius: 32,
+      height: verticalScale(36),
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+
+  verifyOtpText: {
+    color: '#fff',
+    fontSize: moderateScale(14),
+    fontWeight: '600',
+  },
 });

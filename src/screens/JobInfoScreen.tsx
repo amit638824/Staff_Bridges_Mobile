@@ -13,6 +13,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AppColors } from '../constants/AppColors';
+import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { useTranslation } from 'react-i18next';
 import App from '../../App';
 
@@ -26,7 +27,7 @@ const JobInfoScreen = ({ navigation, route }: any) => {
     title: jobData.title || t('jobinfo_default_title'),
     company: jobData.company || 'RAPIDHIRE.COM',
     location: jobData.location || t('jobinfo_default_location'),
-    salary: jobData.salary || '₹ 8,000 – 15,500 /Month',
+    salary: jobData.salary || '8,000 – 15,500 /Month',
     experience: jobData.experience || t('jobinfo_default_experience'),
     vacancies: jobData.vacancies || t('jobinfo_vacancies_count'),
     type: jobData.type || t('jobinfo_full_time'),
@@ -56,7 +57,7 @@ const JobInfoScreen = ({ navigation, route }: any) => {
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.shareButton}>
-          <Ionicons name="logo-whatsapp" size={16} color={AppColors.themeColor}/>
+          <Ionicons name="share" size={16} color={AppColors.themeColor}/>
           <Text style={styles.shareText}>{t('jobinfo_share_button')}</Text>
         </TouchableOpacity>
       </View>
@@ -123,7 +124,7 @@ const JobInfoScreen = ({ navigation, route }: any) => {
                 <Text style={styles.highlightText}>
                   {text.includes(t('jobinfo_highlight_industry')) ? (
                     <>
-                      <Text style={styles.highlightBold}>{t('jobinfo_highlight_industry')}: </Text>
+                      <Text style={styles.highlightBold}>{t('jobinfo_highlight_industry')} </Text>
                       BPO
                     </>
                   ) : (
@@ -177,7 +178,7 @@ const JobInfoScreen = ({ navigation, route }: any) => {
             <Ionicons name="logo-whatsapp" size={16} color="#fff" />
             <Text style={styles.shareTextLarge}>{t('jobinfo_refer_button')}</Text>
           </TouchableOpacity>
-          <Image style={{width:70, height:70, position:'absolute', bottom:50, right:40}} source={require('../../assets/images/clapping.png')} />
+          <Image style={{width:70, height:70, position:'absolute', bottom:40, right:40}} source={require('../../assets/images/clapping.png')} />
         </View>
       </ScrollView>
 
@@ -204,141 +205,142 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 10,
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    marginBottom:20,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : verticalScale(8), // 10*0.8
+    marginTop:20,
+    paddingHorizontal: scale(12.8), //16*0.8
+    // paddingBottom: verticalScale(8), //10*0.8
+    marginBottom: verticalScale(16), //20*0.8
     backgroundColor: "#fff",
   },
 
   shareButton: {
     flexDirection: 'row',
-    borderWidth: 1,
+    borderWidth: scale(0.8), //1*0.8
     borderColor: AppColors.buttons,
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    borderRadius: moderateScale(16), //20*0.8
+    paddingHorizontal: scale(8), //10*0.8
+    paddingVertical: verticalScale(3.2), //4*0.8
     alignItems: 'center',
   },
 
   shareText: { 
     color: AppColors.buttons, 
-    marginLeft: 5, 
+    marginLeft: scale(4), //5*0.8
     fontWeight: '600' 
   },
 
   shareTextLarge: { 
     color: '#fff', 
-    marginLeft: 10, 
+    marginLeft: scale(8), //10*0.8
   },
 
   topSection: {
-    paddingHorizontal: 16,
+    paddingHorizontal: scale(12.8), //16*0.8
     alignContent: 'flex-start',
     alignItems: 'flex-start',
-    marginTop: 10,
+    marginTop: verticalScale(8), //10*0.8
   },
 
   jobImage: {
-    width: 60,
-    height: 60,
+    width: scale(48), //60*0.8
+    height: scale(48),
     alignSelf: 'flex-start',
     resizeMode: 'contain',
-    marginBottom: 10,
+    marginBottom: verticalScale(8), //10*0.8
   },
 
   jobTitle: {
-    fontSize: 18,
+    fontSize: moderateScale(14.4), //18*0.8
     fontWeight: '700',
     color: '#000',
     textAlign: 'center',
   },
 
   company: {
-    fontSize: 12,
+    fontSize: moderateScale(9.6), //12*0.8
     color: '#666',
     textAlign: 'center',
-    marginTop: 3,
+    marginTop: verticalScale(2.4), //3*0.8
   },
 
   infoCard: {
     backgroundColor: '#fff',
-    marginTop: 16,
-    marginHorizontal: 20,
+    marginTop: verticalScale(12.8), //16*0.8
+    marginHorizontal: scale(16), //20*0.8
   },
 
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: verticalScale(9.6), //12*0.8
   },
 
   infoText: {
-    fontSize: 14,
-    marginLeft: 12,
+    fontSize: moderateScale(11.2), //14*0.8
+    marginLeft: scale(9.6), //12*0.8
     color: '#444',
     fontWeight: '500',
   },
 
   tagsRow: {
     flexDirection: 'row',
-    marginTop: 8,
-    marginHorizontal: 20,
-    gap: 10,
+    marginTop: verticalScale(6.4), //8*0.8
+    marginHorizontal: scale(16), //20*0.8
+    gap: scale(8), //10*0.8
   },
 
   tagBox: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 2,
+    paddingHorizontal: scale(11.2), //14*0.8
+    paddingVertical: verticalScale(4.8), //6*0.8
+    borderRadius: moderateScale(1.6), //2*0.8
     backgroundColor: '#fff',
-    borderWidth: 1,
+    borderWidth: scale(0.8), //1*0.8
     borderColor: '#DDD',
   },
 
   tagText: {
-    fontSize: 12,
+    fontSize: moderateScale(9.6), //12*0.8
     color: '#555',
     fontWeight: '600',
   },
 
   sectionTitle: {
-    fontSize: 15,
+    fontSize: moderateScale(12), //15*0.8
     fontWeight: '700',
     color: '#000',
-    marginBottom: 8,
+    marginBottom: verticalScale(6.4), //8*0.8
   },
 
   jobDesTitle:{
-    fontSize: 15,
+    fontSize: moderateScale(12), //15*0.8
     fontWeight: '700',
-    marginTop:16,
-    marginBottom:8,  
-    marginLeft:4,
+    marginTop: verticalScale(12.8), //16*0.8
+    marginBottom: verticalScale(6.4), //8*0.8
+    marginLeft: scale(3.2), //4*0.8
   },
 
   highlightCard: {
     backgroundColor: '#EAF7FF',
-    borderWidth: 1,
+    borderWidth: scale(0.8), //1*0.8
     borderColor: '#D2E9FF',
-    padding: 16,
-    borderRadius: 12,
-    marginHorizontal: 20,
-    marginTop: 12,
+    padding: scale(12.8), //16*0.8
+    borderRadius: moderateScale(9.6), //12*0.8
+    marginHorizontal: scale(16), //20*0.8
+    marginTop: verticalScale(9.6), //12*0.8
   },
 
   highlightRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 10,
+    marginBottom: verticalScale(8), //10*0.8
   },
 
   highlightText: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: scale(8), //10*0.8
     color: '#000',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: moderateScale(11.2), //14*0.8
+    lineHeight: verticalScale(10), //20*0.8
   },
 
   highlightBold: {
@@ -347,161 +349,164 @@ const styles = StyleSheet.create({
   },
 
   subTitle: {
-    fontSize: 15,
+    fontSize: moderateScale(12), //15*0.8
     fontWeight: '700',
     color: '#000',
-    marginBottom: 10,
+    marginBottom: verticalScale(8), //10*0.8
   },
 
   skillsContainer: {
     backgroundColor: '#fff',
-    padding: 16,
-    marginHorizontal: 20,
-    marginTop: 16,
-    borderRadius: 12,
-    borderWidth: 1,
+    padding: scale(12.8), //16*0.8
+    marginHorizontal: scale(16),
+    marginTop: verticalScale(12.8),
+    borderRadius: moderateScale(9.6),
+    borderWidth: scale(0.8),
     borderColor: '#E5E5E5',
     elevation: 3,
     shadowColor: '#c4ecff',
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: moderateScale(3.2), //4*0.8
   },
 
   skillsWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: scale(8), //10*0.8
   },
 
   skillChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: scale(11.2), //14*0.8
+    paddingVertical: verticalScale(6.4), //8*0.8
     backgroundColor: '#fff',
-    borderRadius: 20,
-    borderWidth: 1,
+    borderRadius: moderateScale(16), //20*0.8
+    borderWidth: scale(0.8), //1*0.8
     borderColor: '#D9D9D9',
   },
 
   skillLabel: {
-    fontSize: 13,
+    fontSize: moderateScale(10.4), //13*0.8
     color: '#7d7d7d',
     fontWeight: '500',
   },
 
   descriptionText: {
-    fontSize: 14,
+    fontSize: moderateScale(11.2), //14*0.8
     color: '#444',
-    marginLeft:4,
-    lineHeight: 20,
+    marginLeft: scale(3.2),
+    lineHeight: verticalScale(16), //20*0.8
   },
 
   readMore: {
-    fontSize: 14,
+    fontSize: moderateScale(11.2), //14*0.8
     fontWeight: '800',
     color: '#03416b',
   },
 
   contactCard: {
     backgroundColor: '#fff',
-    padding: 16,
-    marginHorizontal: 20,
-    marginTop: 16,
-    borderRadius: 12,
-    borderWidth: 1,
+    padding: scale(12.8),
+    marginHorizontal: scale(16),
+    marginTop: verticalScale(12.8),
+    borderRadius: moderateScale(9.6),
+    borderWidth: scale(0.8),
     borderColor: '#E5E5E5',
     elevation: 3,
     shadowColor: '#c4ecff',
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    marginBottom: 15,
+    shadowRadius: moderateScale(3.2),
+    marginBottom: verticalScale(12), //15*0.8
   },
 
   contactText: {
-    fontSize: 15,
+    fontSize: moderateScale(12), //15*0.8
     fontWeight: '600',
     color: '#000',
   },
 
   contactAddress: {
-    fontSize: 14,
+    fontSize: moderateScale(11.2), //14*0.8
     color: '#666',
-    marginTop: 3,
-    marginBottom: 15,
+    marginTop: verticalScale(2.4), //3*0.8
+    marginBottom: verticalScale(6), //15*0.8
   },
 
   shareCard: {
     backgroundColor: '#c4ecff',
-    padding: 16, 
-    marginBottom:0
+    padding: scale(12.8),
+    marginBottom: 0,
   },
 
   smallText: {
-    fontSize: 12,
+    fontSize: moderateScale(9.6), //12*0.8
     color: '#999',
     alignContent:'flex-end',
     alignItems:'flex-end',
     alignSelf:'flex-end',
-    marginBottom: 20,
-    marginRight:40,
+    marginBottom: verticalScale(10), //20*0.8
+    marginRight: scale(32), //40*0.8
   },
 
   shareButtonLarge: {
     flexDirection: 'row',
     backgroundColor:AppColors.buttons,
-    borderRadius: 25,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    borderRadius: moderateScale(20), //25*0.8
+    paddingHorizontal: scale(10), //14*0.8
+    paddingVertical: verticalScale(6), //10*0.8
     alignItems: 'center',
     justifyContent:'center',
-    marginTop:10,
-    width:200,
+    marginBottom:15,
+    marginTop: verticalScale(8), //10*0.8
+    width: scale(150), //200*0.8
   },
 
   bottomButtons: {
     position: 'absolute',
     bottom: 0,
+    // marginTop:10,
     width: '100%',
-    padding: 20,
+    padding: scale(16), //20*0.8
     backgroundColor: '#fff',
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 10,
-    borderColor: '#EEE',
-    borderTopWidth: 2,
+    gap: scale(8), //10*0.8
+    borderTopWidth: scale(1.6), //2*0.8
     borderTopColor: '#EEE',
   },
 
   applyBtn: {
-    borderWidth: 1,
+    borderWidth: scale(0.8), //1*0.8
     borderColor: AppColors.buttons,
-    borderRadius: 25,
+    borderRadius: moderateScale(20), //25*0.8
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    minWidth: 150,
+    paddingVertical: verticalScale(6), //12*0.8
+    paddingHorizontal: scale(14.4), //18*0.8
+    minWidth: scale(120), //150*0.8
+    marginBottom:verticalScale(10)
   },
 
   callBtn: {
     backgroundColor: AppColors.buttons,
-    borderRadius: 25,
+    borderRadius: moderateScale(20),
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    minWidth: 150,
+    gap: scale(4.8), //6*0.8
+    paddingVertical: verticalScale(6),
+    paddingHorizontal: scale(14.4),
+    minWidth: scale(120),
+        marginBottom:verticalScale(10)
   },
 
   applyText: {
-    fontSize: 14,
+    fontSize: moderateScale(11.2), //14*0.8
     fontWeight: '600',
     color: AppColors.buttons,
   },
 
   callText: {
-    fontSize: 14,
+    fontSize: moderateScale(11.2), //14*0.8
     fontWeight: '600',
     color: '#fff',
   },

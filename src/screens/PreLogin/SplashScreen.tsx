@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { AppColors } from '../../constants/AppColors';
 import { SafeAreaView } from "react-native-safe-area-context";
 const { width, height } = Dimensions.get('window');
+import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 
 const SplashScreen = ({ navigation }: any) => {
   const { t } = useTranslation();
@@ -115,14 +116,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: verticalScale(50),
   },
 
   logoContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 40,
+    marginTop: verticalScale(30),
   },
 
   logoWrapper: {
@@ -131,64 +132,65 @@ const styles = StyleSheet.create({
   },
 
   logoBg: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+    width: scale(120),
+    height: scale(120),
+    borderRadius: scale(60),
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 5,
+    shadowOpacity: 0.12,
+    shadowRadius: scale(8),
+    shadowOffset: { width: 0, height: scale(3) },
+    elevation: 4,
   },
 
   logo: {
-    width: 100,
-    height: 100,
+    width: scale(80),
+    height: scale(80),
+    resizeMode: 'contain',
   },
 
   textContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: scale(20),
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: verticalScale(30),
   },
 
   mainText: {
-    fontSize: 20,
+    fontSize: moderateScale(18),
     fontWeight: '700',
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 8,
-    lineHeight: 28,
+    marginBottom: verticalScale(6),
+    lineHeight: moderateScale(24),
   },
 
   subText: {
-    fontSize: 14,
+    fontSize: moderateScale(13),
     fontWeight: '400',
     color: 'rgba(255, 255, 255, 0.85)',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: moderateScale(18),
   },
 
   dotsContainer: {
     flexDirection: 'row',
-    gap: 8,
+    gap: scale(6),
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: verticalScale(20),
   },
 
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: scale(8),
+    height: scale(8),
+    borderRadius: scale(4),
     backgroundColor: 'rgba(255, 255, 255, 0.4)',
   },
 
   activeDot: {
     backgroundColor: '#fff',
-    width: 24,
+    width: scale(20),
   },
 });

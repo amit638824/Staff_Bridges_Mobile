@@ -24,6 +24,7 @@ import type { SeekerCategoryItem  } from "../../redux/slices/seekerCategorySlice
 import { seekerExperienceService } from '../../services/seekerExperienceService';
 import { masterQuestionService } from '../../services/masterQuestionService';
 import { jobQuestionAnswerService } from '../../services/jobQuestionAnswerService';
+import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 import * as Yup from 'yup';
 
 /* ----------------------------- TYPES ----------------------------- */
@@ -334,18 +335,19 @@ const handleNext = async (): Promise<void> => {
     serializableMulti[k] = Array.from(selectedMulti[k]);
   });
 
-  const updatedAnswers: CompletedRoles = {
-    ...completedRoles,
-    [currentRole.id]: {
-      role: currentRole.title,
-      selectedExperience,
-      // convert sets to arrays here if needed; we keep Set in type but store arrays to be safe
-      selectedMulti: Object.keys(selectedMulti).reduce((acc, qId) => {
-        acc[qId] = new Set(selectedMulti[qId]);
-        return acc;
-      }, {} as Record<string, Set<string>>),
-    },
-  };
+const serializableSelectedMulti: Record<string, string[]> = {};
+Object.keys(selectedMulti).forEach((qId) => {
+  serializableSelectedMulti[qId] = Array.from(selectedMulti[qId]);
+});
+
+const updatedAnswers: CompletedRoles = {
+  ...completedRoles,
+  [currentRole.id]: {
+    role: currentRole.title,
+    selectedExperience,
+    selectedMulti: serializableSelectedMulti, // now it's arrays, serializable
+  },
+};
 
   if (currentRoleIndex === totalRoles - 1) {
     navigation.reset({
@@ -426,21 +428,22 @@ const renderDynamicQuestion = (question: DynamicQuestion) => (
           {'no options available'}
         </Text>
       ) : (
-        question.options.map((option) => {
-          // dynamic options are plain text (not translation keys) — t(option) will return option if no key exists
-          const qId = String(question.id);
-          const isSelected = (selectedMulti[qId] || new Set()).has(option);
-          return (
-            <View key={option} style={styles.chipWrapper}>
-              {renderChip({
-                label: option,
-                isSelected,
-                showIcon: true,
-                onTap: () => handleMultiSelect(qId, option),
-              })}
-            </View>
-          );
-        })
+    question.options.map((option) => {
+  const qId = String(question.id);
+  const key = `${qId}_${option}`; // unique key
+
+  return (
+    <View key={key} style={styles.chipWrapper}>
+      {renderChip({
+        label: option,
+        isSelected: (selectedMulti[qId] || new Set()).has(option),
+        showIcon: true,
+        onTap: () => handleMultiSelect(qId, option),
+      })}
+    </View>
+  );
+})
+
       )}
     </View>
   </View>
@@ -475,12 +478,12 @@ return (
 >
   <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
-
+    <View style={styles.progressContainer}>
     {/* Progress Bar */}
     <View style={styles.progressBarContainer}>
       <View style={[styles.progressBar, { width: `${progressPercentage}%` }]} />
     </View>
-
+</View>
     {/* Header */}
     <View style={styles.header}>
       <View style={styles.headerCenter}>
@@ -521,73 +524,131 @@ return (
 export default JobDetailsScreen;
 
 /* ----------------------------- STYLES ----------------------------- */
-
 const styles = StyleSheet.create({
-safeArea: { flex: 1, backgroundColor: '#fff' },
-progressBarContainer: {
-  height: 10,
-  backgroundColor: '#e0e0e0',
-  borderRadius: 10,
-  overflow: 'hidden',
-  marginHorizontal: 20,
-  marginTop: 12,
-  marginBottom: 10,
-},
-progressBar: { height: '100%', backgroundColor: AppColors.themeColor, borderRadius: 10 },
-header: {
-  paddingHorizontal: 20,
-  paddingVertical: 16,
-  backgroundColor: '#fff',
-  borderBottomColor: '#f0f0f0',
-},
-jobImage: {
-  width: 80,
-  height: 80,
-  borderRadius: 10,
-  resizeMode: 'cover',
-  backgroundColor: '#f2f2f2',
-  overflow: 'hidden',
-},
-headerCenter: {
-  alignItems: 'flex-start',
-  paddingVertical: 16,
-},
-jobTitleCenter: {
-  fontSize: 20,
-  fontWeight: '700',
-  color: '#000',
-  marginTop: 12,
-},
-scrollView: { flex: 1 },
-scrollViewContent: { paddingHorizontal: 20, paddingVertical: 20 },
-questionSection: { marginBottom: 25 },
-questionText: { fontSize: 15, fontWeight: '600', color: '#000', marginBottom: 12 },
-chipsContainer: {
-  flexDirection: 'row',
-  flexWrap: 'wrap',
-  justifyContent: 'flex-start',
-  columnGap: 12,
-  rowGap: 12,
-},
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+    
+  },
 
-chipWrapper: {
-  // REMOVE marginRight & marginBottom
-},
-chip: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  paddingHorizontal: 14,
-  paddingVertical: 8,
-  borderWidth: 1.5,
-  borderColor: '#ddd',
-  borderRadius: 20,
+  /* ------------------ Progress Bar ------------------ */
+   progressContainer: {
+ paddingHorizontal: scale(16),
+  },
+  progressBarContainer: {
+    height: verticalScale(6),
+    width: "100%",
+    backgroundColor: "#cacaca",
+    borderRadius: scale(4),
+    
+    marginBottom: verticalScale(16),
+    marginTop: verticalScale(8),
+  },
+  progressBar: {
+    height: "100%",
+    backgroundColor: AppColors.themeColor,
+    borderRadius: scale(4),
+  },
+
+  /* ------------------ Header ------------------ */
+  header: {
+    paddingHorizontal: scale(16),
+    marginBottom: verticalScale(16),
+  },
+
+  headerCenter: {
+    alignItems: "flex-start",
+  },
+
+  jobImage: {
+    width: scale(48),
+    height: scale(48),
+    borderRadius: scale(8),
+     boxShadow: '0 4px 4px rgba(0,0,0,0.1)',
+         resizeMode: "cover",
+    marginBottom: verticalScale(6),
+  },
+
+  jobTitleCenter: {
+  fontSize: moderateScale(15),
+  fontWeight: "bold",
+  // marginTop: verticalScale(12),
+      // fontWeight: "600",
+    color: "#000",
+    textAlign: "center",
+    marginTop: verticalScale(4),
+  },
+
+  /* ------------------ ScrollView ------------------ */
+  scrollView: {
+    flex: 1,
+  },
+
+  scrollViewContent: {
+    paddingHorizontal: scale(16),
+    paddingBottom: verticalScale(40),
+  },
+
+  /* ------------------ Questions / Chips ------------------ */
+  questionSection: {
+    marginBottom: verticalScale(18),
+  },
+
+  questionText: {
+    fontSize: moderateScale(14),
+    fontWeight: "600",
+    color: "#000",
+    marginBottom: verticalScale(10),
+  },
+
+  chipsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+
+  chipWrapper: {
+    marginRight: scale(8),
+    marginBottom: verticalScale(10),
+  },
+
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: scale(1),
+    borderColor: "#ddd",
+    borderRadius: scale(20),
+    paddingVertical: verticalScale(6),
+    paddingHorizontal: scale(12),
   backgroundColor: '#e3e3e3',
-},
-chipSelected: { borderColor: '#ffddb5', backgroundColor: '#ffddb5' },
-chipText: { fontSize: 13, fontWeight: '500', color: '#929292' },
-chipTextSelected: { fontWeight: '600', color: '#71695f' },
-buttonContainer: { paddingHorizontal: 20, paddingVertical: 16, backgroundColor: '#fff', borderTopColor: '#f0f0f0' },
-nextButton: { height: 50, backgroundColor: AppColors.themeColor, borderRadius: 30,marginBottom:30, justifyContent: 'center', alignItems: 'center' },
-nextButtonText: { fontSize: 16, fontWeight: '600', color: '#fff' },
-});
+  },
 
+ chipSelected: { borderColor: '#ffddb5', backgroundColor: '#ffddb5' },
+
+ chipText: { fontSize: moderateScale(12), fontWeight: '500', color: '#929292' },
+chipTextSelected: { fontWeight: '600', color: '#71695f' },
+
+  /* ------------------ Next Button ------------------ */
+  buttonContainer: {
+    paddingHorizontal: scale(16),
+    // paddingBottom: verticalScale(10),
+  },
+
+   nextButton: {
+    height: verticalScale(36),
+    backgroundColor: AppColors.themeColor,
+    borderRadius: scale(26),
+    justifyContent: "center",
+    alignItems: "center",
+       marginBottom: verticalScale(23),
+  },
+
+  nextButtonDisabled: {
+    backgroundColor: "#ddd",
+  },
+
+  nextButtonText: {
+    fontSize: moderateScale(14),
+    fontWeight: "600",
+    color: "#fff",
+  },
+});

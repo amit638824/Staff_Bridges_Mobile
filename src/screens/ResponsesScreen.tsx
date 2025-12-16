@@ -14,6 +14,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AppFooter from '../components/AppFooter';
 import { AppColors } from '../constants/AppColors';
+import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { useTranslation } from 'react-i18next';
 
 const ResponsesScreen = ({ navigation }: any) => {
@@ -76,12 +77,12 @@ const ResponsesScreen = ({ navigation }: any) => {
               end={{ x: 1, y: 0 }}
               style={styles.bestJobGradient}
             >
-              <Ionicons name="star" size={10} color="#e59600" />
+              <Ionicons name="star" size={12} color="#e59600" />
               <Text style={styles.bestJobText}>{t('resp_best_job_badge')}</Text>
             </LinearGradient>
 
             <View style={styles.urgentBadge}>
-              <Ionicons name="time" size={10} color="#d78b53" />
+              <Ionicons name="time-outline" size={12} color="#d78b53" />
               <Text style={styles.urgentText}>{applicationData.badge}</Text>
             </View>
           </View>
@@ -135,7 +136,7 @@ const ResponsesScreen = ({ navigation }: any) => {
 
         <TouchableOpacity style={styles.helpCard}>
           <Text style={styles.helpTitle}>{t('resp_help_card_title')}</Text>
-          <Ionicons name="chevron-forward" size={18} color="#00BCC4" />
+          <Ionicons name="chevron-forward" size={18} color={AppColors.themeColor} />
         </TouchableOpacity>
 
         <LinearGradient
@@ -176,13 +177,17 @@ const styles = StyleSheet.create({
 
   header: {
     backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight! + 10 : 14,
+    paddingHorizontal: scale(14),
+    paddingVertical: verticalScale(10),
+    paddingTop: Platform.OS === 'android'
+      ? verticalScale(StatusBar.currentHeight! -10)
+      : verticalScale(10),
   },
 
   headerTitle: {
-    fontSize: 18,
+    // fontSize: moderateScale(14),
+
+        fontSize: scale(13.5), 
     fontWeight: '700',
     color: '#000',
   },
@@ -190,19 +195,18 @@ const styles = StyleSheet.create({
   tabContainer: {
     flexDirection: 'row',
     backgroundColor: '#f4f6ff',
-    paddingHorizontal: 16,
-    alignContent: 'center',
-    borderBottomWidth: 1,
+    paddingHorizontal: scale(14),
+    borderBottomWidth: scale(1),
     borderColor: '#eeeff1ff',
-    padding: 8,
+    paddingVertical: verticalScale(6),
   },
 
   tab: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+    paddingVertical: verticalScale(4),
+    paddingHorizontal: scale(14),
+    borderRadius: moderateScale(16),
     backgroundColor: '#f5f5f5',
-    borderWidth: 1,
+    borderWidth: scale(1),
     borderColor: '#e0e0e0',
   },
 
@@ -212,7 +216,7 @@ const styles = StyleSheet.create({
   },
 
   tabText: {
-    fontSize: 13,
+    fontSize: moderateScale(11),
     fontWeight: '600',
     color: '#999',
   },
@@ -226,128 +230,124 @@ const styles = StyleSheet.create({
   },
 
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 100,
+    paddingHorizontal: scale(14),
+    paddingTop: verticalScale(12),
+    paddingBottom: verticalScale(80),
   },
 
   applicationCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
+    borderRadius: moderateScale(10),
+    padding: verticalScale(10),
+    marginBottom: verticalScale(5),
+    borderWidth: scale(1),
     borderColor: '#d6d3d3ff',
-    borderWidth: 1,
-    shadowColor: '#74f0f0ff',
+    shadowColor: 'teal',
     shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: scale(4),
+    shadowOffset: { width: 0, height: verticalScale(2) },
     elevation: 10,
   },
 
   badgeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: verticalScale(6),
     alignItems: 'center',
   },
 
   bestJobGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderTopLeftRadius: 20,
-    borderBottomLeftRadius: 20,
-    alignSelf: 'flex-start',
-    gap: 5,
+    paddingHorizontal: scale(8),
+    paddingVertical: verticalScale(3),
+    borderTopLeftRadius: moderateScale(20),
+    borderBottomLeftRadius: moderateScale(20),
+    gap: scale(4),
   },
 
   bestJobText: {
-    fontSize: 9,
+    fontSize: moderateScale(8),
     fontWeight: '700',
-    letterSpacing: 0.3,
   },
 
   jobRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: scale(8),
     alignItems: 'flex-start',
-    marginTop: 5,
+    marginTop: verticalScale(4),
+    marginBottom:verticalScale(4),
   },
 
   jobIcon: {
-    width: 42,
-    height: 42,
+    width: scale(34),
+    height: scale(34),
     borderColor: '#e0e0e0',
-    borderWidth: 1,
-    borderRadius: 4,
-    padding: 6,
+    borderWidth: scale(1),
+    borderRadius: scale(4),
+    padding: scale(4),
     resizeMode: 'contain',
-    marginTop: 2,
+    marginTop: verticalScale(1),
   },
 
   urgentBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#ffe8d7',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 12,
-    gap: 3,
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
-    marginRight: -13,
+    paddingHorizontal: scale(6),
+    paddingVertical: verticalScale(3),
+    borderBottomLeftRadius: moderateScale(10),
+    borderTopLeftRadius: moderateScale(10),
+    gap: scale(3),
+    marginRight: scale(-12),
   },
 
   urgentText: {
-    fontSize: 10,
+    fontSize: moderateScale(9),
     fontWeight: '600',
     color: '#d78b53',
   },
 
   jobTitle: {
-    fontSize: 15,
+    fontSize: moderateScale(13),
     fontWeight: '700',
     color: '#000',
-    marginBottom: 10,
+    marginBottom: verticalScale(6),
   },
 
   infoRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 6,
-    gap: 6,
+    marginBottom: verticalScale(4),
+    gap: scale(4),
   },
 
   salaryText: {
-    fontSize: 12,
+    fontSize: moderateScale(10),
     color: '#333',
     fontWeight: '500',
   },
 
   infoText: {
-    fontSize: 12,
+    fontSize: moderateScale(10),
     color: '#777',
-    fontWeight: '400',
   },
 
   statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    marginTop: verticalScale(10),
+    paddingHorizontal: scale(10),
+    paddingVertical: verticalScale(8),
     backgroundColor: '#E3F2FD',
-    borderRadius: 40,
-    gap: 10,
-    marginHorizontal: 16,
+    borderRadius: moderateScale(30),
+    gap: scale(8),
   },
 
   statusIconBg: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: scale(26),
+    height: scale(26),
+    borderRadius: scale(13),
     backgroundColor: '#2e98fcff',
     justifyContent: 'center',
     alignItems: 'center',
@@ -358,134 +358,126 @@ const styles = StyleSheet.create({
   },
 
   statusTitle: {
-    fontSize: 12,
+    fontSize: moderateScale(11),
     fontWeight: '700',
-    marginBottom: 2,
+    marginBottom: verticalScale(2),
   },
 
   statusSubtext: {
-    fontSize: 11,
+    fontSize: moderateScale(9),
     color: '#666',
-    lineHeight: 15,
+    lineHeight: moderateScale(13),
   },
 
   buttonRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 14,
-    marginLeft: 150,
-    marginRight: 15,
+    gap: scale(6),
+    marginTop: verticalScale(12),
+    marginLeft: scale(110),
+    marginRight: scale(10),
   },
 
   similarJobsButton: {
     flex: 1,
-    borderColor: '#00A79D',
-    borderWidth: 1,
-    paddingVertical: 10,
-    borderRadius: 20,
+    borderColor: AppColors.themeColor,
+    borderWidth: scale(1),
+    paddingVertical: verticalScale(8),
+    borderRadius: moderateScale(20),
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   similarJobsText: {
-    fontSize: 12,
+    fontSize: moderateScale(10),
     fontWeight: '600',
-    color: '#00A79D',
+    color: AppColors.themeColor,
   },
 
   callHRButton: {
     flex: 1,
     backgroundColor: AppColors.buttons,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingVertical: verticalScale(8),
+    borderRadius: moderateScale(20),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: scale(4),
   },
 
   callHRText: {
-    fontSize: 12,
+    fontSize: moderateScale(10),
     fontWeight: '600',
     color: '#fff',
   },
 
   helpCard: {
     backgroundColor: '#FFEBE9',
-    borderRadius: 10,
-    borderTopEndRadius: 0,
-    borderBottomWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: '#cccbcbff',
-    borderTopWidth: 0,
-    borderTopLeftRadius: 0,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    borderBottomLeftRadius: moderateScale(10),
+    borderBottomRightRadius:moderateScale(10),
+    paddingHorizontal: scale(12),
+    paddingVertical: verticalScale(12),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
-    marginTop: 0,
+    marginBottom: verticalScale(14),
   },
 
   helpTitle: {
-    fontSize: 13,
+    fontSize: moderateScale(11),
     fontWeight: '600',
   },
 
   experienceCard: {
-    borderRadius: 12,
-    borderTopRightRadius: 0,
-    borderTopLeftRadius: 0,
-    padding: 14,
-    marginBottom: 20,
+    borderRadius: moderateScale(10),
+    padding: verticalScale(12),
+    marginBottom: verticalScale(16),
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    shadowRadius: scale(4),
+    shadowOffset: { width: 0, height: verticalScale(1) },
+    elevation: 2,
   },
 
   experienceContent: {
     flex: 1,
-    paddingRight: 10,
+    paddingRight: scale(8),
   },
 
   experienceTitle: {
-    fontSize: 16,
+    fontSize: moderateScale(13),
     fontWeight: '800',
-    marginBottom: 12,
-    marginLeft: 4,
-    lineHeight: 18,
+    marginBottom: verticalScale(8),
+    lineHeight: moderateScale(16),
   },
 
   addExperienceButton: {
-    backgroundColor: AppColors.buttons,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 20,
-    alignSelf: 'flex-start',
+   backgroundColor: AppColors.buttons,
+    paddingHorizontal: scale(14),
+    paddingVertical: verticalScale(8),
+    borderRadius: moderateScale(20),
+    alignSelf: 'flex-start',    
   },
 
   addExperienceText: {
-    fontSize: 13,
+    fontSize: moderateScale(11),
     fontWeight: '600',
     color: '#fff',
   },
 
-  experienceImageContainer: {
+    experienceImageContainer: {
     position: 'relative',
   },
 
+
   experienceImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
+    width: scale(60),
+    height: scale(60),
+    borderRadius: scale(6),
   },
+ 
 });
 
 export default ResponsesScreen;

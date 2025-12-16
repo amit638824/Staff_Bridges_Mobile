@@ -20,11 +20,10 @@ import { useTranslation } from "react-i18next";
 import { AppColors } from "../../constants/AppColors";
 import { request, PERMISSIONS, RESULTS } from "react-native-permissions";
 import Geolocation from "react-native-geolocation-service";
-
+import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import { updateBasicInfo, setLocation } from "../../redux/slices/userSlice";
-
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -165,7 +164,7 @@ export default function AboutYourselfScreen() {
             (position) => {
               const { latitude, longitude } = position.coords;
               dispatch(setLocation({ latitude, longitude }));
-              Alert.alert("Location Captured", `Latitude: ${latitude}\nLongitude: ${longitude}`);
+              // Alert.alert("Location Captured", `Latitude: ${latitude}\nLongitude: ${longitude}`);
               navigation.navigate("WorkLocationScreen");
             },
             (error) => {
@@ -217,7 +216,7 @@ return (
       <Text style={styles.title}>{t("aboutYourself")}</Text>
 
       {/* Full Name */}
-      <Text style={styles.label}>{t("yourName")} *</Text>
+      <Text style={styles.label}>{t("yourName")} </Text>
       <Controller
         control={control}
         name="fullName"
@@ -238,7 +237,7 @@ return (
       />
 
       {/* Gender */}
-      <Text style={styles.label}>{t("gender")} *</Text>
+      <Text style={styles.label}>{t("gender")} </Text>
       <Controller
         control={control}
         name="gender"
@@ -268,7 +267,7 @@ return (
       />
 
       {/* Education */}
-      <Text style={styles.label}>{t("education")} *</Text>
+      <Text style={styles.label}>{t("education")} </Text>
       <Controller
         control={control}
         name="education"
@@ -365,34 +364,140 @@ return (
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#fff" },
-  scrollContent: { padding: 20 },
-  progressContainer: { height: 10, width: "100%", backgroundColor: "#cacaca", borderRadius: 5, marginBottom: 20 },
-  progressFill: { height: "100%", width: "20%", backgroundColor: AppColors.buttons, borderRadius: 5 },
-  imageContainer: { marginBottom: 10 },
-  icon: { width: 60, height: 60 },
-  title: { fontSize: 20, fontWeight: "bold", marginVertical: 20 },
-  label: { marginTop: 10, fontSize: 15, fontWeight: "600" },
-  input: { borderWidth: 1, borderColor: "#ccc", padding: 12, borderRadius: 6, marginTop: 6, color: "black" },
-  row: { flexDirection: "row", gap: 10, marginVertical: 8 },
-  wrap: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginVertical: 10 },
-  chip: { flexDirection: "row", alignItems: "center", borderWidth: 1, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 20, borderColor: "#ccc" },
-  chipSelected: { backgroundColor: "#e7f6f6", borderColor: "#099ca4" },
-  chipText: { marginLeft: 5, fontSize: 13 },
-  salaryBox: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#ccc", borderRadius: 6, paddingHorizontal: 12, marginTop: 6 },
-  salaryInputField: { flex: 1, paddingVertical: 12, color: "black", fontSize: 15 },
-  suffixText: { color: "#555", fontSize: 14, marginLeft: 5 },
-  primaryButton: {
-    position: 'absolute',
-    bottom: 30,
-    left: 20,
-    right: 20,
-    backgroundColor: AppColors.buttons,
-    padding: 16,
-    alignItems: 'center',
-    borderRadius: 30,
-    zIndex: 10,
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
   },
-  btnText: { fontSize: 16, fontWeight: "700", color: "#fff" },
-  errorText: { color: "red", fontSize: 12, marginTop: 2 },
+
+  scrollContent: {
+    padding: scale(12),
+  },
+
+  progressContainer: {
+    height: verticalScale(6),
+    width: "100%",
+    backgroundColor: "#cacaca",
+    borderRadius: scale(4),
+    marginBottom: verticalScale(12),
+  },
+
+  progressFill: {
+    height: "100%",
+    width: "20%",
+    backgroundColor: AppColors.buttons,
+    borderRadius: scale(4),
+  },
+
+  imageContainer: {
+    marginBottom: verticalScale(6),
+    alignItems: "flex-start",
+  },
+
+  icon: {
+    width: scale(45),
+    height: scale(45),
+    resizeMode: "contain",
+  },
+
+  title: {
+    fontSize: moderateScale(15),
+    fontWeight: "bold",
+    marginVertical: verticalScale(12),
+  },
+
+  label: {
+    marginTop: verticalScale(6),
+    fontSize: moderateScale(12),
+    fontWeight: "600",
+  },
+
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    paddingVertical: verticalScale(8),
+    paddingHorizontal: scale(10),
+    borderRadius: scale(6),
+    marginTop: verticalScale(4),
+    color: "black",
+    fontSize: moderateScale(12),
+  },
+
+  row: {
+    flexDirection: "row",
+    gap: scale(8),
+    marginVertical: verticalScale(6),
+  },
+
+  wrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: scale(8),
+    marginVertical: verticalScale(8),
+  },
+
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    paddingVertical: verticalScale(6),
+    paddingHorizontal: scale(10),
+    borderRadius: scale(18),
+    borderColor: "#ccc",
+  },
+
+  chipSelected: {
+    backgroundColor: "#e7f6f6",
+    borderColor: "#099ca4",
+  },
+
+  chipText: {
+    marginLeft: scale(5),
+    fontSize: moderateScale(11),
+  },
+
+  salaryBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: scale(6),
+    paddingHorizontal: scale(10),
+    marginTop: verticalScale(4),
+  },
+
+  salaryInputField: {
+    flex: 1,
+    paddingVertical: verticalScale(8),
+    color: "black",
+    fontSize: moderateScale(12),
+  },
+
+  suffixText: {
+    color: "#555",
+    fontSize: moderateScale(11),
+    marginLeft: scale(4),
+  },
+
+  primaryButton: {
+    position: "absolute",
+    bottom: verticalScale(24),
+    left: scale(20),
+    right: scale(20),
+    backgroundColor: AppColors.buttons,
+    paddingVertical: verticalScale(12),
+    borderRadius: scale(26),
+    alignItems: "center",
+  },
+
+  btnText: {
+    fontSize: moderateScale(13),
+    fontWeight: "700",
+    color: "#fff",
+  },
+
+  errorText: {
+    color: "red",
+    fontSize: moderateScale(10),
+    marginTop: verticalScale(2),
+  },
 });

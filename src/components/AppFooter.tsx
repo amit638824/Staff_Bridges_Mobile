@@ -4,7 +4,8 @@ import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { AppColors } from "../constants/AppColors";
-import { useTranslation } from "react-i18next";   
+import { useTranslation } from "react-i18next";
+import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 
 interface AppFooterProps {
   currentIndex: number;
@@ -13,7 +14,7 @@ interface AppFooterProps {
 
 const AppFooter: React.FC<AppFooterProps> = ({ currentIndex, onTap }) => {
   const navigation = useNavigation<any>();
-  const { t } = useTranslation();  // 👈 TRANSLATION HOOK
+  const { t } = useTranslation();
 
   const navItems = [
     { label: t("footer_home"), solid: "home", outline: "home-outline", route: "HomeScreen" },
@@ -28,24 +29,24 @@ const AppFooter: React.FC<AppFooterProps> = ({ currentIndex, onTap }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.navBar}>
+    <View style={footerStyles.container}>
+      <View style={footerStyles.navBar}>
         {navItems.map((item, index) => (
           <TouchableOpacity
             key={index}
-            style={styles.navItem}
+            style={footerStyles.navItem}
             activeOpacity={0.8}
             onPress={() => handlePress(index, item.route)}
           >
             {currentIndex === index ? (
-              <Icon name={item.solid} size={24} color={AppColors.themeColor} />
+              <Icon name={item.solid} size={moderateScale(20)} color={AppColors.themeColor} />
             ) : (
-              <MaterialCommunityIcons name={item.outline} size={24} color="#999" />
+              <MaterialCommunityIcons name={item.outline} size={moderateScale(20)} color="#999" />
             )}
 
             <Text
               style={[
-                styles.label,
+                footerStyles.label,
                 { color: currentIndex === index ? AppColors.themeColor : "#999" },
               ]}
             >
@@ -58,28 +59,28 @@ const AppFooter: React.FC<AppFooterProps> = ({ currentIndex, onTap }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const footerStyles = StyleSheet.create({
   container: {
     backgroundColor: "#fff",
-    elevation: 8,
+    elevation: 6,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    paddingBottom:25
+    shadowOffset: { width: 0, height: verticalScale(1) },
+    shadowOpacity: 0.15,
+    shadowRadius: scale(4),
+    paddingBottom: verticalScale(20),
   },
   navBar: {
     flexDirection: "row",
     justifyContent: "space-around",
-    paddingVertical: 8,
+    paddingVertical: verticalScale(6),
   },
   navItem: {
     alignItems: "center",
   },
   label: {
-    fontSize: 12,
+    fontSize: moderateScale(10),
     fontWeight: "500",
-    marginTop: 4,
+    marginTop: verticalScale(3),
   },
 });
 

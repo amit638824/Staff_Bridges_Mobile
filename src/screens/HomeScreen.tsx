@@ -27,6 +27,8 @@ import ViewedJobsSection from '../components/ViewedJobSection';
 import JobApplicationModal from '../components/JobApplicationModal';
 import { AppColors } from '../constants/AppColors';
 import App from '../../App';
+import { scale, verticalScale, moderateScale } from "react-native-size-matters";
+
 import { useTranslation } from 'react-i18next'; // Import i18n hook
 
 const { width } = Dimensions.get('window');
@@ -64,21 +66,26 @@ const HomeScreen: React.FC<{ navigation: any, route: any }> = ({ navigation, rou
     setCurrentIndex(index);
   };
 
-  useEffect(() => {
-    const comingFromJobInfo = route?.params?.fromJobInfo === true;
+useEffect(() => {
+  const comingFromJobInfo = route?.params?.fromJobInfo === true;
 
-    if (comingFromJobInfo && !isMountedRef.current) {
-      setTimeout(() => {
-        setShowJobModal(true);
-      }, 500);
-    }
+  if (comingFromJobInfo && !isMountedRef.current) {
+    setTimeout(() => {
+      setShowJobModal(true);
+    }, 500);
+  }
 
-    isMountedRef.current = true;
+  isMountedRef.current = true;
 
-    return () => {
-      navigation.setParams({ fromJobInfo: false });
-    };
-  }, [route?.params?.fromJobInfo]);
+  // Remove navigation.setParams completely
+  // return () => {
+  //   if (navigation?.setParams) {
+  //     navigation.setParams({ fromJobInfo: false });
+  //   }
+  // };
+}, [route?.params?.fromJobInfo]);
+
+
 
   return (
     <>
@@ -102,7 +109,7 @@ const HomeScreen: React.FC<{ navigation: any, route: any }> = ({ navigation, rou
             <TouchableOpacity>
               <Text style={styles.resumeLink}>{t('home_resume_add_now')}</Text>
             </TouchableOpacity>
-            <Ionicons name="close" size={18} color="#999" />
+            <Ionicons name="close" size={18} color="#999" style={{marginEnd:10}} />
           </View>
 
           <View style={styles.searchBox}>
@@ -354,9 +361,19 @@ const SuccessStoriesSection = () => {
           <Image source={require('../../assets/images/soni.jpg')} style={styles.avatar} />
         </View>
 
-        <Text style={styles.description}>
-          {t('home_success_stories_desc')}
-        </Text>
+  <Text style={styles.description}>
+  {t('home_success_names')}
+  {"\n"}
+  {t('home_success_got')}{" "}
+  <Text style={styles.highlightText}>
+    {t('home_success_highlight')}
+  </Text>{" "}
+  {t('home_success_by_hr')}
+  {"\n"}
+  {t('home_success_footer')}
+</Text>
+
+
       </ImageBackground>
     </View> 
   );
@@ -448,35 +465,55 @@ const ReferFriendSection = () => {
 
 export default HomeScreen;
 
-// STYLES (unchanged)
+// MAIN STYLES
 const styles = StyleSheet.create({
-  container: { backgroundColor: '#fff'},
-   containerImage: {padding: 16},
-  bannerCard: { marginTop:10, marginBottom:40, backgroundColor: AppColors.cardBg },
-  bannerLogo: { width: 50, height: 50, resizeMode: 'contain' },
-  bannerImage: { width: 100, height: 125, resizeMode: 'contain' ,borderTopLeftRadius: 25,borderTopRightRadius:25,marginRight:20},
+  container: { 
+    backgroundColor: '#fff'
+  },
+  containerImage: {
+    padding: scale(12)
+  },
+  bannerCard: { 
+    marginTop: verticalScale(8), 
+    marginBottom: verticalScale(20), 
+    backgroundColor: AppColors.cardBg 
+  },
+  bannerLogo: { 
+    width: scale(40), 
+    height: scale(40), 
+    resizeMode: 'contain' 
+  },
+  bannerImage: { 
+    width: scale(80), 
+    height: verticalScale(86), 
+    resizeMode: 'contain',
+    borderTopLeftRadius: scale(20),
+    borderTopRightRadius: scale(20),
+    marginRight: scale(16),
+
+  },
   bannerHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginHorizontal: 14,
+    marginHorizontal: scale(12),
   },
   resumeCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: AppColors.cardLightBg,
-    padding: 12,
-    marginTop: 5,
+    padding: scale(10),
+    marginTop: verticalScale(4),
   },
   resumeTitle: {
-    fontSize: 13,
+    fontSize: moderateScale(11),
     fontWeight: '500',
     color: '#000',
   },
   resumeLink: {
-    fontSize: 13,
-    marginEnd: 5,
-    color:AppColors.themeColor ,
+    fontSize: moderateScale(11),
+    marginEnd: scale(4),
+    color: AppColors.themeColor,
     textDecorationLine: 'underline',
     fontWeight: '700',
   },
@@ -484,40 +521,40 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 0,
-    marginTop:10,
+    marginTop: verticalScale(8),
   },
   viewAll: {
     color: AppColors.themeColor,
-    fontSize: 13,
+    fontSize: moderateScale(11),
     fontWeight: "700",
   },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 25,
-    paddingHorizontal: 14,
-    paddingVertical: 2,
-    marginHorizontal: 14,
-    marginTop: 20,
-    marginBottom:2,
-    borderWidth:2,
+    borderRadius: scale(22),
+    paddingHorizontal: scale(12),
+    paddingVertical: verticalScale(1),
+    marginHorizontal: scale(12),
+    marginTop: verticalScale(16),
+    marginBottom: verticalScale(1),
+    borderWidth: scale(1.5),
     borderColor: '#CCCCCC',
   },
   searchInput: {
     flex: 1,
-    marginLeft: 10,
-    fontSize: 14,
+    marginLeft: scale(4),
+    fontSize: moderateScale(12),
     color: '#000',
   },
   greetingText: {
-    fontSize: 16,
+    fontSize: moderateScale(14),
     fontWeight: '600',
     color: '#000',
   },
   subGreetingText: {
-    fontSize: 13,
-    marginTop: 4,
+    fontSize: moderateScale(11),
+    marginTop: verticalScale(2),
   },
   bannerContent: {
     flexDirection: 'row',
@@ -525,62 +562,99 @@ const styles = StyleSheet.create({
   },
   bannerTextSection: {
     flex: 1,
-    marginRight: 10,
-    marginLeft:6,
+    marginRight: scale(8),
+    marginLeft: scale(4),
   },
   bannerSubtitle: {
-    fontSize: 15,
+    fontSize: moderateScale(13),
     color: '#666',
-    marginStart: 10,
-    marginBottom: 4,
+    marginStart: scale(8),
+    marginBottom: verticalScale(2),
   },
   bannerTitle: {
-    fontSize: 13,
-    marginStart: 10,
+    fontSize: moderateScale(11),
+    marginStart: scale(8),
     fontWeight: '500',
     color: '#000',
-    marginBottom: 10,
-    lineHeight: 18,
+    marginBottom: verticalScale(8),
+    lineHeight: moderateScale(15),
   },
   bannerButton: {
-    backgroundColor:  AppColors.buttons,
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    marginStart: 10,
-    marginBottom: 20,
-    borderRadius: 20,
+    backgroundColor: AppColors.buttons,
+    paddingHorizontal: scale(16),
+    paddingVertical: verticalScale(6),
+    marginStart: scale(8),
+    // marginBottom: verticalScale(16),
+    borderRadius: scale(18),
     alignSelf: 'flex-start',
   },
   bannerButtonText: {
     color: '#fff',
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: moderateScale(12),
   },
-  gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', padding: 16 ,backgroundColor:AppColors.cardLightBg,marginTop:10},
-  needCard: { width: '48%', backgroundColor: '#fff', padding: 16, borderRadius: 12, marginBottom: 10, alignItems: 'center' ,shadowColor: '#646363ff',elevation: 1,shadowOpacity: 0.1,shadowRadius: 0,shadowOffset: { width: 0, height: 1 },},
-  needImage: { width: 40, height: 40, marginBottom: 10 },
-  needTitle: { fontWeight: 'bold', fontSize: 14 },
-  needSubtitle: { color: '#777', marginTop: 4 },
-  highlightCard: { borderWidth: 1, borderColor: '#099', backgroundColor: '#e0f7fa' },
+  gridContainer: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    justifyContent: 'space-between', 
+    padding: scale(12),
+    backgroundColor: AppColors.cardLightBg,
+    marginTop: verticalScale(8)
+  },
+  needCard: { 
+    width: '48%', 
+    backgroundColor: '#fff', 
+    padding: scale(12), 
+    borderRadius: scale(10), 
+    marginBottom: verticalScale(8), 
+    alignItems: 'center',
+  shadowColor: AppColors.primary ,
+    shadowOpacity: 0.5,
+    shadowRadius: scale(8),
+    shadowOffset: { width: 0, height: verticalScale(6) },
+    elevation: 6,
+    //     elevation: 1,
+    // shadowOpacity: 0.1,
+    // shadowRadius: 0,
+    // shadowOffset: { width: 0, height: verticalScale(1) },
+  },
+  needImage: { 
+    width: scale(32), 
+    height: scale(32), 
+    marginBottom: verticalScale(8) 
+  },
+  needTitle: { 
+    fontWeight: 'bold', 
+    fontSize: moderateScale(12) 
+  },
+  needSubtitle: { 
+    color: '#777', 
+    marginTop: verticalScale(2) 
+  },
+  highlightCard: { 
+    borderWidth: scale(1), 
+    borderColor: '#099', 
+    backgroundColor: '#e0f7fa' 
+  },
   iconBorder: {
-    padding: 4,
-    borderRadius: 50,
-    height: 60,
+    padding: scale(3),
+    borderRadius: scale(45),
+    height: scale(50),
     alignContent: 'center',
-    width: 60,
+    width: scale(50),
     alignSelf: 'center',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
+    borderWidth: scale(1.5),
     borderColor: AppColors.gradientDark,
   },
   iconImage: {
-    width: 48,
-    height: 48,
+    width: scale(40),
+    height: scale(40),
   },
   title: {
-    marginTop: 10,
-    fontSize: 16,
+    marginTop: verticalScale(8),
+    fontSize: moderateScale(14),
     textAlign: 'center',
   },
   titleBlack: {
@@ -595,51 +669,58 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignSelf: 'center',
     justifyContent: 'center',
-    marginTop: 12,
+    marginTop: verticalScale(10),
   },
   avatar: {
-    width: 36,
+    width: scale(30),
     alignSelf: 'center',
-    height: 36,
-    borderRadius: 18,
-    marginHorizontal: 5,
+    height: scale(30),
+    borderRadius: scale(15),
+    marginHorizontal: scale(-2),
+  },
+   highlightText: {
+    color: AppColors.themeColor,
+       marginTop: verticalScale(10),
+    fontSize: moderateScale(12),
+    textAlign: 'center',
+    lineHeight: moderateScale(18),
   },
   description: {
-    marginTop: 12,
-    fontSize: 13.5,
+    marginTop: verticalScale(10),
+    fontSize: moderateScale(12),
     textAlign: 'center',
     color: '#000',
-    lineHeight: 20,
+    lineHeight: moderateScale(18),
   },
   card: {
-    width: 150,
+    width: scale(130),
     backgroundColor: '#fff',
-    borderRadius: 14,
+    borderRadius: scale(12),
     shadowColor: 'teal',
     shadowOpacity: 0.6,
-    shadowRadius: 10,
-    shadowOffset: { width: 8, height: 8 },
+    shadowRadius: scale(8),
+    shadowOffset: { width: scale(6), height: verticalScale(6) },
     elevation: 4,
-    paddingTop: 70,
-    paddingBottom: 12,
-    paddingHorizontal: 12,
-    marginRight: 16,
+    paddingTop: verticalScale(50),
+    paddingBottom: verticalScale(10),
+    paddingHorizontal: scale(10),
+    marginRight: scale(14),
     position: 'relative',
   },
   badgeContainer: {
     position: 'absolute',
-    top: 20,
-    left: 55,
+    top: verticalScale(16),
+    left: scale(55),
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#ffcca7',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 6,
+    paddingVertical: verticalScale(3),
+    paddingHorizontal: scale(6),
+    borderRadius: scale(4),
   },
   badgeText: {
-    marginLeft: 4,
-    fontSize: 11.5,
+    marginLeft: scale(2),
+    fontSize: moderateScale(10),
     fontWeight: '600',
     color: '#d78b54',
   },
@@ -647,18 +728,18 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   areaText: {
-    fontSize: 13.5,
+    fontSize: moderateScale(12),
     fontWeight: '600',
     color: '#000',
   },
   jobsText: {
-    fontSize: 12.5,
+    fontSize: moderateScale(11),
     fontWeight: '500',
     color: '#555',
-    marginRight: 4,
+    marginRight: scale(2),
   },
   row: {
-    marginTop: 6,
+    marginTop: verticalScale(4),
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -666,193 +747,199 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 12,
-    marginBottom: 20,
+    marginTop: verticalScale(10),
+    // marginBottom: verticalScale(16),
     width: '100%',
   },
   dotNeeds: {
-    height: 4,
+    height: verticalScale(3),
     backgroundColor: AppColors.themeColor,
-    borderRadius: 2,
-    marginHorizontal: 4,
+    borderRadius: scale(1.5),
+    marginHorizontal: scale(3),
   },
   dotsContainerJobSuggestion: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
-    marginBottom: 20,
+    marginTop: verticalScale(12),
+    marginBottom: verticalScale(16),
   },
   dotJobSuggestion: {
-    height: 4,
+    height: verticalScale(3),
     backgroundColor: AppColors.themeColor,
-    borderRadius: 2,
-    marginHorizontal: 4,
+    borderRadius: scale(1.5),
+    marginHorizontal: scale(3),
   },
   fixedTopContainer: {
     backgroundColor: '#fff',
-    paddingBottom: 8,
+    paddingBottom: verticalScale(6),
   },
 });
 
+// VIDEO STYLES
 const videoStyles = StyleSheet.create({
   container: {
-    marginTop: 20,
-    marginBottom: 20,
+    marginTop: verticalScale(16),
+    marginBottom: verticalScale(16),
   },
   sectionTitle: {
-    fontSize: 14.5,
+    fontSize: moderateScale(13),
     fontWeight: '600',
     color: '#000',
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    paddingHorizontal: scale(14),
+    marginBottom: verticalScale(10),
   },
   backgroundContainer: {
-    paddingVertical: 8,
+    paddingVertical: verticalScale(6),
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: scale(14),
   },
   categoryCard: {
-    width: 300,
-    height: 200,
+    width: scale(200),
+    height: verticalScale(140),
     backgroundColor: '#fff',
-    borderRadius: 8,
-    marginRight: 12,
-    shadowColor:AppColors.primary,
-    shadowOpacity: 0.1,
-    shadowRadius: 7,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 4,
+    borderRadius: scale(6),
+    marginRight: scale(10),
+    shadowColor: AppColors.primary,
+    shadowOpacity: 0.5,
+    shadowRadius: scale(8),
+    shadowOffset: { width: 0, height: verticalScale(6) },
+    elevation: 6,
+   
     overflow: 'hidden',
-    marginBottom: 10,
+    marginBottom: verticalScale(8),
   },
   imageContainer: {
     width: '100%',
-    height: 140,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    height: verticalScale(100),
+    borderTopLeftRadius: scale(6),
+    borderTopRightRadius: scale(6),
     overflow: 'hidden',
   },
   categoryImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
-    borderBottomLeftRadius: 70,
+    borderBottomLeftRadius: scale(60),
   },
   categoryContent: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingHorizontal: scale(8),
+    paddingVertical: verticalScale(6),
   },
   jobsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: verticalScale(1),
   },
   jobsText: {
-    fontSize: 11.5,
+    fontSize: moderateScale(10),
     color: '#999',
     fontWeight: '500',
-    marginRight: 3,
+    marginRight: scale(2),
   },
   categoryTitle: {
-    fontSize: 12,
+    fontSize: moderateScale(11),
     fontWeight: '600',
     color: '#000',
-    lineHeight: 16,
+    lineHeight: moderateScale(14),
   },
   dotsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: verticalScale(16),
   },
   dot: {
-    height: 4,
+    height: verticalScale(3),
     backgroundColor: AppColors.themeColor,
-    borderRadius: 2,
-    marginHorizontal: 4,
+    borderRadius: scale(1.5),
+    marginHorizontal: scale(3),
   },
 });
 
+// RATE EXPERIENCE STYLES
 const rateStyles = StyleSheet.create({
   container: {
     backgroundColor: "#F6F6F6",
-    paddingBottom: 30,
-    paddingTop: 10,
-    paddingHorizontal: 20,
-    marginTop: 40,
-    marginBottom: 20,
+    paddingBottom: verticalScale(20),
+    paddingTop: verticalScale(8),
+    paddingHorizontal: scale(16),
+    marginTop: verticalScale(32),
+    marginBottom: verticalScale(16),
   },
   title: {
     textAlign: "center",
-    fontSize: 14,
+    fontSize: moderateScale(12),
     fontWeight: "800",
     color: "#333",
-    marginBottom: 40,
+    marginBottom: verticalScale(26),
   },
   starRow: {
     flexDirection: "row",
     justifyContent: "center",
-    marginBottom: 12,
+    marginBottom: verticalScale(10),
   },
   trustRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 8,
+    marginTop: verticalScale(6),
   },
   trustText: {
-    marginLeft: 8,
-    fontSize: 12.5,
+    marginLeft: scale(6),
+    fontSize: moderateScale(11),
     color: "#444",
     fontWeight: "500",
   },
 });
 
+// REFER FRIEND STYLES
 const referStyles = StyleSheet.create({
   wrapper: {
-    marginTop: 20,
+    marginTop: verticalScale(6),
     alignItems: "center",
     width: "100%",
-     marginBottom: 15,
+    marginBottom: verticalScale(12),
   },
   card: {
     width: "100%",
     backgroundColor: "rgb(255,241,224)",
-    paddingVertical: 18,
-    paddingHorizontal: 18,
+    paddingVertical: verticalScale(5),
+    paddingHorizontal: scale(14),
     justifyContent: "center",
     alignItems: "flex-start",
     position: "relative",
-    minHeight: 120,
+    minHeight: verticalScale(80),
   },
   text: {
-    fontSize: 14,
+    fontSize: moderateScale(12),
     fontWeight: "600",
     color: "#222",
   },
   button: {
-    marginTop: 12,
+    marginTop: verticalScale(10),
     backgroundColor: AppColors.buttons,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-    borderRadius: 22,
+    paddingHorizontal: scale(14),
+    paddingVertical: verticalScale(6),
+    borderRadius: scale(20),
   },
   buttonText: {
     color: "#fff",
-    fontSize: 13.5,
-    marginLeft: 8,
+    fontSize: moderateScale(12),
+    marginLeft: scale(6),
     fontWeight: "600",
   },
   girlImage: {
     position: "absolute",
-    right: 0,
-     bottom: -28,
-    height: 200, 
-    width: 210,
+    right: -15,
+    bottom: verticalScale(-26),
+    height: verticalScale(160),
+    width: scale(180),
     resizeMode: "contain",
   },
 });
+
+export { styles, videoStyles, rateStyles, referStyles };

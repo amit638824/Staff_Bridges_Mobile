@@ -18,6 +18,7 @@ import AppFooter from '../components/AppFooter';
 import LinearGradient from 'react-native-linear-gradient';
 import { AppColors } from '../constants/AppColors';
 import ViewedJobsSection from '../components/ViewedJobSection';
+import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
@@ -46,7 +47,7 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       subtitle: t('jobs_category_high_paying_count'),
     },
     {
-      icon: 'fiber-new',
+      icon: 'new-box',
       color: '#FFF4E5',
       iconColor: '#FF7043',
       title: t('jobs_category_new'),
@@ -67,7 +68,7 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       subtitle: t('jobs_category_work_from_home_count'),
     },
     {
-      icon: 'time',
+      icon: 'clock',
       color: '#E3F2FD',
       iconColor: '#2196F3',
       title: t('jobs_category_part_time'),
@@ -290,7 +291,7 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <View style={{ backgroundColor: '#fff6ec' }}>
           <View style={styles.bestJobCard}>
             <View style={styles.bestJobHeader}>
-              <Icon name="star" size={16} color="#FFA500" />
+              <Icon name="star" size={18} color="#FFA500" />
               <Text style={styles.bestJobTitle}>{t('jobs_best_job_header')}</Text>
             </View>
 
@@ -299,9 +300,9 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 <View style={styles.bestJobItemContent}>
                   <View style={styles.bestJobItemRow}>
                     <Icon name="location-outline" size={18} color="#000" />
-                    <Text style={styles.bestJobItemTitle}>{t('jobs_best_location')}</Text>
+                    <Text style={styles.bestJobItemTitle}>{t('jobs_best_location')} {"\n"}<Text style={styles.bestJobItemSubtitle}>{t('jobs_best_you')}</Text>
+</Text>
                   </View>
-                  <Text style={styles.bestJobItemSubtitle}>{t('jobs_best_you')}</Text>
                 </View>
               </View>
 
@@ -315,9 +316,9 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                       size={18}
                       color="#000"
                     />
-                    <Text style={styles.bestJobItemTitle}>{t('jobs_best_salary')}</Text>
+                    <Text style={styles.bestJobItemTitle}>{t('jobs_best_salary')} {"\n"}<Text style={styles.bestJobItemSubtitle}>{t('jobs_best_matching')}</Text></Text>
                   </View>
-                  <Text style={styles.bestJobItemSubtitle}>{t('jobs_best_matching')}</Text>
+                  
                 </View>
               </View>
 
@@ -327,9 +328,8 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 <View style={styles.bestJobItemContent}>
                   <View style={styles.bestJobItemRow}>
                     <Icon name="thumbs-up" size={18} color="#000" />
-                    <Text style={styles.bestJobItemTitle}>{t('jobs_best_experience')}</Text>
+                    <Text style={styles.bestJobItemTitle}>{t('jobs_best_experience')} {"\n"}<Text style={styles.bestJobItemSubtitle}>{t('jobs_best_matching')}</Text></Text>
                   </View>
-                  <Text style={styles.bestJobItemSubtitle}>{t('jobs_best_matching')}</Text>
                 </View>
               </View>
             </View>
@@ -437,7 +437,6 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 };
 
 export default JobsScreen;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -445,9 +444,11 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     backgroundColor: '#fff',
+    marginTop:scale(10)
   },
   headerTitle: {
-    fontSize: 16,
+    // fontSize: moderateScale(18) * 0.8,
+        fontSize: scale(13.5), 
     fontWeight: '600',
     color: '#000',
   },
@@ -455,69 +456,75 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 25,
-    paddingHorizontal: 14,
-    marginHorizontal: 16,
-    marginVertical: 12,
-    borderWidth: 1,
+    borderRadius: moderateScale(25) * 0.8,
+    paddingHorizontal: scale(14) * 0.8,
+    marginHorizontal: scale(16) * 0.8,
+    marginVertical: verticalScale(12) * 0.8,
+    borderWidth: scale(1) * 0.8,
     borderColor: '#ccc',
+    shadowColor:'#0e0d0dff' ,
+    shadowOpacity: 0.5,
+    shadowRadius: scale(8),
+    shadowOffset: { width: 0, height: verticalScale(6) },
+    elevation: 4,
+  
   },
   spaceContainer: {
-    marginBottom: 20,
+    marginBottom: verticalScale(20) * 0.8,
   },
   searchInput: {
     flex: 1,
-    marginLeft: 10,
-    fontSize: 14,
+    marginLeft: scale(10) * 0.8,
+    fontSize: moderateScale(14) * 0.8,
     color: '#000',
-    paddingVertical: 10,
+    paddingVertical: verticalScale(10) * 0.8,
   },
   filterRow: {
     flexDirection: 'row',
     backgroundColor: '#E8F4FF',
-    paddingVertical: 10,
-    marginBottom: 15,
+    paddingVertical: verticalScale(10) * 0.8,
+    marginBottom: verticalScale(15) * 0.8,
   },
   filterChip: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: scale(12) * 0.8,
+    paddingVertical: verticalScale(4) * 0.8,
+    borderRadius: moderateScale(20) * 0.8,
     borderTopLeftRadius: 0,
     borderBottomLeftRadius: 0,
-    borderWidth: 1,
+    borderWidth: scale(1) * 0.8,
     borderColor: '#ccc',
-    marginRight: 8,
+    marginRight: scale(8) * 0.8,
   },
   filterChipText: {
-    fontSize: 12,
+    fontSize: moderateScale(12) * 0.8,
     fontWeight: '600',
   },
   filterChipOption: {
     backgroundColor: '#fff',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
+    paddingHorizontal: scale(12) * 0.8,
+    paddingVertical: verticalScale(4) * 0.8,
+    borderRadius: moderateScale(20) * 0.8,
+    borderWidth: scale(1) * 0.8,
     borderColor: '#ccc',
-    marginRight: 8,
+    marginRight: scale(8) * 0.8,
   },
   filterChipOptionText: {
-    fontSize: 12,
+    fontSize: moderateScale(12) * 0.8,
     fontWeight: '600',
     color: '#666',
   },
   scrollContent: {
-    paddingBottom: 20,
+    paddingBottom: verticalScale(20) * 0.8,
   },
   bestJobCard: {
     backgroundColor: '#fff6ec',
-    marginTop: 16,
+    marginTop: verticalScale(16) * 0.8,
     marginBottom: 0,
-    padding: 12,
-    borderRadius: 12,
+    padding: scale(12) * 0.8,
+    borderRadius: moderateScale(12) * 0.8,
     borderBottomEndRadius: 0,
     borderBottomStartRadius: 0,
     position: 'relative',
@@ -525,18 +532,21 @@ const styles = StyleSheet.create({
   bestJobHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: verticalScale(14) * 0.8,
+      marginLeft: scale(8) * 0.8,
+      
   },
   bestJobTitle: {
-    fontSize: 12,
+    fontSize: moderateScale(14) * 0.8,
     fontWeight: '700',
-    marginLeft: 6,
+    marginLeft: scale(6) * 0.8,
     color: '#000',
   },
   bestJobContent: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     paddingHorizontal: 0,
+       marginLeft: scale(8) * 0.8,
   },
   bestJobItem: {
     alignItems: 'center',
@@ -549,131 +559,131 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   bestJobItemTitle: {
-    fontSize: 11,
+    fontSize: moderateScale(13) * 0.8,
     fontWeight: '600',
     color: '#000',
-    marginLeft: 4,
+    marginLeft: scale(4) * 0.8,
   },
   bestJobItemSubtitle: {
-    fontSize: 9,
+    fontSize: moderateScale(11) * 0.8,
     fontWeight: '500',
     color: '#999',
     alignItems: 'center',
     alignSelf: 'center',
-    marginLeft: 10,
+    marginLeft: scale(12) * 0.8,
   },
   badgeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: verticalScale(10) * 0.8,
     alignItems: 'center',
   },
   bestJobText: {
-    fontSize: 9,
+    fontSize: moderateScale(9) * 0.8,
     fontWeight: '700',
     letterSpacing: 0.3,
   },
   bestJobGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderTopLeftRadius: 20,
-    borderBottomLeftRadius: 20,
+    paddingHorizontal: scale(10) * 0.8,
+    paddingVertical: verticalScale(4) * 0.8,
+    borderTopLeftRadius: moderateScale(20) * 0.8,
+    borderBottomLeftRadius: moderateScale(20) * 0.8,
     alignSelf: 'flex-start',
-    gap: 5,
+    gap: scale(5) * 0.8,
   },
   salaryText: {
-    fontSize: 12,
+    fontSize: moderateScale(12) * 0.8,
     color: '#333',
     fontWeight: '500',
   },
   jobRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: scale(12) * 0.8,
     alignItems: 'flex-start',
-    marginTop: 5,
+    marginTop: verticalScale(5) * 0.8,
   },
   jobIcon: {
-    width: 42,
-    height: 42,
+    width: scale(42) * 0.8,
+    height: verticalScale(42) * 0.8,
     borderColor: '#e0e0e0',
-    borderWidth: 1,
-    borderRadius: 4,
-    padding: 6,
+    borderWidth: scale(1) * 0.8,
+    borderRadius: moderateScale(4) * 0.8,
+    padding: scale(6) * 0.8,
     resizeMode: 'contain',
-    marginTop: 2,
+    marginTop: verticalScale(2) * 0.8,
   },
   urgentBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#ffe8d7',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 12,
-    gap: 3,
+    paddingHorizontal: scale(8) * 0.8,
+    paddingVertical: verticalScale(6) * 0.8,
+    borderRadius: moderateScale(12) * 0.8,
+    gap: scale(3) * 0.8,
     borderTopRightRadius: 0,
     borderBottomRightRadius: 0,
-    marginRight: -13,
+    marginRight: scale(-13) * 0.8,
   },
   urgentText: {
-    fontSize: 10,
+    fontSize: moderateScale(10) * 0.8,
     fontWeight: '600',
     color: '#d78b53',
   },
   divider: {
-    width: 1,
-    height: 30,
+    width: scale(1) * 0.8,
+    height: verticalScale(30) * 0.8,
     backgroundColor: '#FFA500',
-    marginHorizontal: 4,
+    marginHorizontal: scale(4) * 0.8,
   },
   bestJobImage: {
     position: 'absolute',
-    right: 4,
-    top: -15,
-    width: 120,
-    height: 120,
+    right: scale(4) * 0.8,
+    top: verticalScale(-15) * 0.8,
+    width: scale(120) * 0.8,
+    height: verticalScale(120) * 0.8,
     resizeMode: 'contain',
   },
   jobCard: {
     backgroundColor: '#fff',
-    marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 14,
-    padding: 12,
+    marginHorizontal: scale(16) * 0.8,
+    marginVertical: verticalScale(8) * 0.8,
+    borderRadius: moderateScale(14) * 0.8,
+    padding: scale(12) * 0.8,
     shadowColor:'#81b5e6ff',
     shadowOpacity: 0.6,
-    shadowRadius: 10,
-    shadowOffset: { width: 8, height: 8 },
-    elevation: 10,
-    marginBottom: 20,
+    shadowRadius: moderateScale(10) * 0.8,
+    shadowOffset: { width: scale(8) * 0.8, height: verticalScale(8) * 0.8 },
+    elevation: 15,
+    marginBottom: verticalScale(20) * 0.8,
     borderColor: '#bdc9d6',
-    borderWidth: 0.5,
+    borderWidth: scale(0.5) * 0.8,
   },
   jobTitle: {
-    fontSize: 15,
+    fontSize: moderateScale(15) * 0.8,
     fontWeight: '700',
     color: '#000',
-    marginBottom: 4,
+    marginBottom: verticalScale(4) * 0.8,
   },
   jobMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
-    paddingHorizontal: 4,
+    marginBottom: verticalScale(6) * 0.8,
+    paddingHorizontal: scale(4) * 0.8,
   },
   jobMeta: {
-    fontSize: 12,
+    fontSize: moderateScale(12) * 0.8,
     color: '#9E9E9E',
-    marginLeft: 6,
+    marginLeft: scale(6) * 0.8,
   },
   experienceCard: {
-    borderRadius: 12,
+    borderRadius: moderateScale(12) * 0.8,
     borderTopRightRadius: 0,
     borderTopLeftRadius: 0,
-    padding: 14,
-    marginHorizontal: 16,
-    marginBottom: 20,
+    padding: scale(14) * 0.8,
+    marginHorizontal: scale(16) * 0.8,
+    marginBottom: verticalScale(20) * 0.8,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -681,24 +691,24 @@ const styles = StyleSheet.create({
   },
   experienceContent: {
     flex: 1,
-    paddingRight: 10,
+    paddingRight: scale(10) * 0.8,
   },
   experienceTitle: {
-    fontSize: 16,
+    fontSize: moderateScale(16) * 0.8,
     fontWeight: '800',
-    marginBottom: 12,
-    marginLeft: 4,
-    lineHeight: 18,
+    marginBottom: verticalScale(12) * 0.8,
+    marginLeft: scale(4) * 0.8,
+    lineHeight: verticalScale(18) * 0.8,
   },
   addExperienceButton: {
     backgroundColor: AppColors.buttons,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 20,
+    paddingHorizontal: scale(14) * 0.8,
+    paddingVertical: verticalScale(8) * 0.8,
+    borderRadius: moderateScale(30) * 0.8,
     alignSelf: 'flex-start',
   },
   addExperienceText: {
-    fontSize: 13,
+    fontSize: moderateScale(13) * 0.8,
     fontWeight: '600',
     color: '#fff',
   },
@@ -706,108 +716,108 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   experienceImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
+    width: scale(70) * 0.8,
+    height: verticalScale(60) * 0.8,
+    // borderRadius: moderateScale(8) * 0.8,
   },
   tagsContainer: {
     flexDirection: 'row',
-    marginBottom: 10,
-    paddingHorizontal: 4,
+    marginBottom: verticalScale(10) * 0.8,
+    paddingHorizontal: scale(4) * 0.8,
   },
   tag: {
     flexDirection: 'row',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 5,
-    borderWidth: 1,
+    paddingHorizontal: scale(10) * 0.8,
+    paddingVertical: verticalScale(5) * 0.8,
+    borderRadius: moderateScale(5) * 0.8,
+    borderWidth: scale(1) * 0.8,
     alignItems: 'center',
-    marginRight: 6,
+    marginRight: scale(6) * 0.8,
   },
   tagText: {
-    fontSize: 11,
+    fontSize: moderateScale(11) * 0.8,
     fontWeight: '600',
   },
   tagDivider: {
-    height: 1,
+    height: verticalScale(1) * 0.8,
     backgroundColor: '#e0e0e0',
-    marginVertical: 10,
+    marginVertical: verticalScale(10) * 0.8,
   },
   pfText: {
-    fontSize: 11,
+    fontSize: moderateScale(11) * 0.8,
     fontWeight: '500',
     color: '#999',
-    paddingHorizontal: 4,
+    paddingHorizontal: scale(4) * 0.8,
   },
   moreJobsHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 16,
-    marginVertical: 12,
+    marginHorizontal: scale(16) * 0.8,
+    marginVertical: verticalScale(12) * 0.8,
   },
   moreJobsTitle: {
-    fontSize: 16,
+    fontSize: moderateScale(16) * 0.8,
     fontWeight: '700',
     color: '#000',
-    marginLeft: 8,
+    marginLeft: scale(8) * 0.8,
   },
   jobsNeedsContainer: {
-    marginTop: 15,
-    marginBottom: 20,
-    padding: 16,
+    marginTop: verticalScale(0) * 0.8,
+    marginBottom: verticalScale(20) * 0.8,
+    padding: scale(16) * 0.8,
     backgroundColor: '#e7ebff',
   },
   jobsNeedsTitle: {
-    fontSize: 16,
+    fontSize: moderateScale(16) * 0.8,
     fontWeight: '700',
     color: '#000',
-    marginLeft: 8,
-    marginBottom: 12,
+    marginLeft: scale(8) * 0.8,
+    marginBottom: verticalScale(12) * 0.8,
   },
   categoryColumn: {
     flexDirection: 'column',
-    marginRight: 12,
-    marginLeft:6
+    marginRight: scale(12) * 0.8,
+    marginLeft: scale(6) * 0.8,
   },
   categoryCard: {
-    width: 200,
-    padding: 12,
+    width: scale(200) * 0.8,
+    padding: scale(12) * 0.8,
     backgroundColor: '#fff',
-    borderRadius: 5,
-    marginBottom: 12,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    borderRadius: moderateScale(5) * 0.8,
+    marginBottom: verticalScale(12) * 0.8,
+    shadowRadius: moderateScale(4) * 0.8,
+    shadowOffset: { width: 0, height: verticalScale(2) * 0.8 },
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: scale(10) * 0.8,
   },
   categoryTitle: {
-    fontSize: 14,
+    fontSize: moderateScale(14) * 0.8,
     fontWeight: '700',
-    marginEnd: 4,
+    marginEnd: scale(4) * 0.8,
     color: '#000',
   },
   categorySubtitle: {
-    fontSize: 11,
+    fontSize: moderateScale(11) * 0.8,
     color: '#555',
-    marginTop: 2,
+    marginTop: verticalScale(2) * 0.8,
   },
   exploreContainer: {
-    marginHorizontal: 16,
-    marginTop: 20,
+    marginHorizontal: scale(16) * 0.8,
+    marginTop: verticalScale(0) * 0.8,
   },
   exploreHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: verticalScale(12) * 0.8,
   },
   exploreTitle: {
-    fontSize: 16,
+    fontSize: moderateScale(16) * 0.8,
     fontWeight: '700',
     color: '#000',
-    marginLeft: 8,
+    marginLeft: scale(8) * 0.8,
   },
   chipsContainer: {
     flexDirection: 'row',
@@ -816,16 +826,16 @@ const styles = StyleSheet.create({
   },
   chip: {
     backgroundColor: '#fff',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
+    borderRadius: moderateScale(20) * 0.8,
+    paddingHorizontal: scale(12) * 0.8,
+    paddingVertical: verticalScale(8) * 0.8,
+    borderWidth: scale(1) * 0.8,
     borderColor: '#ccc',
-    marginRight: 8,
-    marginBottom: 8,
+    marginRight: scale(8) * 0.8,
+    marginBottom: verticalScale(8) * 0.8,
   },
   chipText: {
-    fontSize: 12,
+    fontSize: moderateScale(12) * 0.8,
     color: '#666',
     fontWeight: '500',
   },

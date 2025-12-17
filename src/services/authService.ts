@@ -6,7 +6,7 @@ import { RootState } from '../redux/store';
 // Create axios instance
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: 'https://staffbridgesapi.techwagger.com',
-  timeout: 10000,
+  timeout: 30000, // ✅ Increased timeout for file uploads
   headers: {
     'Content-Type': 'application/json',
   },
@@ -27,12 +27,10 @@ axiosInstance.interceptors.request.use(
 
       return config;
     } catch (error) {
-      console.error('Error in request interceptor:', error);
       return config;
     }
   },
   (error: AxiosError) => {
-    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -43,19 +41,26 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error: AxiosError) => {
-    console.error('Response error:', error.response?.status, error.response?.data);
+    // ✅ Better error handling - safe extraction
+    const status = error.response?.status;
+    const statusText = error.response?.statusText;
+    const errorMessage = 
+      typeof error.response?.data === 'object' && error.response?.data !== null
+        ? (error.response.data as any)?.message || (error.response.data as any)?.error || statusText
+        : statusText || error.message;
 
-    // Handle 401 Unauthorized (token expired or invalid)
-    if (error.response?.status === 401) {
-      store.dispatch({ type: 'auth/resetAuth' });
-      
-      // Optional: You can navigate to login screen here
-      // navigation.reset({ index: 0, routes: [{ name: 'PhoneLoginScreen' }] });
-    }
-
-    // Handle 500 Server errors
-    if (error.response?.status === 500) {
-      console.error('Server error:', error.response.data);
+    // Handle specific status codes
+    switch (status) {
+      case 413:
+        break;
+      case 401:
+        store.dispatch({ type: 'auth/resetAuth' });
+        break;
+      case 400:
+        break;
+      case 500:
+        break;
+      default:
     }
 
     return Promise.reject(error);

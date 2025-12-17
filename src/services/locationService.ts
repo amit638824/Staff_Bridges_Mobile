@@ -11,6 +11,11 @@ interface UpdateLocationPayload {
 }
 
 export const locationService = {
+  // ✅ Fetch user location
+  getUserLocation: (userId: number) => {
+    return axiosInstance.get(`/auth/user-location/${userId}`);
+  },
+
   getCitiesByState: (stateId: number, page: number, name?: string) => {
     let url = `/api/master-city?stateId=${stateId}&page=${page}&limit=10`;
 
@@ -31,7 +36,7 @@ export const locationService = {
     return axiosInstance.get(url);
   },
 
-  // ✅ NEW: Update user location
+  // ✅ Update user location
   updateUserLocation: (payload: UpdateLocationPayload) => {
     return axiosInstance.put(
       "/auth/user-profile-update-location",

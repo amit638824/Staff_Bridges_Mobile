@@ -1,16 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../../services/authService";
-export type { SeekerCategoryItem };
 
-interface SeekerCategoryRequest {
-  categoryId: number;
-  userId: number;
-  status: number;
-  createdBy: number;
-}
+/* ======================================================
+   TYPES
+====================================================== */
 
-interface SeekerCategoryItem {
-  job_id: number;
+export interface SeekerCategoryItem {
+  job_id: number; // seeker-category ID (primary key)
   job_categoryid: number;
   job_userid: number;
   category_name: string;
@@ -19,17 +15,43 @@ interface SeekerCategoryItem {
   user_email: string | null;
 }
 
+interface SeekerCategoryRequest {
+  categoryId: number;
+  userId: number;
+  status: number;
+  createdBy: number;
+}
+
 interface FetchSeekerCategoriesParams {
   page: number;
   limit: number;
   userId: number;
 }
 
-// Create Seeker Category
+/* ================= EXPERIENCE TYPES ================= */
+
+interface SeekerExperienceItem {
+  experience_id: number;
+  experience_categoryid: number;
+  experience_userid: number;
+  experience_value: string;
+  category_name: string;
+}
+
+interface FetchSeekerExperienceParams {
+  userId: number | null;
+  page?: number;
+  limit?: number;
+}
+
+/* ======================================================
+   ASYNC THUNKS
+====================================================== */
+
+// ✅ CREATE CATEGORY
 export const createSeekerCategory = createAsyncThunk(
   "seekerCategory/create",
   async (payload: SeekerCategoryRequest, { rejectWithValue }) => {
-
     try {
       const response = await axiosInstance.post("/api/seeker-category", payload);
       return response.data;
@@ -39,24 +61,17 @@ export const createSeekerCategory = createAsyncThunk(
   }
 );
 
-// Fetch Seeker Categories
+// ✅ FETCH CATEGORIES
 export const fetchSeekerCategories = createAsyncThunk(
   "seekerCategory/fetchCategories",
   async (
     { page, limit, userId }: FetchSeekerCategoriesParams,
     { rejectWithValue }
   ) => {
-   
-
     try {
       const response = await axiosInstance.get("/api/seeker-category", {
-        params: {
-          page,
-          limit,
-          userId,
-        },
+        params: { page, limit, userId },
       });
-
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data || "Something went wrong");
@@ -64,19 +79,56 @@ export const fetchSeekerCategories = createAsyncThunk(
   }
 );
 
+// ✅ DELETE CATEGORY BY ID
+export const deleteSeekerCategory = createAsyncThunk(
+  "seekerCategory/delete",
+  async (id: number, { rejectWithValue }) => {
+    try {
+      await axiosInstance.delete(`/api/seeker-category/${id}`);
+      return { id };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || "Something went wrong");
+    }
+  }
+);
+
+// ✅ FETCH EXPERIENCE
+export const fetchSeekerExperienceByUser = createAsyncThunk(
+  "seekerCategory/fetchSeekerExperienceByUser",
+  async (
+    { userId, page = 1, limit = 10 }: FetchSeekerExperienceParams,
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await axiosInstance.get("/api/seeker-experience", {
+        params: { userId, page, limit },
+      });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data || "Something went wrong");
+    }
+  }
+);
+
+/* ======================================================
+   STATE
+====================================================== */
+
 interface SeekerCategoryState {
-  // Create category
   loading: boolean;
   success: boolean;
   error: string | null;
 
-  // Fetch categories
   categories: SeekerCategoryItem[];
   fetchLoading: boolean;
   fetchError: string | null;
   currentPage: number;
   totalPages: number;
   totalRecords: number;
+
+  experienceList: SeekerExperienceItem[];
+  experienceLoading: boolean;
+  experienceError: string | null;
 }
 
 const initialState: SeekerCategoryState = {
@@ -90,7 +142,15 @@ const initialState: SeekerCategoryState = {
   currentPage: 1,
   totalPages: 0,
   totalRecords: 0,
+
+  experienceList: [],
+  experienceLoading: false,
+  experienceError: null,
 };
+
+/* ======================================================
+   SLICE
+====================================================== */
 
 const seekerCategorySlice = createSlice({
   name: "seekerCategory",
@@ -111,7 +171,8 @@ const seekerCategorySlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Create Category Cases
+
+    /* ================= CREATE ================= */
     builder
       .addCase(createSeekerCategory.pending, (state) => {
         state.loading = true;
@@ -128,7 +189,7 @@ const seekerCategorySlice = createSlice({
         state.success = false;
       });
 
-    // Fetch Categories Cases
+    /* ================= FETCH ================= */
     builder
       .addCase(fetchSeekerCategories.pending, (state) => {
         state.fetchLoading = true;
@@ -146,8 +207,52 @@ const seekerCategorySlice = createSlice({
         state.fetchLoading = false;
         state.fetchError = action.payload as string;
       });
+
+    /* ================= DELETE ================= */
+    builder
+      .addCase(deleteSeekerCategory.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deleteSeekerCategory.fulfilled, (state, action) => {
+        state.loading = false;
+        state.categories = state.categories.filter(
+          (item) => item.job_id !== action.payload.id
+        );
+      })
+      .addCase(deleteSeekerCategory.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    /* ================= EXPERIENCE ================= */
+    builder
+      .addCase(fetchSeekerExperienceByUser.pending, (state) => {
+        state.experienceLoading = true;
+        state.experienceError = null;
+      })
+  .addCase(fetchSeekerExperienceByUser.fulfilled, (state, action) => {
+  state.experienceLoading = false;
+
+  const items: SeekerExperienceItem[] = action.payload?.data?.items || [];
+  state.experienceList = items;
+
+})
+
+
+      .addCase(fetchSeekerExperienceByUser.rejected, (state, action) => {
+        state.experienceLoading = false;
+        state.experienceError = action.payload as string;
+      });
   },
 });
 
-export const { resetCreateStatus, resetCategories } = seekerCategorySlice.actions;
+/* ======================================================
+   EXPORTS
+====================================================== */
+
+export const {
+  resetCreateStatus,
+  resetCategories,
+} = seekerCategorySlice.actions;
+
 export default seekerCategorySlice.reducer;

@@ -33,3 +33,28 @@ export const profileSchema = Yup.object().shape({
   education: Yup.string()
     .required('profile_validation_education'),
 });
+
+
+export const additionalDetailsSchema = Yup.object().shape({
+  email: Yup.string()
+    .transform(value => (value === '' ? undefined : value))
+    .matches(
+      /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/,
+      'profile_validation_email_invalid'
+    )
+    .required('profile_validation_email'),
+
+  alternateMobile: Yup.string()
+    .matches(/^[6-9][0-9]{9}$/, 'profile_validation_phone_10digit')
+    .nullable(),
+
+  salary: Yup.string()
+    .required('profile_validation_salary'),
+
+  gender: Yup.string()
+    .oneOf(['Male', 'Female', 'Other'], 'profile_validation_gender')
+    .required('profile_validation_gender'),
+
+  education: Yup.string()
+    .required('profile_validation_education'),
+});

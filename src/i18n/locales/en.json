@@ -349,6 +349,19 @@
   "profile_age_gender": "Age & Gender",
   "profile_education_level": "Educational Level",
   "profile_add": "Add",
+  
+  "profile_validation_success": "Profile validated successfully",
+  "success": "Success",
+  "validation": "Validation Error",
+  "field_cannot_be_empty": "Fields cannot be empty",
+  "profile_updated_successfully": "Profile updated successfully",
+
+  "profile_upload_photo": "Upload Photo",
+  "choose_photo_source": "Choose photo source",
+  "camera": "Camera",
+  "gallery": "Gallery",
+  "cancel": "Cancel",
+
   "settings_header_title": "Settings",
   "settings_sms_preference": "SMS Preference",
   "settings_sms_label": "Get notified by Staff Bridges",

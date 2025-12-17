@@ -349,6 +349,17 @@
   "profile_age_gender": "आयु और जेंडर",
   "profile_education_level": "शैक्षिक स्तर",
   "profile_add": "जोड़ें",
+  "profile_validation_success": "प्रोफ़ाइल सफलतापूर्वक सत्यापित हुई",
+
+  "validation": "मान्यता त्रुटि",
+  "field_cannot_be_empty": "फ़ील्ड खाली नहीं हो सकती",
+  "profile_updated_successfully": "प्रोफ़ाइल सफलतापूर्वक अपडेट हुई",
+
+  "profile_upload_photo": "फ़ोटो अपलोड करें",
+  "choose_photo_source": "फ़ोटो स्रोत चुनें",
+  "camera": "कैमरा",
+  "gallery": "गैलरी",
+  "cancel": "रद्द करें",
   "settings_header_title": "सेटिंग्स",
   "settings_sms_preference": "SMS प्रेफरेंस",
   "settings_sms_label": "स्टाफ ब्रिजेज़ द्वारा सूचित रहें",

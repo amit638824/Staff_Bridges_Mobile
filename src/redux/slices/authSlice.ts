@@ -19,7 +19,6 @@ export const sendOtp = createAsyncThunk(
         return rejectWithValue(response.data.message || 'Failed to send OTP');
       }
     } catch (error: any) {
-      console.error('📱 sendOtp - Error:', error.message);
       return rejectWithValue(
         error.response?.data?.message || 'Error sending OTP'
       );
@@ -156,16 +155,13 @@ const authSlice = createSlice({
         }
         
         if (!extractedUserId) {
-          console.error('❌ CRITICAL: No userId found!');
-          console.error('userData object:', JSON.stringify(userData, null, 2));
-          console.error('Full payload:', JSON.stringify(payload, null, 2));
+         
         }
 
         // Extract token
         if (payload.data?.token) {
           extractedToken = payload.data.token;
         } else {
-          console.warn('⚠️ No token found in response');
         }
 
         // Extract mobile

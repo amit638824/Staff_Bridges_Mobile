@@ -279,7 +279,6 @@ const handleMultiSelect = async (questionId: string | number, option: string) =>
 
     if (isSelected) {
       nextSet.delete(option);
-      console.log(`Deselected option: ${option} for question: ${qId}`);
 
       const answerId = getSavedAnswerId(qId, option);
       if (answerId) {
@@ -289,7 +288,6 @@ const handleMultiSelect = async (questionId: string | number, option: string) =>
       }
     } else {
       nextSet.add(option);
-      console.log(`Selected option: ${option} for question: ${qId}`);
 
       const payload = {
         categoryId: currentRole.categoryId || 0,
@@ -300,7 +298,6 @@ const handleMultiSelect = async (questionId: string | number, option: string) =>
 
       jobQuestionAnswerService.saveAnswer(payload)
         .then(res => {
-          console.log('POST response:', res.data);
           if (res.data?.data?.id) {
             saveAnswerIdMapping(qId, option, res.data.data.id);
           }

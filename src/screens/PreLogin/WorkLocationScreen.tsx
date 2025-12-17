@@ -28,8 +28,12 @@ import { workLocationSchema } from "../../validation/workLocationSchema";
 import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
-
+import { useDispatch } from "react-redux";
+import { updateUserLocation, setLocation } from "../../redux/slices/locationSlice";
+import { AppDispatch } from "../../redux/store";
 import { locationService } from "../../services/locationService";
+import Geolocation from "react-native-geolocation-service";
+import { PermissionsAndroid } from "react-native";
 
 // ---------------- Types -----------------
 interface City {
@@ -61,9 +65,9 @@ export default function WorkLocationScreen() {
   const citySearchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const localitySearchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-const userId = useSelector((state: RootState) => state.auth?.userId);
-const latitude = useSelector((state: RootState) => state.user?.location?.latitude);
-const longitude = useSelector((state: RootState) => state.user?.location?.longitude);
+  const userId = useSelector((state: RootState) => state.auth?.userId);
+  const latitude = useSelector((state: RootState) => state.location.latitude);
+  const longitude = useSelector((state: RootState) => state.location.longitude);
 
   const {
     control,
@@ -79,8 +83,56 @@ const longitude = useSelector((state: RootState) => state.user?.location?.longit
   });
 
   const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
 
-  // ---------------- Fetch All Cities with Pagination and optional search -----------------
+  // ================ GET GPS LOCATION ================
+  const requestLocationPermission = async () => {
+    if (Platform.OS === "android") {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: "Location Permission",
+            message: "This app needs access to your location",
+            buttonNeutral: "Ask Me Later",
+            buttonNegative: "Cancel",
+            buttonPositive: "OK",
+          }
+        );
+
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          getCurrentLocation();
+        }
+      } catch (err) {
+      }
+    } else {
+      getCurrentLocation();
+    }
+  };
+
+  const getCurrentLocation = () => {
+    Geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude: lat, longitude: lng } = position.coords;
+
+        // ✅ Update Redux location slice
+        dispatch(
+          setLocation({
+            latitude: lat,
+            longitude: lng,
+          })
+        );
+
+        // Alert.alert("Success", "Location captured successfully");
+      },
+      (error) => {
+        // Alert.alert("Error", "Failed to get location: " + error.message);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    );
+  };
+
+  // ================ FETCH CITIES ================
   const fetchAllCities = async (searchName?: string) => {
     setLoadingCities(true);
     let allCities: City[] = [];
@@ -94,20 +146,18 @@ const longitude = useSelector((state: RootState) => state.user?.location?.longit
 
         allCities = [...allCities, ...items];
 
-
         if (page >= totalPages) break;
         page++;
       }
 
       setCities(allCities);
     } catch (error) {
-      // console.error("❌ Error fetching cities:", error);
     } finally {
       setLoadingCities(false);
     }
   };
 
-  // ---------------- Fetch All Localities with Pagination and optional search -----------------
+  // ================ FETCH LOCALITIES ================
   const fetchAllLocalities = async (cityId: number, searchName?: string) => {
     setLoadingLocalities(true);
     let allLocalities: Locality[] = [];
@@ -121,22 +171,21 @@ const longitude = useSelector((state: RootState) => state.user?.location?.longit
 
         allLocalities = [...allLocalities, ...items];
 
-
         if (page >= totalPages) break;
         page++;
       }
 
       setLocalities(allLocalities);
     } catch (error) {
-      // console.error("❌ Error fetching localities:", error);
     } finally {
       setLoadingLocalities(false);
     }
   };
 
-  // Run on screen load - fetch initial cities
+  // Run on screen load - fetch initial cities and location
   useEffect(() => {
     fetchAllCities();
+    requestLocationPermission(); // ✅ Get GPS location on screen load
   }, []);
 
   // Debounced city search
@@ -147,7 +196,7 @@ const longitude = useSelector((state: RootState) => state.user?.location?.longit
 
     citySearchTimeoutRef.current = setTimeout(() => {
       fetchAllCities(citySearchText);
-    }, 500); // 500ms debounce
+    }, 500);
 
     return () => {
       if (citySearchTimeoutRef.current) {
@@ -164,13 +213,12 @@ const longitude = useSelector((state: RootState) => state.user?.location?.longit
 
     localitySearchTimeoutRef.current = setTimeout(() => {
       const selectedCity = control._formValues.city;
-      
-      // Find city ID from cities array
-      const cityItem = cities.find(c => c.name === selectedCity);
+
+      const cityItem = cities.find((c) => c.name === selectedCity);
       if (cityItem) {
         fetchAllLocalities(cityItem.id, localitySearchText);
       }
-    }, 500); // 500ms debounce
+    }, 500);
 
     return () => {
       if (localitySearchTimeoutRef.current) {
@@ -179,49 +227,53 @@ const longitude = useSelector((state: RootState) => state.user?.location?.longit
     };
   }, [localitySearchText]);
 
-const onSubmit = async (data: any) => {
+  const onSubmit = async (data: any) => {
 
-
-  if (!userId) {
-    Alert.alert("User not found, please login again");
-    return;
-  }
-
-  if (!latitude || !longitude) {
-    Alert.alert("Location not captured");
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    const payload = {
-      userId,
-      countryId: 1,
-      stateId: 10,
-      city: data.city,
-      locality: data.locality,
-      latitude,
-      longitude,
-    };
-
-
-    const res = await locationService.updateUserLocation(payload);
-
-
-    if (res.data?.success) {
-      navigation.navigate("JobRoleScreen");
-    } else {
-      Alert.alert(res.data?.message || "Failed to update location");
+    if (!userId) {
+      // Alert.alert("User not found, please login again");
+      return;
     }
-  } catch (error) {
-    // console.error("❌ Location update error:", error);
-    Alert.alert("Something went wrong while saving location");
-  } finally {
-    setLoading(false);
-  }
-};
 
+    // ✅ Check if location is captured
+    if (latitude === null || latitude === undefined || longitude === null || longitude === undefined) {
+      // Alert.alert(
+      //   "Location Required",
+      //   "Unable to capture your location. Please allow location permission and try again.",
+      //   [{ text: "Retry", onPress: requestLocationPermission }]
+      // );
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const payload = {
+        userId,
+        countryId: 1,
+        stateId: 10,
+        city: data.city,
+        locality: data.locality,
+        latitude,
+        longitude,
+      };
+
+
+      const resultAction = await dispatch(updateUserLocation(payload));
+
+      if (updateUserLocation.fulfilled.match(resultAction)) {
+        navigation.navigate("JobRoleScreen");
+      } else {
+        // Alert.alert(
+        //   "Error",
+        //   (resultAction.payload as string) || "Failed to update location"
+        // );
+      }
+    } catch (error) {
+      // Alert.alert("Something went wrong while saving location");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView
@@ -243,6 +295,8 @@ const onSubmit = async (data: any) => {
 
         <Text style={styles.title}>{t("tellWorkLocation")}</Text>
 
+       
+
         {/* CITY FIELD */}
         <Text style={styles.label}>{t("preferredCity")}</Text>
 
@@ -256,13 +310,12 @@ const onSubmit = async (data: any) => {
                 onPress={() => {
                   setCitySearchText("");
                   setShowCityModal(true);
-                  // Fetch cities when modal opens (in case they were cleared)
                   if (cities.length === 0) {
                     fetchAllCities();
                   }
                 }}
               >
-                <Text style={[styles.dropdownText, { color: value ? '#000' : '#999' }]}>
+                <Text style={[styles.dropdownText, { color: value ? "#000" : "#999" }]}>
                   {value ? value : t("chooseCity")}
                 </Text>
                 <Icon name="keyboard-arrow-down" size={22} />
@@ -292,7 +345,7 @@ const onSubmit = async (data: any) => {
                   setShowLocalityModal(true);
                 }}
               >
-                <Text style={[styles.dropdownText, { color: value ? '#000' : '#999' }]}>
+                <Text style={[styles.dropdownText, { color: value ? "#000" : "#999" }]}>
                   {value ? value : t("chooseLocality")}
                 </Text>
                 <Icon name="keyboard-arrow-down" size={22} />
@@ -304,31 +357,31 @@ const onSubmit = async (data: any) => {
             </>
           )}
         />
-
- 
       </ScrollView>
-       {/* NEXT BTN */}
-          <View style={styles.fixedFooter}>
-          <TouchableOpacity
-            style={[
-              styles.button,
-              {
-                backgroundColor:
-                  control._formValues.city && control._formValues.locality
-                    ? AppColors.buttons
-                    : "#ccc",
-              },
-            ]}
-            onPress={handleSubmit(onSubmit)}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.btnText}>{t("next")}</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+
+      {/* NEXT BTN */}
+      <View style={styles.fixedFooter}>
+        <TouchableOpacity
+          style={[
+            styles.button,
+            {
+              backgroundColor:
+                control._formValues.city && control._formValues.locality && latitude && longitude
+                  ? AppColors.buttons
+                  : "#ccc",
+            },
+          ]}
+          onPress={handleSubmit(onSubmit)}
+          disabled={loading || !latitude || !longitude}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.btnText}>{t("next")}</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+
       {/* CITY MODAL */}
       <Modal visible={showCityModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
@@ -341,7 +394,6 @@ const onSubmit = async (data: any) => {
             </View>
             <View style={styles.divider}></View>
 
-            {/* City Search Bar */}
             <TextInput
               placeholder={t("searchCityPlaceholder") || "Search city..."}
               style={styles.searchBar}
@@ -397,7 +449,7 @@ const onSubmit = async (data: any) => {
                 <Icon name="close" size={20} />
               </TouchableOpacity>
             </View>
- <View style={styles.divider}></View>
+            <View style={styles.divider}></View>
             <TextInput
               placeholder={t("typeLocality") || "Search locality..."}
               style={styles.searchBar}
@@ -452,6 +504,7 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     padding: scale(12),
+    paddingBottom: verticalScale(120),
   },
 
   progressContainer: {
@@ -486,8 +539,26 @@ const styles = StyleSheet.create({
     marginVertical: verticalScale(12),
   },
 
-  label: { 
-    marginTop: verticalScale(8), 
+  infoBox: {
+    backgroundColor: "#F0F7FF",
+    borderLeftWidth: 4,
+    borderLeftColor: "#FF9800",
+    padding: scale(12),
+    borderRadius: scale(6),
+    marginBottom: verticalScale(16),
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  infoText: {
+    marginLeft: scale(8),
+    fontSize: moderateScale(12),
+    color: "#333",
+    fontWeight: "500",
+  },
+
+  label: {
+    marginTop: verticalScale(8),
     fontWeight: "600",
     fontSize: moderateScale(13),
   },
@@ -504,9 +575,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  dropdownText: { 
+  dropdownText: {
     fontSize: moderateScale(12),
-    color: "#555"
+    color: "#555",
   },
 
   errorText: {
@@ -520,6 +591,8 @@ const styles = StyleSheet.create({
     paddingBottom: verticalScale(22),
     paddingHorizontal: scale(16),
     backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
   },
 
   button: {
@@ -554,21 +627,21 @@ const styles = StyleSheet.create({
     padding: scale(16),
   },
 
-  modalTitle: { 
-    fontSize: moderateScale(15), 
-    fontWeight: "700" 
+  modalTitle: {
+    fontSize: moderateScale(15),
+    fontWeight: "700",
   },
 
   cityItem: {
     paddingVertical: verticalScale(12),
     paddingHorizontal: scale(12),
-  marginHorizontal:scale(8),
+    marginHorizontal: scale(8),
     borderBottomWidth: 1,
     borderColor: "#eee",
   },
 
-  cityText: { 
-    fontSize: moderateScale(13) 
+  cityText: {
+    fontSize: moderateScale(13),
   },
 
   bottomSheetOverlay: {
@@ -589,12 +662,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-divider:{
-// height:0.5,
- borderColor: "#ccc",
- borderWidth: 0.3,
- marginBottom: verticalScale(15),
-},
+  divider: {
+    borderColor: "#ccc",
+    borderWidth: 0.3,
+    marginBottom: verticalScale(15),
+  },
+
   searchBar: {
     borderWidth: 1,
     borderColor: "#ccc",
@@ -608,35 +681,35 @@ divider:{
   listItem: {
     paddingVertical: verticalScale(12),
     paddingHorizontal: scale(12),
-  marginHorizontal:scale(8),
-      borderBottomWidth: 1,
+    marginHorizontal: scale(8),
+    borderBottomWidth: 1,
     borderColor: "#eee",
   },
 
-  listItemText: { 
-    fontSize: moderateScale(13) 
+  listItemText: {
+    fontSize: moderateScale(13),
   },
 
-  loadingContainer: { 
-    flex: 1, 
-    justifyContent: "center", 
-    alignItems: "center" 
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 
-  loadingText: { 
-    marginTop: verticalScale(8), 
-    color: "#999", 
-    fontSize: moderateScale(12) 
+  loadingText: {
+    marginTop: verticalScale(8),
+    color: "#999",
+    fontSize: moderateScale(12),
   },
 
-  emptyContainer: { 
-    alignItems: "center", 
-    paddingVertical: verticalScale(30) 
+  emptyContainer: {
+    alignItems: "center",
+    paddingVertical: verticalScale(30),
   },
 
-  emptyText: { 
-    fontSize: moderateScale(12), 
-    color: "#999", 
-    fontWeight: "500" 
+  emptyText: {
+    fontSize: moderateScale(12),
+    color: "#999",
+    fontWeight: "500",
   },
 });

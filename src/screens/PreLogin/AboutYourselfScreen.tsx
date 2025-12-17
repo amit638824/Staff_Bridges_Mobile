@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,6 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
-  KeyboardAvoidingView
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { useNavigation } from "@react-navigation/native";
@@ -39,6 +38,14 @@ const schema = yup.object().shape({
   salary: yup.string().matches(/^\d*$/, "Salary must be numeric").nullable(),
 });
 
+// ===========================
+// Education mapping types
+// ===========================
+interface EducationOption {
+  key: "belowTenth" | "tenthPass" | "twelfthPass" | "diploma" | "graduate" | "postGraduate";
+  label: string;
+}
+
 export default function AboutYourselfScreen() {
   const navigation = useNavigation<any>();
   const { t } = useTranslation();
@@ -48,14 +55,48 @@ export default function AboutYourselfScreen() {
   const authToken = useSelector((state: RootState) => state.auth?.token);
   const authState = useSelector((state: RootState) => state.auth);
   const loading = useSelector((state: RootState) => state.user?.loading);
+  
+  // ✅ Load existing profile data
+  const userProfile = useSelector((state: RootState) => state.user?.profile);
 
-  const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
-  const [hasAuthError, setHasAuthError] = React.useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [hasAuthError, setHasAuthError] = useState(false);
+
+  // ===========================
+  // Education mapping
+  // ===========================
+  const educationOptions: EducationOption[] = [
+    { key: "belowTenth", label: t("belowTenth") },
+    { key: "tenthPass", label: t("tenthPass") },
+    { key: "twelfthPass", label: t("twelfthPass") },
+    { key: "diploma", label: t("diploma") },
+    { key: "graduate", label: t("graduate") },
+    { key: "postGraduate", label: t("postGraduate") },
+  ];
+
+  const educationBackendMap: Record<string, string> = {
+    belowTenth: "Any",  // ✅ FIXED: Capitalized "Any"
+    tenthPass: "highschool",
+    twelfthPass: "intermediate",
+    diploma: "diploma",
+    graduate: "graduate",
+    postGraduate: "postgraduate",
+  };
+
+  // ✅ Reverse mapping (backend to frontend) - with proper type safety
+  const educationFrontendMap: Record<string, "belowTenth" | "tenthPass" | "twelfthPass" | "diploma" | "graduate" | "postGraduate"> = {
+    any: "belowTenth",
+    highschool: "tenthPass",
+    intermediate: "twelfthPass",
+    diploma: "diploma",
+    graduate: "graduate",
+    postgraduate: "postGraduate",
+  };
 
   // ===========================
   // React Hook Form
   // ===========================
-  const { control, handleSubmit, formState: { errors } } = useForm({
+  const { control, handleSubmit, formState: { errors }, reset } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
       fullName: "",
@@ -67,10 +108,9 @@ export default function AboutYourselfScreen() {
   });
 
   // ===========================
-  // Check auth on mount
+  // Check auth on mount (no prefilling)
   // ===========================
   useEffect(() => {
-
     const timer = setTimeout(() => {
       if (!authUserId || !authToken) {
         setHasAuthError(true);
@@ -118,35 +158,29 @@ export default function AboutYourselfScreen() {
     );
   }
 
-  const educationOptions = [
-    { key: "belowTenth", label: t("belowTenth") },
-    { key: "tenthPass", label: t("tenthPass") },
-    { key: "twelfthPass", label: t("twelfthPass") },
-    { key: "diploma", label: t("diploma") },
-    { key: "graduate", label: t("graduate") },
-    { key: "postGraduate", label: t("postGraduate") },
-  ];
-
   // ===========================
   // Submit handler
   // ===========================
   const onSubmit = async (data: any) => {
-
     if (!authUserId) {
       Alert.alert("Error", "User ID not found. Please login again.");
       navigation.replace('PhoneLoginScreen');
       return;
     }
 
+    const backendEducation = educationBackendMap[data.education] ?? data.education;
+    
     try {
+      
       const result = await dispatch(updateBasicInfo({
         userId: authUserId,
         fullName: data.fullName.trim(),
         gender: data.gender,
-        salary: data.salary?.trim(),
-        education: data.education,
+        salary: data.salary?.trim() || "0",
+        education: backendEducation,
         experience: data.experience,
-      }));
+      }) as any);
+
 
       if (updateBasicInfo.fulfilled.match(result)) {
         Alert.alert("Success", "Profile updated successfully!");
@@ -163,12 +197,11 @@ export default function AboutYourselfScreen() {
           Geolocation.getCurrentPosition(
             (position) => {
               const { latitude, longitude } = position.coords;
+              // ✅ Set location in Redux (will be persisted automatically)
               dispatch(setLocation({ latitude, longitude }));
-              // Alert.alert("Location Captured", `Latitude: ${latitude}\nLongitude: ${longitude}`);
               navigation.navigate("WorkLocationScreen");
             },
             (error) => {
-              console.error("❌ Error getting location:", error);
               navigation.navigate("WorkLocationScreen");
             },
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
@@ -177,190 +210,196 @@ export default function AboutYourselfScreen() {
           navigation.navigate("WorkLocationScreen");
         }
       } else {
-        const errorMessage = result.payload?.message || result.payload?.error || "Failed to update profile.";
+        // ✅ Extract error message safely from payload
+        let errorMessage = "Failed to update profile";
+        
+        if (typeof result.payload === 'string') {
+          errorMessage = result.payload;
+        } else if (result.payload?.message) {
+          errorMessage = result.payload.message;
+        } else if (result.payload?.error) {
+          errorMessage = result.payload.error;
+        }
+        
+        console.error('❌ Profile update failed:', errorMessage);
+        console.error('❌ Full error payload:', result.payload);
         Alert.alert("Error", errorMessage);
       }
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "An unexpected error occurred");
+    } catch (error: any) {
+      Alert.alert("Error", error?.message || "An unexpected error occurred");
     }
   };
 
-return (
-  <SafeAreaView
-    style={[
-      styles.safeArea,
-      { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 },
-    ]}
-  >
-    <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
-
-    {/* ScrollView */}
-    <ScrollView
-      contentContainerStyle={styles.scrollContent}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={true}
+  return (
+    <SafeAreaView
+      style={[
+        styles.safeArea,
+        { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 },
+      ]}
     >
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
-      <View style={styles.progressContainer}>
-        <View style={styles.progressFill} />
-      </View>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={true}
+      >
+        <View style={styles.progressContainer}>
+          <View style={styles.progressFill} />
+        </View>
 
-      <View style={styles.imageContainer}>
-        <Image
-          source={require("../../../assets/images/list.png")}
-          style={styles.icon}
+        <View style={styles.imageContainer}>
+          <Image
+            source={require("../../../assets/images/list.png")}
+            style={styles.icon}
+          />
+        </View>
+
+        <Text style={styles.title}>{t("aboutYourself")}</Text>
+
+        {/* Full Name */}
+        <Text style={styles.label}>{t("yourName")} </Text>
+        <Controller
+          control={control}
+          name="fullName"
+          render={({ field: { value, onChange } }) => (
+            <>
+              <TextInput
+                placeholder={t("fullName")}
+                style={styles.input}
+                value={value}
+                onChangeText={onChange}
+                placeholderTextColor="#999"
+              />
+              {errors.fullName && (
+                <Text style={styles.errorText}>{errors.fullName.message}</Text>
+              )}
+            </>
+          )}
         />
-      </View>
 
-      <Text style={styles.title}>{t("aboutYourself")}</Text>
+        {/* Gender */}
+        <Text style={styles.label}>{t("gender")} </Text>
+        <Controller
+          control={control}
+          name="gender"
+          render={({ field: { value, onChange } }) => (
+            <View style={styles.row}>
+              {[
+                { key: "male", label: t("male"), icon: "male" },
+                { key: "female", label: t("female"), icon: "female" },
+              ].map((item) => (
+                <TouchableOpacity
+                  key={item.key}
+                  style={[
+                    styles.chip,
+                    value === item.key && styles.chipSelected,
+                  ]}
+                  onPress={() => onChange(item.key)}
+                >
+                  <Icon name={item.icon} size={16} color="black" />
+                  <Text style={styles.chipText}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+              {errors.gender && (
+                <Text style={styles.errorText}>{errors.gender.message}</Text>
+              )}
+            </View>
+          )}
+        />
 
-      {/* Full Name */}
-      <Text style={styles.label}>{t("yourName")} </Text>
-      <Controller
-        control={control}
-        name="fullName"
-        render={({ field: { value, onChange } }) => (
-          <>
-            <TextInput
-              placeholder={t("fullName")}
-              style={styles.input}
-              value={value}
-              onChangeText={onChange}
-              placeholderTextColor="#999"
-            />
-            {errors.fullName && (
-              <Text style={styles.errorText}>{errors.fullName.message}</Text>
-            )}
-          </>
+        {/* Education */}
+        <Text style={styles.label}>{t("education")} </Text>
+        <Controller
+          control={control}
+          name="education"
+          render={({ field: { value, onChange } }) => (
+            <View style={styles.wrap}>
+              {educationOptions.map((item) => (
+                <TouchableOpacity
+                  key={item.key}
+                  style={[
+                    styles.chip,
+                    value === item.key && styles.chipSelected,
+                  ]}
+                  onPress={() => onChange(item.key)}
+                >
+                  <Text style={styles.chipText}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+              {errors.education && (
+                <Text style={styles.errorText}>{errors.education.message}</Text>
+              )}
+            </View>
+          )}
+        />
+
+        {/* Experience */}
+        <Text style={styles.label}>{t("workExperience")}</Text>
+        <Controller
+          control={control}
+          name="experience"
+          render={({ field: { value, onChange } }) => (
+            <View style={styles.row}>
+              {["experienced", "fresher"].map((item) => (
+                <TouchableOpacity
+                  key={item}
+                  style={[
+                    styles.chip,
+                    value === item && styles.chipSelected,
+                  ]}
+                  onPress={() => onChange(item)}
+                >
+                  <Text style={styles.chipText}>{t(item)}</Text>
+                </TouchableOpacity>
+              ))}
+              {errors.experience && (
+                <Text style={styles.errorText}>
+                  {errors.experience.message}
+                </Text>
+              )}
+            </View>
+          )}
+        />
+
+        {/* Salary */}
+        <Text style={styles.label}>{t("monthlySalary")}</Text>
+        <Controller
+          control={control}
+          name="salary"
+          render={({ field: { value, onChange } }) => (
+            <View style={styles.salaryBox}>
+              <TextInput
+                style={styles.salaryInputField}
+                placeholder={t("salaryPlaceholder")}
+                placeholderTextColor="#888"
+                keyboardType="numeric"
+                value={value || ""}
+                onChangeText={onChange}
+              />
+              <Text style={styles.suffixText}>{t("perMonth")}</Text>
+              {errors.salary && (
+                <Text style={styles.errorText}>{errors.salary.message}</Text>
+              )}
+            </View>
+          )}
+        />
+      </ScrollView>
+
+      {/* Submit Button */}
+      <TouchableOpacity
+        style={styles.primaryButton}
+        onPress={handleSubmit(onSubmit)}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.btnText}>{t("next")}</Text>
         )}
-      />
-
-      {/* Gender */}
-      <Text style={styles.label}>{t("gender")} </Text>
-      <Controller
-        control={control}
-        name="gender"
-        render={({ field: { value, onChange } }) => (
-          <View style={styles.row}>
-            {[
-              { key: "male", label: t("male"), icon: "male" },
-              { key: "female", label: t("female"), icon: "female" },
-            ].map((item) => (
-              <TouchableOpacity
-                key={item.key}
-                style={[
-                  styles.chip,
-                  value === item.key && styles.chipSelected,
-                ]}
-                onPress={() => onChange(item.key)}
-              >
-                <Icon name={item.icon} size={16} color="black" />
-                <Text style={styles.chipText}>{item.label}</Text>
-              </TouchableOpacity>
-            ))}
-            {errors.gender && (
-              <Text style={styles.errorText}>{errors.gender.message}</Text>
-            )}
-          </View>
-        )}
-      />
-
-      {/* Education */}
-      <Text style={styles.label}>{t("education")} </Text>
-      <Controller
-        control={control}
-        name="education"
-        render={({ field: { value, onChange } }) => (
-          <View style={styles.wrap}>
-            {educationOptions.map((item) => (
-              <TouchableOpacity
-                key={item.key}
-                style={[
-                  styles.chip,
-                  value === item.key && styles.chipSelected,
-                ]}
-                onPress={() => onChange(item.key)}
-              >
-                <Text style={styles.chipText}>{item.label}</Text>
-              </TouchableOpacity>
-            ))}
-            {errors.education && (
-              <Text style={styles.errorText}>{errors.education.message}</Text>
-            )}
-          </View>
-        )}
-      />
-
-      {/* Experience */}
-      <Text style={styles.label}>{t("workExperience")}</Text>
-      <Controller
-        control={control}
-        name="experience"
-        render={({ field: { value, onChange } }) => (
-          <View style={styles.row}>
-            {["experienced", "fresher"].map((item) => (
-              <TouchableOpacity
-                key={item}
-                style={[
-                  styles.chip,
-                  value === item && styles.chipSelected,
-                ]}
-                onPress={() => onChange(item)}
-              >
-                <Text style={styles.chipText}>{t(item)}</Text>
-              </TouchableOpacity>
-            ))}
-            {errors.experience && (
-              <Text style={styles.errorText}>
-                {errors.experience.message}
-              </Text>
-            )}
-          </View>
-        )}
-      />
-
-      {/* Salary */}
-      <Text style={styles.label}>{t("monthlySalary")}</Text>
-      <Controller
-        control={control}
-        name="salary"
-        render={({ field: { value, onChange } }) => (
-          <View style={styles.salaryBox}>
-            <TextInput
-              style={styles.salaryInputField}
-              placeholder={t("salaryPlaceholder")}
-              placeholderTextColor="#888"
-              keyboardType="numeric"
-              value={value || ""}
-              onChangeText={onChange}
-            />
-            <Text style={styles.suffixText}>{t("perMonth")}</Text>
-            {errors.salary && (
-              <Text style={styles.errorText}>{errors.salary.message}</Text>
-            )}
-          </View>
-        )}
-      />
-
-    </ScrollView>
-
-    {/* Submit Button (Fixed at bottom always) */}
-    <TouchableOpacity
-      style={styles.primaryButton}
-      onPress={handleSubmit(onSubmit)}
-      disabled={loading}
-    >
-      {loading ? (
-        <ActivityIndicator color="#fff" />
-      ) : (
-        <Text style={styles.btnText}>{t("next")}</Text>
-      )}
-    </TouchableOpacity>
-
-  </SafeAreaView>
-);
-
+      </TouchableOpacity>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -371,6 +410,7 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     padding: scale(12),
+    paddingBottom: verticalScale(80),
   },
 
   progressContainer: {

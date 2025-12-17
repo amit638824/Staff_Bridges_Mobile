@@ -20,7 +20,7 @@ import { AppColors } from '../../constants/AppColors';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from "react-redux";
 import { fetchJobRoles, resetJobRoles, setSearchQuery } from "../../redux/slices/jobRoleSlice";
-import { fetchSeekerCategories } from "../../redux/slices/seekerCategorySlice";
+import { deleteSeekerCategory, fetchSeekerCategories } from "../../redux/slices/seekerCategorySlice";
 import { RootState } from "../../redux/store";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -57,6 +57,7 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [searchQueryLocal, setSearchQueryLocal] = useState<string>('');
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+const [categoryIdMap, setCategoryIdMap] = useState<Record<string, number>>({});
 
   const [debugInfo, setDebugInfo] = useState({
     initialLoadDone: false,
@@ -86,10 +87,29 @@ const SelectJobRoleScreen: React.FC<RoleNavigationProp> = ({ navigation }) => {
   // Fetch seeker categories when userId is available
   useEffect(() => {
     if (userId) {
-      console.log('🚀 Fetching seeker categories for userId:', userId);
       dispatch(fetchSeekerCategories({ page: 1, limit: 100, userId: Number(userId) }) as any);
     }
   }, [dispatch, userId]);
+
+
+  // Initialize selected roles from existing categories
+useEffect(() => {
+  if (categories && categories.length > 0) {
+    const initialSelected = new Set<string>();
+    const initialCategoryMap: Record<string, number> = {};
+
+    categories.forEach((cat) => {
+      if (cat.job_categoryid) {
+        initialSelected.add(String(cat.job_categoryid));
+        initialCategoryMap[String(cat.job_categoryid)] = cat.job_id; // store seeker-category ID
+      }
+    });
+
+    setSelectedRoles(initialSelected);
+    setCategoryIdMap(initialCategoryMap);
+    setValue("selectedRoles", Array.from(initialSelected));
+  }
+}, [categories]);
 
   // Monitor Redux state changes
   useEffect(() => {
@@ -191,35 +211,59 @@ const jobRoles = useMemo(() => {
 
   const isMaxSelected = selectedRoles.size >= 4;
 
-  const handleRoleToggle = (roleId: string): void => {
-    let newSelected = new Set(selectedRoles);
+const handleRoleToggle = (roleId: string): void => {
+  let newSelected = new Set(selectedRoles);
 
-    if (newSelected.has(roleId)) {
-      newSelected.delete(roleId);
-    } else if (newSelected.size < 4) {
-      newSelected.add(roleId);
+  // ================== DESELECT ==================
+  if (newSelected.has(roleId)) {
+    newSelected.delete(roleId);
 
-      // ---- CALL API WHEN CATEGORY ADDED ----
-      const payload = {
-        categoryId: Number(roleId),
-        userId: Number(userId),
-        status: 1,
-        createdBy: Number(userId),
-      };
+    const seekerCategoryId = categoryIdMap[roleId];
 
-
-      dispatch(createSeekerCategory(payload) as any)
+    if (seekerCategoryId) {
+      dispatch(deleteSeekerCategory(seekerCategoryId) as any)
         .unwrap()
-        .then((res: any) => {
-         
+        .then(() => {
+          setCategoryIdMap((prev) => {
+            const updated = { ...prev };
+            delete updated[roleId];
+            return updated;
+          });
         })
-        .catch((err: any) => {
+        .catch(() => {
+          Alert.alert("Error", "Failed to remove category");
         });
     }
+  }
 
-    setSelectedRoles(newSelected);
-    setValue("selectedRoles", Array.from(newSelected));
-  };
+  // ================== SELECT ==================
+  else if (newSelected.size < 4) {
+    newSelected.add(roleId);
+
+    const payload = {
+      categoryId: Number(roleId),
+      userId: Number(userId),
+      status: 1,
+      createdBy: Number(userId),
+    };
+
+    dispatch(createSeekerCategory(payload) as any)
+      .unwrap()
+      .then((res: any) => {
+        // 🔥 Store seeker-category id returned by API
+        setCategoryIdMap((prev) => ({
+          ...prev,
+          [roleId]: res.data.id,
+        }));
+      })
+      .catch(() => {
+        Alert.alert("Error", "Failed to add category");
+      });
+  }
+
+  setSelectedRoles(newSelected);
+  setValue("selectedRoles", Array.from(newSelected));
+};
 
   // Updated onSubmit function with proper category matching
   const onSubmit = () => {

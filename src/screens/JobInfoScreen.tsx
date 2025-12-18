@@ -15,36 +15,55 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { AppColors } from '../constants/AppColors';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { useTranslation } from 'react-i18next';
-import App from '../../App';
+import { getTimeAgo } from '../services/notificationService';
+
+interface JobData {
+  job_title_name: string;
+  company: string;
+  city_name: string;
+  locality_name: string;
+  salary_min: string;
+  salary_max: string;
+  min_experience: string;
+  max_experience: string;
+  openings: number;
+  job_type: string;
+  created_at: string;
+  description?: string | null;
+  category_name: string;
+  qualification: string;
+  gender: string;
+  working_days: string;
+  salary_benifits: string;
+  skills_required?: string[];
+  companylogo?: string;
+}
 
 const JobInfoScreen = ({ navigation, route }: any) => {
   const { t } = useTranslation();
   const [isSaved, setIsSaved] = useState(false);
 
-  const jobData = route.params?.jobData || {};
+  const jobData: JobData = route.params?.jobData;
 
   const jobDetails = {
-    title: jobData.title || t('jobinfo_default_title'),
-    company: jobData.company || 'RAPIDHIRE.COM',
-    location: jobData.location || t('jobinfo_default_location'),
-    salary: jobData.salary || '8,000 – 15,500 /Month',
-    experience: jobData.experience || t('jobinfo_default_experience'),
-    vacancies: jobData.vacancies || t('jobinfo_vacancies_count'),
-    type: jobData.type || t('jobinfo_full_time'),
-    postedAgo: jobData.postedAgo || t('jobinfo_posted_days'),
-    description: '',
+    title: jobData.job_title_name || t('jobinfo_default_title'),
+company: (jobData.company || 'RAPIDHIRE.COM').toUpperCase(),
+    location: `${jobData.city_name}, ${jobData.locality_name}` || t('jobinfo_default_location'),
+salary: `${parseInt(jobData.salary_min || '0')} – ${parseInt(jobData.salary_max || '0')} / Month`,
+    experience: `${parseInt(jobData.min_experience || '0')} – ${parseInt(jobData.max_experience || '0')} years in ${jobData.category_name } `,
+    vacancies: `${jobData.openings || 0} Vacancies`,
+    type: jobData.job_type || t('jobinfo_full_time'),
+    postedAgo: getTimeAgo(jobData.created_at),
+    description: jobData.description || t('jobinfo_description_default'),
     highlights: [
-      t('jobinfo_highlight_industry'),
-      t('jobinfo_highlight_education'),
-      t('jobinfo_highlight_gender'),
-      t('jobinfo_highlight_working'),
-      t('jobinfo_highlight_documents'),
+      `Industry Type: ${jobData.category_name || 'N/A'}`,
+      `Qualification: ${jobData.qualification || 'N/A'}`,
+      `Gender: ${jobData.gender || 'Any'}`,
+      `Working Days: ${jobData.working_days || 'N/A'}`,
+      `Salary Benefits: ${jobData.salary_benifits || 'N/A'}`,
     ],
-    skillsRequired: [
-      t('jobinfo_skill_computer'),
-      t('jobinfo_skill_calling'),
-      t('jobinfo_skill_query'),
-    ],
+    skillsRequired: jobData.skills_required || ['N/A'],
+    companylogo: jobData.companylogo,
   };
 
   return (
@@ -62,13 +81,10 @@ const JobInfoScreen = ({ navigation, route }: any) => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 90 }}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 90 }}>
         <View style={styles.topSection}>
           <Image
-            source={require('../../assets/images/residential.png')}
+            source={jobDetails.companylogo ? { uri: jobDetails.companylogo } : require('../../assets/images/residential.png')}
             style={styles.jobImage}
           />
           <Text style={styles.jobTitle}>{jobDetails.title}</Text>
@@ -96,51 +112,44 @@ const JobInfoScreen = ({ navigation, route }: any) => {
           <View style={styles.tagBox}>
             <Text style={styles.tagText}>{jobDetails.vacancies}</Text>
           </View>
-          <View style={styles.tagBox}>
-            <Text style={styles.tagText}>{jobDetails.type}</Text>
-          </View>
+       <View style={[styles.tagBox, { flexDirection: 'row', alignItems: 'center' }]}>
+  <Ionicons name="time-outline" size={16} style={{ marginRight: 4 }} />
+  <Text style={styles.tagText}>{jobDetails.type}</Text>
+</View>
+
+
         </View>
 
         <View style={styles.highlightCard}>
           <Text style={styles.sectionTitle}>{t('jobinfo_highlights_title')}</Text>
 
-          {jobDetails.highlights.map((text, index) => {
-            let iconName = 'checkmark-circle';
-            let iconLibrary = Ionicons;
+        {jobDetails.highlights.map((text: string, index: number) => {
+  let iconName = 'checkmark-circle'; // default icon
+  let iconLibrary = Ionicons;
 
-            if (text.includes(t('jobinfo_highlight_industry'))) {
-              iconName = 'business-outline';
-            } else if (text.includes('working') || text.includes('Shift')) {
-              iconName = 'time-outline';
-            }
+  if (text.includes('Industry')) {
+    iconName = 'business-outline';
+  } else if (text.toLowerCase().includes('working') || text.toLowerCase().includes('shift')) {
+    iconName = 'time-outline'; // clock icon for working days / shifts
+  }
 
-            return (
-              <View key={index} style={styles.highlightRow}>
-                {iconLibrary === Ionicons ? (
-                  <Ionicons name={iconName} size={16} color={AppColors.themeColor} />
-                ) : (
-                  <MaterialCommunityIcon name={iconName} size={16} color={AppColors.themeColor} />
-                )}
-                <Text style={styles.highlightText}>
-                  {text.includes(t('jobinfo_highlight_industry')) ? (
-                    <>
-                      <Text style={styles.highlightBold}>{t('jobinfo_highlight_industry')} </Text>
-                      BPO
-                    </>
-                  ) : (
-                    text
-                  )}
-                </Text>
-              </View>
-            );
-          })}
+  return (
+    <View key={index} style={styles.highlightRow}>
+      <Ionicons name={iconName} size={16} color={AppColors.themeColor} />
+      <Text style={styles.highlightText}>{text}</Text>
+    </View>
+  );
+})}
+
+
+        
         </View>
 
         <View style={styles.skillsContainer}>
           <Text style={styles.subTitle}>{t('jobinfo_skills_title')}</Text>
 
           <View style={styles.skillsWrap}>
-            {jobDetails.skillsRequired.map((skill, index) => (
+            {jobDetails.skillsRequired.map((skill: string, index: number) => (
               <View key={index} style={styles.skillChip}>
                 <Text style={styles.skillLabel}>{skill}</Text>
               </View>
@@ -148,18 +157,7 @@ const JobInfoScreen = ({ navigation, route }: any) => {
           </View>
 
           <Text style={styles.jobDesTitle}>{t('jobinfo_description_title')}</Text>
-
-          <Text style={styles.descriptionText}>
-            {jobDetails.description ||
-              t('jobinfo_description_default')}
-          </Text>
-
-          <TouchableOpacity>
-            <View style={{ flexDirection: 'row', alignItems: 'center', alignContent:'center', marginTop:6, alignSelf:'flex-end'}}>
-              <Text style={styles.readMore}>{t('jobinfo_read_more')}</Text>
-              <Ionicons name="chevron-down" size={16} color="#03416b" />
-            </View>
-          </TouchableOpacity>
+          <Text style={styles.descriptionText}>{jobDetails.description}</Text>
         </View>
 
         <View style={styles.contactCard}>

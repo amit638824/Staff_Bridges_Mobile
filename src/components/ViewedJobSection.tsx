@@ -12,81 +12,65 @@ import { AppColors } from "../constants/AppColors";
 import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 
 import { useTranslation } from "react-i18next";
+interface ViewedJobsSectionProps {
+  jobs: any[];
+  onViewSimilar?: () => void;
+}
 
-const ViewedJobsSection = () => {
+const ViewedJobsSection: React.FC<ViewedJobsSectionProps> = ({
+  jobs,
+  onViewSimilar,
+}) => {
   const { t } = useTranslation();
 
- const viewedJob = {
-  title: t("viewedJob_title"),
-  salary: t("viewedJob_salary"),
-    company: "Rudrab—emis",
-  location: t("viewedJob_location"),
-  badges: [],
-};
+  if (!jobs || jobs.length === 0) return null;
 
+  const job = jobs[0]; // show latest / top job
 
   return (
     <View style={styles.wrapper}>
-
-      {/* Title */}
       <Text style={styles.sectionTitle}>
         {t("section_viewed_jobs")}
       </Text>
 
-      {/* Job Card */}
       <View style={styles.card}>
-        {/* Best Job Badge */}
         <View style={styles.bestBadge}>
           <Text style={styles.bestBadgeText}>
             {t("card_best_job")}
           </Text>
         </View>
 
-        {/* Job Title */}
-        <Text style={styles.jobTitle}>{viewedJob.title}</Text>
+        <Text style={styles.jobTitle}>{job.job_title_name}</Text>
 
-        {/* Salary */}
-        <Text style={styles.salary}>{viewedJob.salary}</Text>
+        <Text style={styles.salary}>
+          ₹{job.salary_min} - {job.salary_max} / Month
+        </Text>
 
-        {/* Company with Icon */}
         <View style={styles.locationRow}>
           <Ionicons name="briefcase-outline" size={14} color="#777" />
-          <Text style={styles.company}>{viewedJob.company}</Text>
+          <Text style={styles.company}>{job.company}</Text>
         </View>
 
-        {/* Location with Icon */}
         <View style={styles.locationRow}>
           <Ionicons name="location-outline" size={14} color="#777" />
-          <Text style={styles.location}>{viewedJob.location}</Text>
+          <Text style={styles.location}>
+            {job.locality_name}, {job.city_name}
+          </Text>
         </View>
 
-        {/* Bottom Tags */}
-        <View style={styles.tagContainer}>
-          {viewedJob.badges.map((b, i) => (
-            <Text
-              key={i}
-              style={[
-                styles.tag,
-                b === t("card_urgent_hiring") && styles.urgentTag,
-              ]}
-            >
-              {b}
-            </Text>
-          ))}
-        </View>
-
-        {/* Divider */}
         <View style={styles.divider} />
       </View>
 
-      {/* Full Width Gradient Bar with Button */}
       <LinearGradient
         colors={["#d5f5f8", "#7cdce2"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
         style={styles.fullGradient}
       >
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={onViewSimilar}
+        >
           <Text style={styles.buttonText}>
             {t("btn_view_similar_jobs")}
           </Text>

@@ -15,5 +15,15 @@ export const jobQuestionAnswerService = {
 
   // Delete / deselect an option by answer ID
   deleteAnswer: (answerId: number) =>
-    axiosInstance.delete(`/api/job-question-answer/${answerId}`)
+    axiosInstance.delete(`/api/job-question-answer/${answerId}`),
+
+  getAnswersByUserAndCategory: (userId: number, categoryId: number) =>
+    axiosInstance.get("/api/job-question-answer", {
+      params: {
+        userId,
+        categoryId,
+        page: 1,
+        limit: 100,
+      },
+    }),
 };

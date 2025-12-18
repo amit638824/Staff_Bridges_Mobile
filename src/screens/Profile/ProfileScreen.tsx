@@ -98,6 +98,12 @@ const seekerCategories = useSelector(
 const seekerExperience = useSelector(
   (state: RootState) => state.seekerCategory.experienceList
 );
+const latestCategory = useMemo(() => {
+  return seekerCategories?.length
+    ? seekerCategories[seekerCategories.length - 1]
+    : null;
+}, [seekerCategories]);
+
 const [currentIndex, setCurrentIndex] = useState(route?.params?.tabIndex ?? 3);
 const [loading, setLoading] = useState(false);
 const [dataLoading, setDataLoading] = useState(true);
@@ -144,18 +150,36 @@ useEffect(() => {
       const userId = auth.userId;
 
       if (!userId) {
+        console.warn('No userId found');
         setDataLoading(false);
         return;
       }
 
-      // ✅ Fetch user profile data
-      await dispatch(fetchUserProfile(userId) as any);
+      // ✅ Add timeout to prevent infinite loading
+      const timeoutId = setTimeout(() => {
+        console.warn('Profile data loading timeout');
+        setDataLoading(false);
+      }, 10000); // 10 second timeout
 
-      // Fetch seeker categories
-      await dispatch(fetchSeekerCategories({ userId, page: 1, limit: 100 }) as any);
+      // ✅ Fetch user profile data with error handling
+      try {
+        await dispatch(fetchUserProfile(userId) as any);
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+      }
+
+      // ✅ Fetch seeker categories with error handling
+      try {
+        await dispatch(fetchSeekerCategories({ userId, page: 1, limit: 100 }) as any);
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+      }
+
+      clearTimeout(timeoutId);
+      setDataLoading(false);
 
     } catch (error) {
-    } finally {
+      console.error('Unexpected error loading profile:', error);
       setDataLoading(false);
     }
   };
@@ -163,25 +187,38 @@ useEffect(() => {
   if (auth.userId) {
     loadProfileData();
   }
-}, [auth.userId, dispatch]);
+}, [auth.userId]);
 
 
 const displayLocation = useMemo(() => {
-  const city = userProfile?.city || locationState.city;
-  const locality = userProfile?.locality || locationState.locality;
-  return city && locality ? `${city}, ${locality}` : 'Location not set';
-}, [userProfile?.city, userProfile?.locality, locationState.city, locationState.locality]);
+  const city = userProfile?.city || locationState?.city || 'Not set';
+  const locality = userProfile?.locality || locationState?.locality || '';
+  
+  if (!city) return 'Location not set';
+  return locality ? `${city}, ${locality}` : city;
+}, [userProfile?.city, userProfile?.locality, locationState?.city, locationState?.locality]);
 
 
 const hasResumeUploaded = useMemo(() => {
   return Boolean(userProfile?.resume);
 }, [userProfile?.resume]);
 
-useEffect(() => {
-  if (!auth.userId || seekerCategories.length === 0) return;
 
-  dispatch(fetchSeekerExperienceByUser({ userId: auth.userId }));
-}, [auth.userId, seekerCategories.length, dispatch]);
+useEffect(() => {
+  if (!auth.userId) return;
+
+  const fetchExperience = async () => {
+    try {
+      await dispatch(fetchSeekerExperienceByUser({ userId: auth.userId }));
+    } catch (err) {
+      console.error('Error fetching experience:', err);
+    }
+  };
+
+  // ✅ Fetch experience independently
+  fetchExperience();
+
+}, [auth.userId, dispatch]);
 
 
   const formatExperience = (exp?: string | number): string => {
@@ -197,33 +234,41 @@ useEffect(() => {
 
 const profileData = useMemo<ProfileData>(() => {
   const createdAt = userProfile?.createdAt || userProfile?.user_createdAt;
-  const memberSinceYear = createdAt ? new Date(createdAt).getFullYear() : '2025';
+  const memberSinceYear = createdAt 
+    ? new Date(createdAt).getFullYear().toString() 
+    : new Date().getFullYear().toString();
 
-  const skills = seekerCategories.map(c => c.category_name);
+ const skills = Array.isArray(seekerCategories) 
+    ? seekerCategories.map(c => c.category_name).filter(Boolean)
+    : [];
 
   const experienceMap: Record<string, string> = {};
 
- seekerExperience.forEach(item => {
-  experienceMap[item.category_name] =
-    formatExperience(item.experience_value ?? '0');
-});
+  if (Array.isArray(seekerExperience)) {
+    seekerExperience.forEach(item => {
+      if (item?.category_name) {
+        experienceMap[item.category_name] = formatExperience(item.experience_value ?? '0');
+      }
+    });
+  }
 
-
+  // ✅ Fill missing experiences
   skills.forEach(skill => {
     if (!experienceMap[skill]) {
       experienceMap[skill] = 'Fresher';
     }
   });
 
+
   return {
     userId: auth.userId ?? 0,
-    fullName: userProfile?.fullName || userProfile?.user_fullName || '',
-    phone: userProfile?.phone ?? auth.mobile ?? userProfile?.user_mobile ?? '',
+    fullName: userProfile?.fullName || userProfile?.user_fullName || 'User',
+    phone: userProfile?.phone ?? auth.mobile ?? userProfile?.user_mobile ?? 'N/A',
     alternateMobile: userProfile?.alternateMobile ?? userProfile?.user_alternateMobile ?? '',
     email: userProfile?.email ?? userProfile?.user_email ?? '',
     location: displayLocation,
     skills,
-    experience: experienceMap, // ✅ FIXED
+    experience: experienceMap,
     salary: userProfile?.salary ?? userProfile?.user_salary ?? '',
     gender: userProfile?.gender ?? userProfile?.user_gender ?? '',
     education: formatEducation(userProfile?.education ?? userProfile?.user_education ?? ''),
@@ -233,13 +278,7 @@ const profileData = useMemo<ProfileData>(() => {
         : require('../../../assets/images/boss.png'),
     memberSince: memberSinceYear,
   };
-}, [
-  auth,
-  userProfile,
-  displayLocation,
-  seekerCategories,
-  seekerExperience, // ✅ IMPORTANT
-]);
+}, [auth, userProfile, displayLocation, seekerCategories, seekerExperience]);
 
 
   // Logging useEffect
@@ -481,35 +520,7 @@ const requestStoragePermission = async () => {
   }
 };
 
-// ✅ Check if permission is already granted
-const checkStoragePermission = async () => {
-  if (Platform.OS === 'ios') {
-    return true;
-  }
 
-  try {
-    const androidVersion = typeof Platform.Version === 'string' 
-      ? parseInt(Platform.Version, 10) 
-      : Platform.Version;
-
-    // Android 13+ checks READ_MEDIA_IMAGES
-    if (androidVersion >= 33) {
-      const result = await PermissionsAndroid.check(
-        PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
-      );
-      return result;
-    }
-    // Android 6-12 checks READ_EXTERNAL_STORAGE
-    else {
-      const result = await PermissionsAndroid.check(
-        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
-      );
-      return result;
-    }
-  } catch (err) {
-    return false;
-  }
-};
 
 // ================= RESUME UPLOAD WITH IMPROVED PERMISSIONS =================
 
@@ -819,17 +830,17 @@ const saveEditedField = async () => {
   const handleFooterTap = (index: number) => setCurrentIndex(index);
   const handleSettingsPress = () => navigation.navigate('SettingsScreen');
 
-  if (dataLoading) {
-    return (
-      <SafeAreaView style={[styles.container, { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }]}>
-        <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={AppColors.themeColor} />
-          <Text style={styles.loadingText}>{t('loading')}</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+ if (dataLoading && !profileData.userId) {
+  return (
+    <SafeAreaView style={[styles.container, { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }]}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={AppColors.themeColor} />
+        <Text style={styles.loadingText}>{t('loading')}</Text>
+      </View>
+    </SafeAreaView>
+  );
+}
 
   if (!profileData.userId) {
     return (
@@ -840,33 +851,30 @@ const saveEditedField = async () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+  <SafeAreaView style={styles.container}>
+    <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
-      <View style={styles.header}>
-        <Text style={styles.title}>{t('profile_header_title') || 'My Profile'}</Text>
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.shareButton}>
-            <Icon name="logo-whatsapp" size={16} color="#FF6600" />
-            <Text style={styles.shareText}>{t('profile_share_app_button') || 'Show App'}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleSettingsPress}>
-            <Icon name="settings-outline" size={24} color="#000" style={{ marginLeft: 12 }} />
-          </TouchableOpacity>
-        </View>
+    <View style={styles.header}>
+      <Text style={styles.title}>{t('profile_header_title') || 'My Profile'}</Text>
+      <View style={styles.headerRight}>
+        <TouchableOpacity style={styles.shareButton}>
+          <Icon name="logo-whatsapp" size={16} color="#FF6600" />
+          <Text style={styles.shareText}>{t('profile_share_app_button') || 'Show App'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleSettingsPress}>
+          <Icon name="settings-outline" size={24} color="#000" style={{ marginLeft: 12 }} />
+        </TouchableOpacity>
       </View>
+    </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {renderProfileCard(t, validateProfile, profileData, openEditModal, handleProfilePicPress, loading)}
-{renderJobPreferenceCard(t, validateProfile, profileData, navigation)}
-        {renderCompletionSection(t)}
-{renderUploadResume(t, handleResumeUpload, resumeLoading, hasResumeUploaded)}
-{renderWorkExperience(
-  t,
-  profileData,
-  handleEditBasicDetails
-)}
-      </ScrollView>
+    {/* ✅ SHOW CONTENT WHILE STILL LOADING */}
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      {renderProfileCard(t, validateProfile, profileData, openEditModal, handleProfilePicPress, loading)}
+      {renderJobPreferenceCard(t, validateProfile, profileData, navigation)}
+      {renderCompletionSection(t)}
+      {renderUploadResume(t, handleResumeUpload, resumeLoading, hasResumeUploaded)}
+      {renderWorkExperience(t, profileData, handleEditBasicDetails, latestCategory)}
+    </ScrollView>
 
     <Modal visible={editModal.visible} transparent animationType="slide">
   <View style={styles.modalContainer}>
@@ -1242,9 +1250,9 @@ const renderCompletionSection = (t: any) => (
 const renderWorkExperience = (
   t: any,
   profileData: ProfileData,
-  onEditBasicDetails: () => void
+  onEditBasicDetails: () => void,
+  latestCategory: any // 👈 ADD THIS
 ) => (
-
   <View style={styles.card}>
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
       <Text style={styles.sectionTitle}>{t('profile_work_experience') || 'Work experience'}</Text>
@@ -1255,7 +1263,10 @@ const renderWorkExperience = (
   <View style={{ marginVertical: 10 }}>
     {profileData.skills.map((skill, index) => (
       <View key={index} style={{ alignItems: 'flex-start', marginVertical: 4 }}>
-        <Text style={styles.subText}>{skill}</Text>
+<View style={styles.experienceRow}>
+  <View style={styles.greyDot} />
+  <Text style={styles.subText}>{skill}</Text>
+</View>
         <Text style={styles.subText}>
           {profileData.experience[skill] ? profileData.experience[skill] : '0 years'}
         </Text>
@@ -1302,7 +1313,39 @@ const renderWorkExperience = (
     </Text>
   </TouchableOpacity>
 
+{/* ================= CATEGORY DETAILS ================= */}
+{latestCategory?.questions?.length > 0 && (
+  <View style={{ marginTop: verticalScale(10) }}>
+    <View
+      style={{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}
+    >
+      <Text style={styles.sectionTitle}>Category Details</Text>
+      <TouchableOpacity>
+        <Icon name="pencil" size={18} color={AppColors.themeColor} />
+      </TouchableOpacity>
+    </View>
 
+    {latestCategory.questions.map((item: any, index: number) => (
+      <View key={index} style={{ marginBottom: verticalScale(8) }}>
+        {/* Question */}
+        <Text style={styles.subText}>
+          {item.question}
+        </Text>
+
+        {/* Answer */}
+        <Text style={[styles.link, { fontWeight: '700' }]}>
+          {Array.isArray(item.answers)
+            ? item.answers.join(', ')
+            : item.answers}
+        </Text>
+      </View>
+    ))}
+  </View>
+)}
 
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
       <Text style={styles.sectionTitle}>{t('profile_basic_details') || 'Basic details'}</Text>
@@ -1312,22 +1355,40 @@ const renderWorkExperience = (
 
 
     </View>
-    <Text style={styles.subText}>{t('profile_current_salary') || 'Current salary'}</Text>
-    <Text style={[styles.link, { fontWeight: '700' }]}>{profileData.salary}</Text>
+  <Text style={styles.subText}>
+  {t('profile_current_salary') || 'Current salary'}
+</Text>
+<Text style={[styles.link, { fontWeight: '700' }]}>
+  {profileData.salary ? profileData.salary : 'Add'}
+</Text>
 
-    <Text style={styles.subText}>{t('profile_email_id') || 'Email id'}</Text>
-    <Text style={[styles.link, { fontWeight: '700' }]}>{profileData.email}</Text>
+<Text style={styles.subText}>
+  {t('profile_email_id') || 'Email id'}
+</Text>
+<Text style={[styles.link, { fontWeight: '700' }]}>
+  {profileData.email ? profileData.email : 'Add'}
+</Text>
 
-    <Text style={styles.subText}>{t('profile_alternate_phone') || 'Alternate phone number'}</Text>
-    <Text style={[styles.link, { fontWeight: '700' }]}>{profileData.alternateMobile}</Text>
+<Text style={styles.subText}>
+  {t('profile_alternate_phone') || 'Alternate phone number'}
+</Text>
+<Text style={[styles.link, { fontWeight: '700' }]}>
+  {profileData.alternateMobile ? profileData.alternateMobile : 'Add'}
+</Text>
 
-    <Text style={styles.subText}>{t('profile_age_gender') || 'Age / Gender'}</Text>
-    <Text style={[styles.link, { fontWeight: '700' }]}>{profileData.gender}</Text>
+<Text style={styles.subText}>
+  {t('profile_age_gender') || 'Age / Gender'}
+</Text>
+<Text style={[styles.link, { fontWeight: '700' }]}>
+  {profileData.gender ? profileData.gender : 'Add'}
+</Text>
 
-    <Text style={styles.subText}>{t('profile_education_level') || 'Education level'}</Text>
-    <Text style={[styles.subText, { fontWeight: '700', color: '#000' }]}>
-      {profileData.education}
-    </Text>
+<Text style={styles.subText}>
+  {t('profile_education_level') || 'Education level'}
+</Text>
+<Text style={[styles.subText, { fontWeight: '700', color: '#000' }]}>
+  {profileData.education ? profileData.education : 'Add'}
+</Text>
   </View>
 );
 
@@ -1694,6 +1755,19 @@ profileImage: {
     color: '#000',
     marginBottom: verticalScale(4),
   },
+  experienceRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: scale(6),
+},
+
+greyDot: {
+  width: scale(6),
+  height: scale(6),
+  borderRadius: scale(3),
+  backgroundColor: '#bdbdbd',
+},
+
   subText: {
     color: '#555',
     fontSize: moderateScale(10.4),

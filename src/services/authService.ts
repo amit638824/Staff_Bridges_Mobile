@@ -67,4 +67,13 @@ axiosInstance.interceptors.response.use(
   }
 );
 
+// src/services/authService.ts
+
+export const logoutApi = (userId: number) => {
+  return axiosInstance.post('/auth/user-logout', {
+    userId,
+  });
+};
+
+
 export default axiosInstance;

@@ -15,10 +15,19 @@ import AppFooter from "../components/AppFooter";
 import { AppColors } from "../constants/AppColors";
 import { scale, verticalScale, moderateScale, moderateVerticalScale } from "react-native-size-matters";
 import { useTranslation } from 'react-i18next';
+import { Alert } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import type { AppDispatch } from '../redux/store';
+import { logoutUser } from '../redux/slices/authSlice';
+import { RootState } from '../redux/store';
+import { useNavigation } from '@react-navigation/native';
+import { persistor } from '../redux/store';
+
 
 const SettingsScreen: React.FC = () => {
   const { t } = useTranslation();
   const [smsEnabled, setSmsEnabled] = useState(true);
+const navigation = useNavigation<any>();
 
   const handleBack = () => console.log("Back pressed");
   const handleInvite = () => console.log("Invite Now pressed");
@@ -27,7 +36,34 @@ const SettingsScreen: React.FC = () => {
   const handleTerms = () => Linking.openURL("https://staffbridges.com/terms");
   const handlePrivacy = () => Linking.openURL("https://staffbridges.com/privacy");
   const handleDeactivate = () => console.log("Deactivate Account pressed");
-  const handleSignOut = () => console.log("Sign Out pressed");
+  
+const dispatch = useDispatch<AppDispatch>();
+const userId = useSelector((state: RootState) => state.auth.userId);
+
+const handleSignOut = () => {
+  Alert.alert(
+    'Confirm Logout',
+    'Are you sure you want to sign out?',
+    [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          if (!userId) return;
+          try {
+            await dispatch(logoutUser(userId)).unwrap();
+        
+          } catch {
+            Alert.alert('Error', 'Failed to logout. Please try again.');
+          }
+        },
+      },
+    ],
+    { cancelable: true }
+  );
+};
+
 
   return (
     <View style={styles.container}>

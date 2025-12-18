@@ -27,6 +27,7 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(1);
   const [searchText, setSearchText] = useState('');
+const [similarJobs, setSimilarJobs] = useState<any[]>([]);
 
   const handleFooterTap = (index: number) => {
     setCurrentIndex(index);
@@ -376,8 +377,9 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         {jobsData.slice(3).map((job) => renderJobCard(job))}
 
         <View style={styles.spaceContainer}></View>
-        <ViewedJobsSection />
-
+<ViewedJobsSection
+  jobs={similarJobs}
+/>
         <View style={styles.jobsNeedsContainer}>
           <Text style={styles.jobsNeedsTitle}>{t('jobs_needs_title')}</Text>
 

@@ -5,6 +5,10 @@ import { useTranslation } from "react-i18next";
 import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 import { AppColors } from "../constants/AppColors";
 
+interface JobSuggestionSectionProps {
+  jobs: any[];
+}
+
 interface JobCardProps {
   title: string;
   salary: string;
@@ -66,7 +70,6 @@ const JobCard: React.FC<JobCardProps> = ({ title, salary, company, location, bad
 
   return (
     <View style={styles.card}>
-      {/* Best Job Tag */}
       <View style={styles.bestBadge}>
         <Text style={styles.bestBadgeText}>{t("card_best_job")}</Text>
       </View>
@@ -92,41 +95,44 @@ const JobCard: React.FC<JobCardProps> = ({ title, salary, company, location, bad
         <Text style={styles.location}>{location}</Text>
       </View>
 
-      {/* Badge Row */}
       <View style={styles.tagContainer}>{badges.map(renderBadge)}</View>
 
-<View style={styles.dividerWrapper}>
-          <View style={styles.divider} />
-</View>
+      <View style={styles.dividerWrapper}>
+        <View style={styles.divider} />
+      </View>
     </View>
   );
 };
 
-const JobSuggestionSection = () => {
+const JobSuggestionSection: React.FC<JobSuggestionSectionProps> = ({ jobs }) => {
   const { t } = useTranslation();
 
-  const jobs = [
-    {
-      title: t("job1_title"),
-      salary: t("job1_salary"),
-      company: "Rudrab—emis",
-      location: t("job1_location"),
-      badges: ["New Job", "Verified", "Urgent Hiring"],
-    },
-    {
-      title: t("job2_title"),
-      salary: t("job2_salary"),
-      company: "Samruddhy Bmart Entertainment Pvt. Ltd",
-      location: t("job2_location"),
-      badges: ["Verified", "Urgent Hiring"],
-    },
-  ];
+  // Show empty state if no jobs
+  if (!jobs || jobs.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Ionicons name="briefcase-outline" size={48} color="#ccc" />
+        <Text style={styles.emptyText}>{t('loading') || 'loading jobs..'}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.section}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {jobs.map((job, index) => (
-          <JobCard key={index} {...job} />
+          <JobCard
+            key={job.job_id || index}
+            title={job.job_title_name}
+            salary={`₹${job.salary_min} - ${job.salary_max} / Month`}
+            company={job.company}
+            location={`${job.locality_name}, ${job.city_name}`}
+            badges={[
+              job.status === "NEW" ? "New Job" : "",
+              job.verification_required ? "Verified" : "",
+              job.only_fresher ? "Urgent Hiring" : "",
+            ].filter(Boolean)}
+          />
         ))}
       </ScrollView>
     </View>
@@ -140,12 +146,23 @@ const styles = StyleSheet.create({
     marginTop: verticalScale(0),
     paddingHorizontal: scale(12),
   },
-
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: verticalScale(40),
+    marginHorizontal: scale(20),
+  },
+  emptyText: {
+    marginTop: verticalScale(12),
+    fontSize: moderateScale(14),
+    color: '#999',
+    textAlign: 'center',
+  },
   card: {
     width: scale(250),
     backgroundColor: "#fff",
     borderRadius: scale(12),
-    shadowColor: AppColors.primary ,
+    shadowColor: AppColors.primary,
     shadowOpacity: 0.5,
     shadowRadius: scale(8),
     shadowOffset: { width: 0, height: verticalScale(6) },
@@ -158,7 +175,6 @@ const styles = StyleSheet.create({
     marginRight: scale(12),
     marginBottom: verticalScale(4),
   },
-
   bestBadge: {
     backgroundColor: "#fde7da",
     alignSelf: "flex-end",
@@ -170,61 +186,45 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(5),
     marginRight: scale(-10),
   },
-
   bestBadgeText: {
     fontSize: moderateScale(8),
     fontWeight: "700",
   },
-
   jobTitle: {
     fontSize: moderateScale(12),
     fontWeight: "600",
     color: "#000",
     marginBottom: verticalScale(2),
   },
-
   salary: {
     fontSize: moderateScale(11),
     color: "#333",
     fontWeight: "500",
     marginBottom: verticalScale(6),
   },
-
   company: {
     fontSize: moderateScale(10),
     color: "#444",
     marginLeft: scale(3),
   },
-
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: verticalScale(8),
   },
-
   location: {
     fontSize: moderateScale(10),
     color: "#666",
     marginLeft: scale(3),
   },
-
   tagContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: scale(5),
   },
-
-  // divider: {
-  //   width: "100%",
-  //   height: verticalScale(1),
-  //   backgroundColor: "#ddd",
-  //   marginTop: verticalScale(12),
-  //   marginBottom: verticalScale(15),
-  // },
   dividerWrapper: {
     marginHorizontal: -scale(10),
   },
-
   divider: {
     height: verticalScale(1),
     backgroundColor: '#ddd',
@@ -236,27 +236,22 @@ const styles = StyleSheet.create({
     gap: scale(4),
     paddingHorizontal: scale(8),
     paddingVertical: verticalScale(4),
-    // borderRadius: scale(2),
     marginTop: verticalScale(10),
   },
-
   tagText: {
     fontSize: moderateScale(10),
     fontWeight: "600",
   },
-
   newTag: {
     backgroundColor: "#d9dfff",
     borderWidth: scale(1),
     borderColor: "#d9dfff",
   },
-
   verifiedTag: {
     backgroundColor: "#e8e8e8",
     borderWidth: scale(1),
     borderColor: "#e8e8e8",
   },
-
   urgentTag: {
     backgroundColor: "#ffcca7",
     borderWidth: scale(1),

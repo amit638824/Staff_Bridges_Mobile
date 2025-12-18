@@ -17,6 +17,9 @@ import { useTranslation } from "react-i18next";
 import LanguageSelectorBottomSheet from "../components/LanguageSelectorBottomSheet";
 import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store"; 
+
 interface AppHeaderProps {
   location?: string;
   title?: string;
@@ -48,6 +51,22 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
   const [showLangModal, setShowLangModal] = useState(false);
 
+  // ✅ GET LOCATION FROM REDUX
+  const { city, locality } = useSelector(
+    (state: RootState) => state.location
+  );
+
+  // ✅ FINAL LOCATION LABEL
+  const locationLabel =
+    locality && city
+      // ? `${locality}, ${city}`
+      ? `${locality}`
+      : locality
+      ? locality
+      : city
+      ? city
+      : t(location);
+
   const handleNotificationTap = () => {
     navigation.navigate("NotificationsScreen");
   };
@@ -60,16 +79,18 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
           {/* LEFT */}
           <View style={headerStyles.leftSection}>
-           
             {showBackArrow && (
-  <TouchableOpacity 
-    style={[headerStyles.iconButton, { marginLeft: moderateScale(8) }]} 
-    onPress={onBackPressed}
-  >
-    <Icon name="arrow-back" size={moderateScale(18)} color="#080808ff" />
-  </TouchableOpacity>
-)}
-
+              <TouchableOpacity
+                style={[headerStyles.iconButton, { marginLeft: moderateScale(8) }]}
+                onPress={onBackPressed}
+              >
+                <Icon
+                  name="arrow-back"
+                  size={moderateScale(18)}
+                  color="#080808ff"
+                />
+              </TouchableOpacity>
+            )}
 
             {customLeftWidget ? (
               customLeftWidget
@@ -82,18 +103,27 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     resizeMode="contain"
                   />
                 )}
+
                 {showLogo && <View style={{ width: scale(6) }} />}
 
                 {showLocation && (
                   <View style={headerStyles.locationContainer}>
-                    <Icon name="location-on" size={moderateScale(18)} color={AppColors.buttons} />
-                    <Text style={headerStyles.locationText}>{t(location)}</Text>
+                    <Icon
+                      name="location-on"
+                      size={moderateScale(18)}
+                      color={AppColors.buttons}
+                    />
+                    <Text
+                      style={headerStyles.locationText}
+                      numberOfLines={1}
+                    >
+                      {locationLabel}
+                    </Text>
                   </View>
                 )}
               </View>
             )}
           </View>
-
           {/* RIGHT */}
           {showRightSection && (
             <View style={headerStyles.rightSection}>

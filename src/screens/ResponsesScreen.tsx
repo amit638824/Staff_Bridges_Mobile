@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,26 +16,71 @@ import AppFooter from '../components/AppFooter';
 import { AppColors } from '../constants/AppColors';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
+import { getAppliedJobsByUser, AppliedJob } from '../services/appliedJobService';
+import { getRecruiterJobDetails, RecruiterJob } from '../services/jobService';
 
 const ResponsesScreen = ({ navigation }: any) => {
   const { t } = useTranslation();
+const userId = useSelector((state: any) => state.auth.userId);
+const [jobDetails, setJobDetails] = useState<{ [key: number]: RecruiterJob }>({});
+
   const [activeTab, setActiveTab] = useState('applications');
   const [currentIndex, setCurrentIndex] = useState(2);
+const [appliedJobs, setAppliedJobs] = useState<AppliedJob[]>([]);
+const [loading, setLoading] = useState(true);
+
+useEffect(() => {
+  if (!userId) return;
+
+  const fetchAppliedJobsWithDetails = async () => {
+    setLoading(true);
+    const jobs = await getAppliedJobsByUser(userId);
+
+    const details: { [key: number]: RecruiterJob } = {};
+
+    await Promise.all(
+      jobs.map(async (job) => {
+        const jobDetail = await getRecruiterJobDetails(job.job_id);
+        if (jobDetail) details[job.job_id] = jobDetail;
+      })
+    );
+
+    setAppliedJobs(jobs);
+    setJobDetails(details);
+    setLoading(false);
+  };
+
+  fetchAppliedJobsWithDetails();
+}, [userId]);
+
+useEffect(() => {
+  if (!userId) return;
+
+  const fetchAppliedJobs = async () => {
+    setLoading(true);
+    const jobs = await getAppliedJobsByUser(userId);
+    setAppliedJobs(jobs);
+    setLoading(false);
+  };
+
+  fetchAppliedJobs();
+}, [userId]);
 
   const handleFooterTap = (index: number) => {
     setCurrentIndex(index);
   };
 
- const applicationData = {
-  title: t('resp_job_title'),
-  salary: '₹ 16,000 - 25,000 / Month',
-  company: 'Rudrao-emisis',
-  location: 'Hazratganj, Lucknow (within 7 KM)',
-  badge: t('resp_urgent_hiring'),
-  timeAgo: t('resp_time_ago_17h'),   // 👈 added translation
-  status: t('resp_status_sent'),
-  statusSubtext: t('resp_status_subtext'),
-};
+//  const applicationData = {
+//   title: t('resp_job_title'),
+//   salary: '₹ 16,000 - 25,000 / Month',
+//   company: 'Rudrao-emisis',
+//   location: 'Hazratganj, Lucknow (within 7 KM)',
+//   badge: t('resp_urgent_hiring'),
+//   timeAgo: t('resp_time_ago_17h'),   // 👈 added translation
+//   status: t('resp_status_sent'),
+//   statusSubtext: t('resp_status_subtext'),
+// };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -59,7 +104,7 @@ const ResponsesScreen = ({ navigation }: any) => {
               activeTab === 'applications' && styles.activeTabText,
             ]}
           >
-            {t('resp_applications_tab')}
+{`${t('resp_applications_tab')} (${appliedJobs.length})`}
           </Text>
         </TouchableOpacity>
       </View>
@@ -69,70 +114,113 @@ const ResponsesScreen = ({ navigation }: any) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.applicationCard}>
-          <View style={styles.badgeRow}>
-            <LinearGradient
-              colors={['#ffe1cf', '#f9f4f1']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.bestJobGradient}
-            >
-              <Ionicons name="star" size={12} color="#e59600" />
-              <Text style={styles.bestJobText}>{t('resp_best_job_badge')}</Text>
-            </LinearGradient>
+     {loading ? null : appliedJobs.length === 0 ? (
+  <View style={{ alignItems: 'center', marginTop: 40 }}>
+    <Ionicons name="briefcase-outline" size={48} color="#ccc" />
+    <Text style={{ marginTop: 10, color: '#777', fontSize: 13 }}>
+      {t('resp_no_jobs_applied') || 'No jobs applied yet'}
+    </Text>
+  </View>
+) : (
+  appliedJobs.map((job, index) => {
+    const appliedDate = new Date(job.aj_createdAt);
+   const hoursAgo = Math.max(
+  0,
+  Math.floor((Date.now() - appliedDate.getTime()) / (1000 * 60 * 60))
+);
 
-            <View style={styles.urgentBadge}>
-              <Ionicons name="time-outline" size={12} color="#d78b53" />
-              <Text style={styles.urgentText}>{applicationData.badge}</Text>
-            </View>
-          </View>
+    return (
+      <View key={index} style={styles.applicationCard}>
+        {/* BADGES */}
+        <View style={styles.badgeRow}>
+          <LinearGradient
+            colors={['#ffe1cf', '#f9f4f1']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.bestJobGradient}
+          >
+            <Ionicons name="star" size={12} color="#e59600" />
+            <Text style={styles.bestJobText}>
+              {t('resp_best_job_badge')}
+            </Text>
+          </LinearGradient>
+        </View>
 
-          <View style={styles.jobRow}>
-            <Image
-              source={require('../../assets/images/residential.png')}
-              style={styles.jobIcon}
-            />
+        {/* JOB INFO */}
+ <View style={styles.jobRow}>
+  <Image
+    source={{ uri: jobDetails[job.job_id]?.companylogo || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4Bh36VUEJ2DeC0vl6oKkElCXqN-anYYCROg&s' }}
+    style={styles.jobIcon}
+  />
 
-            <View style={{ flex: 1 }}>
-              <Text style={styles.jobTitle}>{applicationData.title}</Text>
-              <Text style={styles.salaryText}>{applicationData.salary}</Text>
-            </View>
-          </View>
+  <View style={{ flex: 1 }}>
+    <Text style={styles.jobTitle}>
+      {jobDetails[job.job_id]?.job_title_name || t('resp_job_title')}
+    </Text>
+
+    <Text style={styles.salaryText}>
+₹{parseInt(jobDetails[job.job_id]?.salary_min || '0', 10)} - {parseInt(jobDetails[job.job_id]?.salary_max || '0', 10)} / Month
+    </Text>
+
+  </View>
+</View>
+
 
           <View style={styles.infoRow}>
             <Ionicons name="briefcase-outline" size={13} color="#888" />
-            <Text style={styles.infoText}>{applicationData.company}</Text>
+            <Text style={styles.infoText}>{jobDetails[job.job_id]?.company}</Text>
           </View>
 
           <View style={styles.infoRow}>
             <Ionicons name="location-outline" size={13} color="#888" />
-            <Text style={styles.infoText}>{applicationData.location}</Text>
+            <Text style={styles.infoText}> {jobDetails[job.job_id]?.work_location}, {jobDetails[job.job_id]?.city_name}
+</Text>
           </View>
 
-          <View style={styles.statusContainer}>
-            <View style={styles.statusIconBg}>
-              <Ionicons name="bulb" size={14} color="#d7e7f5ff" />
-            </View>
-            <View style={styles.statusTextContainer}>
-              <Text style={styles.statusTitle}>
-                {applicationData.status} {applicationData.timeAgo}
-              </Text>
-              <Text style={styles.statusSubtext}>
-                {applicationData.statusSubtext}
-              </Text>
-            </View>
+        {/* LOCATION */}
+        {/* <View style={styles.infoRow}>
+          <Ionicons name="briefcase-outline" size={13} color="#888" />
+          <Text style={styles.infoText}>
+            {job.job_jobType} · {job.job_workLocation}
+          </Text>
+        </View> */}
+
+        {/* STATUS */}
+        <View style={styles.statusContainer}>
+          <View style={styles.statusIconBg}>
+            <Ionicons name="bulb" size={14} color="#d7e7f5ff" />
           </View>
 
-          <View style={styles.buttonRow}>
-            <TouchableOpacity style={styles.similarJobsButton}>
-              <Text style={styles.similarJobsText}>{t('resp_similar_jobs_button')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.callHRButton}>
-              <Ionicons name="call" size={14} color="#fff" />
-              <Text style={styles.callHRText}>{t('resp_call_hr_button')}</Text>
-            </TouchableOpacity>
+          <View style={styles.statusTextContainer}>
+            <Text style={styles.statusTitle}>
+              {t('resp_status_sent')} · {hoursAgo}h ago
+            </Text>
+            <Text style={styles.statusSubtext}>
+              {t('resp_status_subtext')}
+            </Text>
           </View>
         </View>
+
+        {/* BUTTONS */}
+        <View style={styles.buttonRow}>
+          <TouchableOpacity style={styles.similarJobsButton}>
+            <Text style={styles.similarJobsText}>
+              {t('resp_similar_jobs_button')}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.callHRButton}>
+            <Ionicons name="call" size={14} color="#fff" />
+            <Text style={styles.callHRText}>
+              {t('resp_call_hr_button')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  })
+)}
+
 
         <TouchableOpacity style={styles.helpCard}>
           <Text style={styles.helpTitle}>{t('resp_help_card_title')}</Text>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,13 @@ import {
   Dimensions,
   ScrollView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { AppColors } from '../constants/AppColors';
 import { useTranslation } from 'react-i18next';
-import { scale,moderateScale,verticalScale } from 'react-native-size-matters';
+import { scale, moderateScale, verticalScale } from 'react-native-size-matters';
+import { getRecruiterJobList, RecruiterJob } from '../services/jobService';
 
 const { height } = Dimensions.get('window');
 
@@ -24,6 +26,25 @@ interface JobApplicationModalProps {
   onClose: () => void;
 }
 
+// Map job_qualification to readable format
+const getQualificationLabel = (qualification: string): string => {
+  const qualMap: Record<string, string> = {
+    primary: '5th Pass',
+    middle: '8th Pass',
+    highschool: '10th Pass',
+    intermediate: '12th Pass',
+    graduate: 'Graduate',
+    postgraduate: 'Post Graduate',
+  };
+  return qualMap[qualification?.toLowerCase()] || qualification;
+};
+
+// Format working days
+const formatWorkingDays = (days: string): string => {
+  const daysNum = parseInt(days);
+  return `${daysNum} Days/Week`;
+};
+
 const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
   visible,
   onApplyNow,
@@ -32,8 +53,12 @@ const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  const slideAnim = React.useRef(new Animated.Value(height)).current;
+  const slideAnim = useRef(new Animated.Value(height)).current;
 
+  const [jobsData, setJobsData] = useState<RecruiterJob[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  /* ---------------- Slide Animation ---------------- */
   useEffect(() => {
     Animated.timing(slideAnim, {
       toValue: visible ? 0 : height,
@@ -42,71 +67,49 @@ const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
     }).start();
   }, [visible]);
 
- const jobsData = [
-  {
-    id: 1,
-    role: t("job_1_role"),
-    company: "Rudrab—emis",
-    location: t("job_1_location"),
-    salary: t("job_1_salary"),
-    experience: t("job_1_experience"),
-    tags: [t("tag_new_job"), t("tag_verified"), t("tag_full_time")],
-    insurance: true,
-    highlights: [
-      t("job_1_highlight_1"),
-      t("job_1_highlight_2"),
-      t("job_1_highlight_3"),
-    ],
-  },
-  {
-    id: 2,
-    role: t("job_2_role"),
-    company: "Samruddhy Bmart Entertainment Pvt. Ltd",
-    location: t("job_2_location"),
-    salary: t("job_2_salary"),
-    experience: t("job_2_experience"),
-    tags: [t("tag_new_job"), t("tag_verified"), t("tag_full_time")],
-    insurance: true,
-    highlights: [
-      t("job_2_highlight_1"),
-      t("job_2_highlight_2"),
-      t("job_2_highlight_3"),
-    ],
-  },
-  {
-    id: 3,
-    role: t("job_3_role"),
-    company: "Jobilito Manpower Private Limited",
-    location: t("job_3_location"),
-    salary: t("job_3_salary"),
-    experience: t("job_3_experience"),
-    tags: [t("tag_new_job"), t("tag_verified"), t("tag_full_time")],
-    insurance: true,
-    highlights: [
-      t("job_3_highlight_1"),
-      t("job_3_highlight_2"),
-      t("job_3_highlight_3"),
-    ],
-  },
-];
+  /* ---------------- Fetch Jobs ---------------- */
+  useEffect(() => {
+    if (!visible) return;
 
+    const fetchJobs = async () => {
+      try {
+        setLoading(true);
+        const jobs = await getRecruiterJobList();
+        setJobsData(jobs);
+      } catch (error) {
+        console.log('Failed to load jobs', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, [visible]);
 
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
       <View style={styles.overlay}>
         <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
 
-        <Animated.View style={[styles.modalContainer, { transform: [{ translateY: slideAnim }] }]}>
-
-          {/* ------- Header -------- */}
+        <Animated.View
+          style={[
+            styles.modalContainer,
+            { transform: [{ translateY: slideAnim }] },
+          ]}
+        >
+          {/* -------- Header -------- */}
           <View style={styles.headerRow}>
             <View style={styles.headerTextContainer}>
-              <Text style={styles.modalTitle}>{t("modal_start_applying")}</Text>
+              <Text style={styles.modalTitle}>{t('modal_start_applying')}</Text>
 
               <View style={styles.headerSubRow}>
-                <Text style={styles.subTitle}>{t("modal_new_jobs_unlocked")}</Text>
+                <Text style={styles.subTitle}>
+                  {t('modal_new_jobs_unlocked')}
+                </Text>
                 <View style={styles.paginationBox}>
-                  <Text style={styles.paginationText}>01/04</Text>
+                  <Text style={styles.paginationText}>
+                    01/{jobsData.length.toString().padStart(2, '0')}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -118,79 +121,207 @@ const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
 
           <View style={styles.divider} />
 
-          {/* ------- Job List -------- */}
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-            {jobsData.map((job) => (
-              <View key={job.id} style={styles.card}>
-
-                <View style={styles.salaryTopContainer}>
-                  <Text style={styles.jobRole}>{job.role}</Text>
-                  <Ionicons name="checkbox" size={20} color={AppColors.themeColor} />
-                </View>
-
-                <Text style={styles.companyName}>{job.company}</Text>
-
-                <View style={styles.row}>
-                  <Ionicons name="location-outline" size={15} color="#6b6b6b" />
-                  <Text style={styles.jobInfo}>{job.location}</Text>
-                </View>
-
-                <View style={styles.row}>
-                  <Ionicons name="cash-outline" size={15} color="#6b6b6b" />
-                  <Text style={styles.salary}>{job.salary}</Text>
-                </View>
-
-                <View style={styles.row}>
-                  <Ionicons name="briefcase-outline" size={15} color="#6b6b6b" />
-                  <Text style={styles.salary}>{job.experience}</Text>
-                </View>
-
-                <View style={styles.tagRow}>
-                  {job.tags.map((tag, i) => (
-                    <View key={i} style={styles.tagContainer}>
-                      {tag === 'Verified' && (
-                        <Ionicons name="checkmark-circle" size={14} color={AppColors.primary} />
-                      )}
-                      {tag === 'Full Time' && (
-                        <Ionicons name="time-outline" size={14} color="#444" />
-                      )}
-                      <Text style={styles.tag}>{tag}</Text>
+          {/* -------- Job List -------- */}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {loading ? (
+              <ActivityIndicator
+                size="large"
+                color={AppColors.themeColor}
+                style={{ marginTop: verticalScale(30) }}
+              />
+            ) : (
+              jobsData.map((job) => (
+                <View key={job.job_id} style={styles.card}>
+                  {/* ---- Job Title & Checkbox ---- */}
+                  <View style={styles.salaryTopContainer}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.jobRole}>{job.job_title_name}</Text>
+                      <Text style={styles.categoryTag}>{job?.company?.toUpperCase()}</Text>
                     </View>
-                  ))}
+                    <Ionicons
+                      name="checkbox"
+                      size={20}
+                      color={AppColors.themeColor}
+                    />
+                  </View>
+
+                  {/* ---- Location & Salary Row ---- */}
+                  <View style={styles.row}>
+                    <Ionicons
+                      name="location-outline"
+                      size={15}
+                      color="#6b6b6b"
+                    />
+                    <Text style={styles.jobInfo}>
+                      {job.locality_name}
+                    </Text>
+                  </View>
+
+                  <View style={styles.row}>
+                    <Ionicons
+                      name="cash-outline"
+                      size={15}
+                      color="#6b6b6b"
+                    />
+                    <Text style={styles.salary}>
+                      ₹{job.salary_min} - ₹{job.salary_max}
+                    </Text>
+                  </View>
+
+                  {/* ---- Experience ---- */}
+                  <View style={styles.row}>
+                    <Ionicons
+                      name="briefcase-outline"
+                      size={15}
+                      color="#6b6b6b"
+                    />
+                    <Text style={styles.salary}>
+                      {parseInt(job.min_experience)} - {parseInt(job.max_experience)} years Experience{"\n"}
+                     in {job.category_name}
+                    </Text>
+
+                  </View>
+
+                  {/* ---- Tags Row ---- */}
+                  <View style={styles.tagRow}>
+                    <View style={styles.tagContainer}>
+                      <Ionicons
+                        name="time-outline"
+                        size={14}
+                        color="#444"
+                      />
+                      <Text style={styles.tag}>
+                        {job.job_type}
+                      </Text>
+                    </View>
+
+                    {job.only_fresher === 1 && (
+                      <View style={styles.tagContainer}>
+                        <Ionicons
+                          name="star-outline"
+                          size={14}
+                          color="#FF6B35"
+                        />
+                        <Text style={styles.tag}>Fresher Only</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <View style={styles.divider} />
+
+                  {/* ---- Job Details Section ---- */}
+                  <Text style={styles.sectionTitle}>Job Highlights</Text>
+
+                  {/* Gender */}
+                  <View style={styles.detailRow}>
+                    {/* <View style={styles.detailIconContainer}>
+                      <Ionicons
+                        name="person-outline"
+                        size={14}
+                        color={AppColors.themeColor}
+                      />
+                    </View> */}
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>Gender</Text>
+                      <Text style={styles.detailValue}>{job.gender}</Text>
+                    </View>
+                  </View>
+
+                  {/* Education Level */}
+                  <View style={styles.detailRow}>
+                    {/* <View style={styles.detailIconContainer}>
+                      <Ionicons
+                        name="school-outline"
+                        size={14}
+                        color={AppColors.themeColor}
+                      />
+                    </View> */}
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>Education</Text>
+                      <Text style={styles.detailValue}>
+                        {getQualificationLabel(job.qualification)}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Working Days */}
+                  <View style={styles.detailRow}>
+                    {/* <View style={styles.detailIconContainer}>
+                      <Ionicons
+                        name="calendar-outline"
+                        size={14}
+                        color={AppColors.themeColor}
+                      />
+                    </View> */}
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>Working Days</Text>
+                      <Text style={styles.detailValue}>
+                        {formatWorkingDays(job.working_days)} | {job.shift} Shift
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Salary Type */}
+                  <View style={styles.detailRow}>
+                    {/* <View style={styles.detailIconContainer}>
+                      <Ionicons
+                        name="wallet-outline"
+                        size={14}
+                        color={AppColors.themeColor}
+                      />
+                    </View> */}
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>Salary Type</Text>
+                      <Text style={styles.detailValue}>
+                        {job.salary_benifits}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Openings */}
+                  {job.openings && (
+                    <View style={styles.detailRow}>
+                      {/* <View style={styles.detailIconContainer}>
+                        <Ionicons
+                          name="people-outline"
+                          size={14}
+                          color={AppColors.themeColor}
+                        />
+                      </View> */}
+                      <View style={styles.detailContent}>
+                        <Text style={styles.detailLabel}>Openings</Text>
+                        <Text style={styles.detailValue}>
+                          {job.openings} Position{job.openings > 1 ? 's' : ''}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
                 </View>
-
-                <View style={styles.divider} />
-
-                {job.insurance && (
-                  <>
-                    <Text style={styles.sectionTitle}>{t("modal_insurance_provided")}</Text>
-                    <View style={styles.divider} />
-                  </>
-                )}
-
-                <Text style={styles.sectionTitle}>{t("modal_job_highlights")}</Text>
-                {job.highlights.map((highlight, i) => (
-                  <Text key={i} style={styles.bullet}>{highlight}</Text>
-                ))}
-              </View>
-            ))}
+              ))
+            )}
 
             <View style={styles.bottomSpacing} />
           </ScrollView>
 
-          {/* ------- Bottom Buttons -------- */}
+          {/* -------- Bottom Buttons -------- */}
           <View style={styles.bottomButtons}>
             <TouchableOpacity style={styles.notNowBtn} onPress={onNotNow}>
               <Ionicons name="close" size={18} color="#777" />
-              <Text style={styles.notNowText}>{t("modal_not_now")}</Text>
+              <Text style={styles.notNowText}>
+                {t('modal_not_now')}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.applyBtn} onPress={onApplyNow}>
               <Ionicons name="checkmark" size={18} color="#fff" />
-              <Text style={styles.applyText}>{t("modal_apply_now")}</Text>
+              <Text style={styles.applyText}>
+                {t('modal_apply_now')}
+              </Text>
             </TouchableOpacity>
           </View>
-
         </Animated.View>
       </View>
     </Modal>
@@ -230,31 +361,32 @@ const styles = StyleSheet.create({
   },
 
   headerRow: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  paddingHorizontal: scale(16),
-  paddingTop: verticalScale(10),
-},
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: scale(16),
+    paddingTop: verticalScale(10),
+  },
 
-headerSubRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginTop: verticalScale(3),
-},
-subTitle: {
-  fontSize: moderateScale(13),
-  color: '#5E5E5E',
-  marginRight: scale(8),   // small spacing before pagination
-},
+  headerSubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: verticalScale(3),
+  },
 
-paginationBox: {
-  backgroundColor: '#f5f5f5',
-  borderRadius: scale(5),
-  paddingHorizontal: scale(8),
-  paddingVertical: verticalScale(3),
-  alignSelf: 'center',
-},
+  subTitle: {
+    fontSize: moderateScale(13),
+    color: '#5E5E5E',
+    marginRight: scale(8),
+  },
+
+  paginationBox: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: scale(5),
+    paddingHorizontal: scale(8),
+    paddingVertical: verticalScale(3),
+    alignSelf: 'center',
+  },
 
   paginationText: {
     fontSize: moderateScale(10),
@@ -279,7 +411,7 @@ paginationBox: {
     shadowOpacity: 0.4,
     margin: scale(8),
     shadowRadius: scale(3),
-     boxShadow: '0 4px 4px rgba(0,0,0,0.1)',
+    boxShadow: '0 4px 4px rgba(0,0,0,0.1)',
     marginBottom: verticalScale(12),
     overflow: 'hidden',
   },
@@ -287,7 +419,7 @@ paginationBox: {
   salaryTopContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingHorizontal: scale(12),
     paddingTop: verticalScale(12),
   },
@@ -299,12 +431,12 @@ paginationBox: {
     flex: 1,
   },
 
-  companyName: {
-    fontSize: moderateScale(10),
-    marginTop: verticalScale(3),
-    color: '#6b6b6b',
-    fontWeight: '500',
-    paddingHorizontal: scale(12),
+  categoryTag: {
+    fontSize: moderateScale(13),
+    // color: AppColors.themeColor,
+        color: '#000',
+    fontWeight: '600',
+    marginTop: verticalScale(2),
   },
 
   row: {
@@ -365,32 +497,41 @@ paginationBox: {
     fontWeight: '600',
     color: '#000',
     paddingHorizontal: scale(12),
+    marginBottom: verticalScale(8),
   },
 
-  bullet: {
-    fontSize: moderateScale(10),
-    color: '#5e5e5e',
-    marginTop: verticalScale(3),
-    paddingHorizontal: scale(12),
-    lineHeight: moderateScale(14),
-  },
-
-  dotsContainer: {
+  detailRow: {
     flexDirection: 'row',
+    paddingHorizontal: scale(12),
+    marginBottom: verticalScale(10),
+    alignItems: 'center',
+  },
+
+  detailIconContainer: {
+    width: scale(24),
+    height: scale(24),
+    borderRadius: scale(12),
+    backgroundColor: '#f0f9fa',
     justifyContent: 'center',
-    gap: scale(5),
-    marginVertical: verticalScale(16),
+    alignItems: 'center',
+    marginRight: scale(10),
   },
 
-  dot: {
-    width: scale(6),
-    height: scale(6),
-    borderRadius: scale(3),
-    backgroundColor: '#e0e0e0',
+  detailContent: {
+    flex: 1,
   },
 
-  activeDot: {
-    backgroundColor: '#00BCC4',
+  detailLabel: {
+    fontSize: moderateScale(9),
+    color: '#999',
+    fontWeight: '500',
+    marginBottom: verticalScale(1),
+  },
+
+  detailValue: {
+    fontSize: moderateScale(10),
+    fontWeight: '600',
+    color: '#000',
   },
 
   bottomSpacing: {

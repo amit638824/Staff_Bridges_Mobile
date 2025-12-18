@@ -27,9 +27,19 @@ import ViewedJobsSection from '../components/ViewedJobSection';
 import JobApplicationModal from '../components/JobApplicationModal';
 import { AppColors } from '../constants/AppColors';
 import App from '../../App';
+import { getRecruiterJobList, RecruiterJob } from '../services/jobService';
+
 import { scale, verticalScale, moderateScale } from "react-native-size-matters";
+import {
+  getApplyToJobs,
+  getNearbyJobs,
+  getSimilarJobs,
+  getJobCategories,
+} from '../services/homeJobsService';
 
 import { useTranslation } from 'react-i18next'; // Import i18n hook
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 
 const { width } = Dimensions.get('window');
 
@@ -61,10 +71,104 @@ const HomeScreen: React.FC<{ navigation: any, route: any }> = ({ navigation, rou
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showJobModal, setShowJobModal] = useState(false);
   const isMountedRef = useRef(false);
+const [applyJobs, setApplyJobs] = useState<any[]>([]);
+const [similarJobs, setSimilarJobs] = useState<any[]>([]);
+const [nearbyJobs, setNearbyJobs] = useState<any[]>([]);
+const [jobCategories, setJobCategories] = useState<any[]>([]);
+const [loading, setLoading] = useState(false);
+const [allJobs, setAllJobs] = useState<RecruiterJob[]>([]);
+
+const userName = useSelector(
+  (state: RootState) => state.user.profile?.fullName
+);
+
+const displayName = userName?.trim() || "User";
+const groupedNearbyAreas = nearbyJobs.reduce((acc: any, job: any) => {
+  // const key = `${job.locality_name}, ${job.city_name}`;
+  const key = `${job.city_name}`;
+
+  if (!acc[key]) {
+    acc[key] = {
+      area: key,
+      totalJobs: 0,
+      distance: null, // backend does not provide distance
+    };
+  }
+
+  acc[key].totalJobs += 1;
+  return acc;
+}, {});
+
+const nearbyAreas = Object.values(groupedNearbyAreas);
+const HIGH_PAYING_SALARY = 20000;
+const NEW_JOB_DAYS = 7;
+
+const highPayingCount = allJobs.filter(
+  job => Number(job.salary_max) >= HIGH_PAYING_SALARY
+).length;
+
+const workFromHomeCount = allJobs.filter(
+  job => job.work_location?.toLowerCase() === 'home'
+).length;
+
+const graduateJobsCount = allJobs.filter(
+  job => job.qualification?.toLowerCase() === 'graduate'
+).length;
+
+const newJobsCount = allJobs.filter(job => {
+  const createdAt = new Date(job.created_at);
+  const now = new Date();
+  const diffDays =
+    (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+
+  return diffDays <= NEW_JOB_DAYS;
+}).length;
 
   const handleFooterTap = (index: number) => {
     setCurrentIndex(index);
   };
+
+  useEffect(() => {
+  const fetchRecruiterJobs = async () => {
+    const jobs = await getRecruiterJobList();
+    setAllJobs(jobs);
+  };
+
+  fetchRecruiterJobs();
+}, []);
+
+  useEffect(() => {
+  const fetchHomeData = async () => {
+    try {
+      setLoading(true);
+
+      const [
+        applyToJobsRes,
+        similarJobsRes,
+        nearbyJobsRes,
+        categoriesRes,
+      ] = await Promise.all([
+        getApplyToJobs(),
+        getSimilarJobs(),
+        getNearbyJobs(),
+        getJobCategories(),
+      ]);
+
+      setApplyJobs(applyToJobsRes || []);
+      setSimilarJobs(similarJobsRes || []);
+      setNearbyJobs(nearbyJobsRes || []);
+      setJobCategories(categoriesRes || []);
+
+    } catch (error) {
+      console.error('Home API error', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchHomeData();
+}, []);
+
 
 useEffect(() => {
   const comingFromJobInfo = route?.params?.fromJobInfo === true;
@@ -84,8 +188,6 @@ useEffect(() => {
   //   }
   // };
 }, [route?.params?.fromJobInfo]);
-
-
 
   return (
     <>
@@ -127,10 +229,16 @@ useEffect(() => {
           style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
         >
-          <View style={{ paddingHorizontal: 18, marginTop: 0 }}>
-            <Text style={styles.subGreetingText}>{t('home_greeting_hey', { name: 'Asmit' })}</Text>
-            <Text style={styles.subGreetingText}>{t('home_greeting_jobs_waiting')}</Text>
-          </View>
+     <View style={{ paddingHorizontal: 18, marginTop: 0 }}>
+  <Text style={styles.subGreetingText}>
+    {t("home_greeting_hey", { name: displayName })}
+  </Text>
+
+  <Text style={styles.subGreetingText}>
+    {t("home_greeting_jobs_waiting")}
+  </Text>
+</View>
+
 
           <View style={styles.bannerCard}>
             <View style={styles.bannerHeader}>
@@ -160,7 +268,7 @@ useEffect(() => {
             </TouchableOpacity>
           </View>
 
-          <JobSuggestionSection />
+<JobSuggestionSection jobs={applyJobs} />
 
           <View style={styles.dotsContainerJobSuggestion}>
             {[0, 1, 2].map((index) => (
@@ -176,58 +284,73 @@ useEffect(() => {
             ))}
           </View>
 
-          <ViewedJobsSection />
+<ViewedJobsSection
+  jobs={similarJobs}
+/>
 
-          <View style={styles.gridContainer}>
-            <Text style={{ width: '100%', fontWeight: '500', fontSize: 14, marginBottom: 12 }}>{t('home_jobs_needs_title')}</Text>
-            {renderNeedCard(IMAGES.wallet, t('home_jobs_high_paying'), t('home_jobs_high_paying_count'))}
-            {renderNeedCard(IMAGES.home, t('home_jobs_work_from_home'), t('home_jobs_work_from_home_count'))}
-            {renderNeedCard(IMAGES.books, t('home_jobs_graduate'), t('home_jobs_graduate_count'))}
-            {renderNeedCard(IMAGES.bell, t('home_jobs_new'), t('home_jobs_new_count'))}
+   <View style={styles.gridContainer}>
+  <Text style={{ width: '100%', fontWeight: '500', fontSize: 14, marginBottom: 12 }}>
+    {t('home_jobs_needs_title')}
+  </Text>
 
-            <View style={styles.dotsContainerNeeds}>
-              {[0, 1, 2].map((index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.dotNeeds,
-                    {
-                      width: index === 0 ? 24 : 6,
-                    },
-                  ]}
-                />
-              ))}
-            </View>
-          </View>
+  {renderNeedCard(
+    IMAGES.wallet,
+    t('home_jobs_high_paying'),
+    t('nearby_jobs_count', { count: highPayingCount })
+  )}
 
-          <VideosSection />
+  {renderNeedCard(
+    IMAGES.home,
+    t('home_jobs_work_from_home'),
+    t('nearby_jobs_count', { count: workFromHomeCount })
+  )}
+
+  {renderNeedCard(
+    IMAGES.books,
+    t('home_jobs_graduate'),
+    t('nearby_jobs_count', { count: graduateJobsCount })
+  )}
+
+  {renderNeedCard(
+    IMAGES.bell,
+    t('home_jobs_new'),
+    t('nearby_jobs_count', { count: newJobsCount })
+  )}
+
+  <View style={styles.dotsContainerNeeds}>
+    {[0, 1, 2].map((index) => (
+      <View
+        key={index}
+        style={[
+          styles.dotNeeds,
+          { width: index === 0 ? 24 : 6 },
+        ]}
+      />
+    ))}
+  </View>
+</View>
+
+
+
+<VideosSection jobs={applyJobs} />
 
           <ReferFriendSection />
 
           <Text style={videoStyles.sectionTitle}>{t('home_nearby_jobs_title')}</Text>
+<ScrollView horizontal showsHorizontalScrollIndicator={false}>
+  <View style={{ flexDirection: 'row', padding: 10 }}>
+    {nearbyAreas.map((item: any, index: number) => (
+      <NearbyAreaCard
+        key={index}
+        distance={t('nearby_distance_km', { km: 0 })} // fallback
+        area={item.area}
+        jobs={t('nearby_jobs_count', { count: item.totalJobs })}
+      />
+    ))}
+  </View>
+</ScrollView>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} >
-            <View style={{flexDirection:'row',padding:10}}>
-         <NearbyAreaCard 
-  distance={t('nearby_distance_km', { km: 2.1 })}
-  area="nearby_area_gurugram"
-  jobs={t('nearby_jobs_count', { count: 45 })}
-/>
 
-<NearbyAreaCard 
-  distance={t('nearby_distance_km', { km: 3.5 })}
-  area="nearby_area_vibhuti"
-  jobs={t('nearby_jobs_count', { count: 30 })}
-/>
-
-<NearbyAreaCard 
-  distance={t('nearby_distance_km', { km: 3.5 })}
-  area="nearby_area_hazratganj"
-  jobs={t('nearby_jobs_count', { count: 30 })}
-/>
-
-            </View>
-          </ScrollView>
 
           <RateExperienceSection />
 
@@ -259,42 +382,58 @@ const renderNeedCard = (image: any, title: string, subtitle: string, highlight =
   </View>
 );
 
-const VideosSection = () => {
+interface VideosSectionProps {
+  jobs: any[];
+}
+
+const VideosSection: React.FC<VideosSectionProps> = ({ jobs }) => {
   const { t } = useTranslation();
   const [selectedJobIndex, setSelectedJobIndex] = useState(0);
 
-  const videos = [
-    {
-      id: 1,
-      image: require('../../assets/images/cs_and_telecler.jpg'),
-      title: t('role_customer_support'),
-      jobs:t('nearby_jobs_count', { count: 268 })
-    },
-    {
-      id: 2,
-      image: require('../../assets/images/sales-job.jpg'),
-      title: t('role_sales_bd'),
-      jobs:t('nearby_jobs_count', { count: 286 })
-    },
-    {
-      id: 3,
-      image: require('../../assets/images/depka.jpg'),
-       title: t('role_customer_support'),
-      jobs:t('nearby_jobs_count', { count: 100 })
-    },
-  ];
+  if (!jobs || jobs.length === 0) return null;
 
-  const buildCategoryCard = (item: any) => (
-    <TouchableOpacity key={item.id} style={videoStyles.categoryCard}>
+  /**
+   * Group jobs by job_title_name
+   */
+  const groupedJobs = jobs.reduce((acc: any, job: any) => {
+    const key = job.job_title_name;
+
+    if (!acc[key]) {
+      acc[key] = {
+        title: job.job_title_name,
+        count: 0,
+        image: require('../../assets/images/depka.jpg'), // fallback image
+      };
+    }
+
+    acc[key].count += 1;
+    return acc;
+  }, {});
+
+  const videos = Object.values(groupedJobs);
+
+  const buildCategoryCard = (item: any, index: number) => (
+    <TouchableOpacity
+      key={index}
+      style={videoStyles.categoryCard}
+      onPress={() => setSelectedJobIndex(index)}
+    >
       <View style={videoStyles.imageContainer}>
         <Image source={item.image} style={videoStyles.categoryImage} />
       </View>
 
       <View style={videoStyles.categoryContent}>
         <View style={videoStyles.jobsRow}>
-          <Text style={videoStyles.jobsText}>{item.jobs}</Text>
-          <Icon name="chevron-forward-outline" size={10} color={AppColors.buttons} />
+          <Text style={videoStyles.jobsText}>
+            {t('nearby_jobs_count', { count: item.count })}
+          </Text>
+          <Icon
+            name="chevron-forward-outline"
+            size={10}
+            color={AppColors.buttons}
+          />
         </View>
+
         <Text style={videoStyles.categoryTitle} numberOfLines={2}>
           {item.title}
         </Text>
@@ -304,7 +443,9 @@ const VideosSection = () => {
 
   return (
     <View style={videoStyles.container}>
-      <Text style={videoStyles.sectionTitle}>{t('home_videos_section')}</Text>
+      <Text style={videoStyles.sectionTitle}>
+        {t('home_videos_section')}
+      </Text>
 
       <View style={videoStyles.backgroundContainer}>
         <ScrollView
@@ -312,19 +453,19 @@ const VideosSection = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={videoStyles.scrollContent}
         >
-          {videos.map((video) => buildCategoryCard(video))}
+          {videos.map((item: any, index: number) =>
+            buildCategoryCard(item, index)
+          )}
         </ScrollView>
       </View>
 
       <View style={videoStyles.dotsContainer}>
-        {[0, 1, 2].map((index) => (
+        {videos.map((_: any, index: number) => (
           <View
             key={index}
             style={[
               videoStyles.dot,
-              {
-                width: index === selectedJobIndex ? 24 : 6,
-              },
+              { width: index === selectedJobIndex ? 24 : 6 },
             ]}
           />
         ))}
@@ -332,6 +473,7 @@ const VideosSection = () => {
     </View>
   );
 };
+
 
 const SuccessStoriesSection = () => {
   const { t } = useTranslation();
@@ -710,13 +852,14 @@ const styles = StyleSheet.create({
   badgeContainer: {
     position: 'absolute',
     top: verticalScale(16),
-    left: scale(55),
+    left: scale(61),
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#ffcca7',
     paddingVertical: verticalScale(3),
     paddingHorizontal: scale(6),
-    borderRadius: scale(4),
+    borderTopLeftRadius: scale(4),
+    borderBottomLeftRadius: scale(4),
   },
   badgeText: {
     marginLeft: scale(2),

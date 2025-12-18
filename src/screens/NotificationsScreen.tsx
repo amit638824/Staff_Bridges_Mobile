@@ -1,17 +1,14 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-} from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Alert } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import AppHeader from "../components/AppHeader";
 import { AppColors } from "../constants/AppColors";
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { useTranslation } from 'react-i18next';
+import { getNotifications, NotificationJob } from '../services/notificationService';
+import { getRecruiterJobDetails, RecruiterJob } from '../services/jobService';
+import { getTimeAgo } from "../services/notificationService";
+import { useNavigation } from "@react-navigation/native";
 
 interface NotificationItem {
   id: string;
@@ -21,67 +18,96 @@ interface NotificationItem {
   company?: string;
   location?: string;
   timeAgo: string;
-  isNew?: boolean;
+  createdAt?: string; 
+    isNew?: boolean;
   badge?: string;
 }
 
 const NotificationsScreen: React.FC = () => {
   const { t } = useTranslation();
-  
-  const handleBack = () => console.log("Back pressed");
-  const handleViewJob = (id: string) => console.log("View Job:", id);
+  const navigation = useNavigation<any>();
+    const [jobNotifications, setJobNotifications] = useState<NotificationItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const notifications: NotificationItem[] = [
+  const handleBack = () => console.log("Back pressed");
+const handleViewJob = async (jobId: number) => {
+  // Fetch job details from API
+  const jobData = await getRecruiterJobDetails(jobId);
+
+  if (jobData) {
+    navigation.navigate('JobInfoScreen', { jobData });
+  } else {
+    Alert.alert('Error', 'Unable to fetch job details.');
+  }
+};
+
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      setLoading(true);
+      const notifJobs: NotificationJob[] = await getNotifications();
+      const jobItems: NotificationItem[] = [];
+
+      for (let notif of notifJobs) {
+        const jobDetail: RecruiterJob | null = await getRecruiterJobDetails(notif.job_id);
+        if (jobDetail) {
+          jobItems.push({
+            id: notif.n_id.toString(),
+            type: "job",
+            title: jobDetail.job_title_name,
+salary: `₹ ${parseInt(jobDetail.salary_min || '0', 10)} – ${parseInt(jobDetail.salary_max || '0', 10)} / Month`,
+            company: jobDetail.company,
+            location: `${jobDetail.city_name}, ${jobDetail.locality_name}`,
+            timeAgo: getTimeAgo(jobDetail.created_at),
+createdAt: jobDetail.created_at ,
+            isNew: true,
+            badge: t('notif_badge_new_job')
+          });
+        }
+      }
+
+      setJobNotifications(jobItems);
+      setLoading(false);
+    };
+
+    fetchNotifications();
+  }, []);
+
+  // Static profile & logoTip notifications
+  const staticNotifications: NotificationItem[] = [
     {
-      id: "1",
-      type: "job",
-      title: t('notif_job_delivery'),
-      salary: "₹ 8,000 – 15,500 /Month",
-      company: "Rudrab—emis",
-      location:  t("job1_location"),
-      timeAgo: t('notif_time_2hours'),
-      isNew: true,
-      badge: t('notif_badge_new_job'),
-    },
-    {
-      id: "2",
-      type: "job",
-      title: t('notif_job_delivery'),
-      salary: "₹ 25,000 – 30,500 /Month",
-      company: "Jobilito Manpower Private Limited",
-      location:  t("job2_location"),
-      timeAgo: t('notif_time_2hours'),
-      isNew: true,
-      badge: t('notif_badge_new_job'),
-    },
-    {
-      id: "3",
-      type: "job",
-      title: t('notif_job_customer_support'),
-      salary: "₹ 10,000 – 30,000 /Month",
-      company: "Samruddhy Bmart Entertainment Pvt. Ltd",
-      location:  t("job1_location"),
-      timeAgo: t('notif_time_1day'),
-      isNew: false,
-    },
-    {
-      id: "4",
+      id: "profile1",
       type: "profile",
       title: t('notif_profile_update'),
       timeAgo: t('notif_time_10days'),
     },
     {
-      id: "5",
+      id: "logo1",
       type: "logoTip",
       title: t('notif_logo_tip'),
       timeAgo: t('notif_time_10days'),
-    },
+    }
   ];
+const today = new Date();
+today.setHours(0, 0, 0, 0); // start of today
 
-  const todayNotifications = notifications.slice(0, 2);
-  const oldNotifications = notifications.slice(2);
+const todayNotifications = jobNotifications.filter(job => {
+  if (!job.createdAt) return false;
+  const jobDate = new Date(job.createdAt);
+  return jobDate >= today;
+});
 
-  const renderLogoTipNotification = (item: NotificationItem, index: number, isOld: boolean) => (
+const oldNotifications = [
+  ...jobNotifications.filter(job => {
+    if (!job.createdAt) return false;
+    const jobDate = new Date(job.createdAt);
+    return jobDate < today;
+  }),
+  ...staticNotifications
+];
+today.setHours(0, 0, 0, 0); // start of today
+
+   const renderLogoTipNotification = (item: NotificationItem, index: number, isOld: boolean) => (
     <View key={item.id} style={[
       styles.notificationCard,
       isOld && index === oldNotifications.length - 1 ? styles.whiteCardBg : styles.lightBlueBg
@@ -106,70 +132,6 @@ const NotificationsScreen: React.FC = () => {
     </View>
   );
 
-  const renderJobNotification = (item: NotificationItem, index: number, isOld: boolean) => {
-    let cardBg = styles.whiteCardBg;
-    
-    if (!isOld) {
-      if (index === 1) {
-        cardBg = styles.lightBlueBg;
-      }
-    } else {
-      if (index === 0 || index === 1) {
-        cardBg = styles.lightBlueBg;
-      } else {
-        cardBg = styles.whiteCardBg;
-      }
-    }
-
-    return (
-      <View
-        key={item.id}
-        style={[styles.notificationCard, cardBg]}
-      >
-        <View style={styles.cardHeader}>
-          <View style={styles.iconContainer}>
-            <Icon name="work" size={25} color="#af4900" />
-          </View>
-
-          <View style={styles.cardContent}>
-            <View style={styles.titleRow}>
-              <Text style={styles.jobTitle}>{item.title}</Text>
-
-              {item.isNew && (
-                <View style={styles.newBadge}>
-                  <Text style={styles.newBadgeText}>{item.badge}</Text>
-                </View>
-              )}
-            </View>
-
-            <Text style={styles.salary}>{item.salary}</Text>
-
-            <View style={styles.detailRow}>
-              <Icon name="business" size={14} color="#666" />
-              <Text style={styles.detailText}>{item.company}</Text>
-            </View>
-
-            <View style={styles.detailRow}>
-              <Icon name="location-on" size={14} color="#666" />
-              <Text style={styles.detailText}>{item.location}</Text>
-            </View>
-
-            <View style={styles.cardFooter}>
-              <TouchableOpacity
-                style={styles.viewJobButton}
-                onPress={() => handleViewJob(item.id)}
-              >
-                <Text style={styles.viewJobText}>{t('notif_view_job_button')}</Text>
-              </TouchableOpacity>
-
-              <Text style={styles.timeText}>{item.timeAgo}</Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
   const renderProfileNotification = (item: NotificationItem, index: number) => (
     <View key={item.id} style={[styles.notificationCard, styles.lightBlueBg]}>
       <View style={styles.cardHeader}>
@@ -192,6 +154,50 @@ const NotificationsScreen: React.FC = () => {
       </View>
     </View>
   );
+  const renderJobNotification = (item: NotificationItem, index: number, isOld: boolean) => (
+    <View key={item.id} style={[styles.notificationCard, styles.whiteCardBg]}>
+      <View style={styles.cardHeader}>
+        <View style={styles.iconContainer}>
+          <Icon name="work" size={25} color="#af4900" />
+        </View>
+        <View style={styles.cardContent}>
+          <View style={styles.titleRow}>
+            <Text style={styles.jobTitle}>{item.title}</Text>
+            {item.isNew && (
+              <View style={styles.newBadge}>
+                <Text style={styles.newBadgeText}>{item.badge}</Text>
+              </View>
+            )}
+          </View>
+
+          <Text style={styles.salary}>{item.salary}</Text>
+          <View style={styles.detailRow}>
+            <Icon name="business" size={14} color="#666" />
+            <Text style={styles.detailText}>{item.company}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Icon name="location-on" size={14} color="#666" />
+            <Text style={styles.detailText}>{item.location}</Text>
+          </View>
+
+          <View style={styles.cardFooter}>
+      <TouchableOpacity
+  style={styles.viewJobButton}
+  onPress={() => handleViewJob(Number(item.id))} // convert string -> number
+>
+  <Text style={styles.viewJobText}>{t('notif_view_job_button')}</Text>
+</TouchableOpacity>
+
+
+            <Text style={styles.timeText}>{item.timeAgo}</Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+
+  // Keep renderProfileNotification & renderLogoTipNotification as in your previous code
+  // ...
 
   return (
     <View style={styles.container}>
@@ -208,30 +214,31 @@ const NotificationsScreen: React.FC = () => {
           </View>
         }
       />
-
       <View style={styles.divider} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.sectionHeader}>{t('notif_section_today')}</Text>
-        {todayNotifications.map((item, index) =>
-          item.type === "job"
-            ? renderJobNotification(item, index, false)
-            : renderProfileNotification(item, index)
-        )}
+        {loading ? (
+          <Text style={{ textAlign: 'center', marginTop: '90%'}}>{t('loading')}</Text>
+        ) : (
+          <>
+            <Text style={styles.sectionHeader}>{t('notif_section_today')}</Text>
+            {todayNotifications.map((item, index) => renderJobNotification(item, index, false))}
 
-        <Text style={styles.sectionHeader}>{t('notif_section_old')}</Text>
-        {oldNotifications.map((item, index) =>
-          item.type === "job"
-            ? renderJobNotification(item, index, true)
-            : item.type === "profile"
-            ? renderProfileNotification(item, index)
-            : renderLogoTipNotification(item, index, true)
+            <Text style={styles.sectionHeader}>{t('notif_section_old')}</Text>
+            {oldNotifications.map((item, index) => {
+              if (item.type === "job") return renderJobNotification(item, index, true);
+              if (item.type === "profile") return renderProfileNotification(item, index);
+              return renderLogoTipNotification(item, index, true);
+            })}
+          </>
         )}
       </ScrollView>
-
     </View>
   );
 };
+
+// Keep your existing styles
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

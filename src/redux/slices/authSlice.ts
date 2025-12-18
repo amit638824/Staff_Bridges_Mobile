@@ -47,6 +47,28 @@ export const loginWithOtp = createAsyncThunk(
   }
 );
 
+// authSlice.ts
+export const logoutUser = createAsyncThunk(
+  'auth/logoutUser',
+  async (userId: number, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post('/auth/user-logout', {
+        userId,
+      });
+
+      if (response.data?.success) {
+        return true;
+      } else {
+        return rejectWithValue(response.data?.message || 'Logout failed');
+      }
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Logout failed'
+      );
+    }
+  }
+);
+
 interface AuthState {
   token: string | null;
   mobile: string;
@@ -184,6 +206,18 @@ const authSlice = createSlice({
         state.loginLoading = false;
         state.error = action.payload as string;
       });
+
+      // authSlice.ts (inside extraReducers)
+
+builder.addCase(logoutUser.fulfilled, (state) => {
+  state.token = null;
+  state.mobile = '';
+  state.userId = null;
+  state.newUserFlag = false;
+  state.otpSent = false;
+  state.error = null;
+});
+
   },
 });
 

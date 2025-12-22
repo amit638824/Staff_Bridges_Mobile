@@ -9,6 +9,7 @@ import { getNotifications, NotificationJob } from '../services/notificationServi
 import { getRecruiterJobDetails, RecruiterJob } from '../services/jobService';
 import { getTimeAgo } from "../services/notificationService";
 import { useNavigation } from "@react-navigation/native";
+import  FontAwesome  from 'react-native-vector-icons/FontAwesome';
 
 interface NotificationItem {
   id: string;
@@ -157,9 +158,10 @@ today.setHours(0, 0, 0, 0); // start of today
   const renderJobNotification = (item: NotificationItem, index: number, isOld: boolean) => (
     <View key={item.id} style={[styles.notificationCard, styles.whiteCardBg]}>
       <View style={styles.cardHeader}>
-        <View style={styles.iconContainer}>
-          <Icon name="work" size={25} color="#af4900" />
-        </View>
+       <View style={styles.iconContainer}>
+  <FontAwesome name="briefcase" size={22} color="#af4900" />
+</View>
+
         <View style={styles.cardContent}>
           <View style={styles.titleRow}>
             <Text style={styles.jobTitle}>{item.title}</Text>
@@ -216,23 +218,45 @@ today.setHours(0, 0, 0, 0); // start of today
       />
       <View style={styles.divider} />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {loading ? (
-          <Text style={{ textAlign: 'center', marginTop: '90%'}}>{t('loading')}</Text>
-        ) : (
-          <>
-            <Text style={styles.sectionHeader}>{t('notif_section_today')}</Text>
-            {todayNotifications.map((item, index) => renderJobNotification(item, index, false))}
+<ScrollView contentContainerStyle={styles.scrollContent}>
+  {loading ? (
+    <Text style={{ textAlign: 'center', marginTop: '90%' }}>
+      {t('loading')}
+    </Text>
+  ) : (
+    <>
+      {/* TODAY NOTIFICATIONS */}
+      {todayNotifications.length > 0 && (
+        <>
+          <Text style={styles.sectionHeader}>{t('notif_section_today')}</Text>
+          {todayNotifications.map((item, index) =>
+            renderJobNotification(item, index, false)
+          )}
+        </>
+      )}
 
-            <Text style={styles.sectionHeader}>{t('notif_section_old')}</Text>
-            {oldNotifications.map((item, index) => {
-              if (item.type === "job") return renderJobNotification(item, index, true);
-              if (item.type === "profile") return renderProfileNotification(item, index);
-              return renderLogoTipNotification(item, index, true);
-            })}
-          </>
-        )}
-      </ScrollView>
+      {/* OLD NOTIFICATIONS */}
+      {oldNotifications.length > 0 && (
+        <>
+          <Text style={styles.sectionHeader}>{t('notif_section_old')}</Text>
+          {oldNotifications.map((item, index) => {
+            if (item.type === "job") return renderJobNotification(item, index, true);
+            if (item.type === "profile") return renderProfileNotification(item, index);
+            return renderLogoTipNotification(item, index, true);
+          })}
+        </>
+      )}
+
+      {/* OPTIONAL: No notifications */}
+      {todayNotifications.length === 0 && oldNotifications.length === 0 && (
+        <Text style={{ textAlign: 'center', marginTop: '50%' }}>
+          {t('no_notifications')}
+        </Text>
+      )}
+    </>
+  )}
+</ScrollView>
+
     </View>
   );
 };

@@ -84,7 +84,7 @@ useEffect(() => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFE5E5" />
+<StatusBar barStyle="dark-content" translucent={false} />
       
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('resp_header_title')}</Text>

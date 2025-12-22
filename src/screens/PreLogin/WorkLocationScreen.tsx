@@ -20,7 +20,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { useTranslation } from "react-i18next";
 import { AppColors } from "../../constants/AppColors";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { RootStackParamList } from "../../../App";
+import  RootStackParamList  from "../../../App";
 
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -47,7 +47,7 @@ interface Locality {
 }
 
 export default function WorkLocationScreen() {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation:any = useNavigation();
   const { t } = useTranslation();
 
   const [showCityModal, setShowCityModal] = useState(false);
@@ -591,8 +591,7 @@ const styles = StyleSheet.create({
     paddingBottom: verticalScale(22),
     paddingHorizontal: scale(16),
     backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
+  
   },
 
   button: {
@@ -616,7 +615,7 @@ const styles = StyleSheet.create({
 
   modalBox: {
     backgroundColor: "#fff",
-    height: "65%",
+    height: "90%",
     borderTopLeftRadius: scale(20),
     borderTopRightRadius: scale(20),
   },
@@ -652,7 +651,7 @@ const styles = StyleSheet.create({
 
   bottomSheet: {
     backgroundColor: "#fff",
-    height: "65%",
+    height: "90%",
     borderTopLeftRadius: scale(22),
     borderTopRightRadius: scale(22),
   },

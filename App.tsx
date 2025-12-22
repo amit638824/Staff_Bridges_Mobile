@@ -5,11 +5,11 @@ import { ActivityIndicator, View } from "react-native";
 import { I18nextProvider } from "react-i18next";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import i18n from "./src/i18n/i18n";
-
 import { Provider } from "react-redux";
 import { store, persistor } from "./src/redux/store";
 import { PersistGate } from "redux-persist/integration/react";
+
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import HomeScreen from "./src/screens/HomeScreen";
 import PhoneLoginScreen from "./src/screens/PhoneLoginScreen";
@@ -24,102 +24,74 @@ import JobsScreen from "./src/screens/JobsScreen";
 import NotificationsScreen from "./src/screens/NotificationsScreen";
 import SplashScreen from "./src/screens/PreLogin/SplashScreen";
 import JobInfoScreen from "./src/screens/JobInfoScreen";
+import i18n from "./src/i18n/i18n";
 
-// Types
-export type RootStackParamList = {
-  Splash: undefined;
-  PhoneLogin: undefined;
-  HomeScreen: undefined;
-  JobsScreen: undefined;
-  JobInfoScreen: undefined;
-  ProfileScreen: undefined;
-  AboutYourselfScreen: undefined;
-  WorkLocationScreen: undefined;
-  ResponsesScreen: undefined;
-  SettingsScreen: undefined;
-  JobRoleScreen: undefined;
-  JobDetailsScreen: JobDetailsScreenParams;
-  JobRoleFlowScreen: undefined;
-  NotificationsScreen: undefined;
-};
+const Stack = createNativeStackNavigator();
 
-export interface JobDetailsScreenParams {
-  selectedRoles: { id: string; title: string; image: any }[];
-  currentRoleIndex: number;
-  completedRoles: Record<string, any>;
-  totalRoles: number;
-}
-
-const Stack = createNativeStackNavigator<RootStackParamList>();
-
-// Loader while language loads
+/* Loader */
 const Loader = () => (
   <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
     <ActivityIndicator size="large" />
   </View>
 );
 
-const RootNavigator = ({ showSplash }: { showSplash: boolean }) => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    {showSplash ? (
-      <Stack.Screen
-        name="Splash"
-        component={SplashScreen}
-        options={{ gestureEnabled: false }}
-      />
-    ) : (
-      <>
-        <Stack.Screen name="PhoneLogin" component={PhoneLoginScreen} />
-        <Stack.Screen name="HomeScreen" component={HomeScreen} />
-        <Stack.Screen name="JobsScreen" component={JobsScreen} />
-        <Stack.Screen name="JobInfoScreen" component={JobInfoScreen} />
-        <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
-        <Stack.Screen name="AboutYourselfScreen" component={AboutYourselfScreen} />
-        <Stack.Screen name="WorkLocationScreen" component={WorkLocationScreen} />
-        <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} />
-        <Stack.Screen name="ResponsesScreen" component={ResponsesScreen} />
-        <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
-        <Stack.Screen name="JobRoleScreen" component={SelectJobRoleScreen} />
-        <Stack.Screen name="JobDetailsScreen" component={JobDetailsScreen} />
-      </>
-    )}
-  </Stack.Navigator>
-);
+/* 👇 Wrapper to apply bottom inset globally */
+const RootNavigatorWithInsets = ({ showSplash }: { showSplash: boolean }) => {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+
+        /* ✅ THIS FIXES BOTTOM NAV OVERLAP */
+        contentStyle: {
+          paddingBottom: Math.max(insets.bottom, 16),
+            backgroundColor: '#fff', 
+
+        },
+      }}
+    >
+      {showSplash ? (
+        <Stack.Screen name="Splash" component={SplashScreen} />
+      ) : (
+        <>
+          <Stack.Screen name="PhoneLogin" component={PhoneLoginScreen} />
+          <Stack.Screen name="HomeScreen" component={HomeScreen} />
+          <Stack.Screen name="JobsScreen" component={JobsScreen} />
+          <Stack.Screen name="JobInfoScreen" component={JobInfoScreen} />
+          <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+          <Stack.Screen name="AboutYourselfScreen" component={AboutYourselfScreen} />
+          <Stack.Screen name="WorkLocationScreen" component={WorkLocationScreen} />
+          <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} />
+          <Stack.Screen name="ResponsesScreen" component={ResponsesScreen} />
+          <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
+          <Stack.Screen name="JobRoleScreen" component={SelectJobRoleScreen} />
+          <Stack.Screen name="JobDetailsScreen" component={JobDetailsScreen} />
+        </>
+      )}
+    </Stack.Navigator>
+  );
+};
 
 const App = () => {
   const [showSplash, setShowSplash] = React.useState(true);
 
   useEffect(() => {
-    const initializeApp = async () => {
-      try {
-        // ✅ Optional: Log persisted data on startup
-        const userCache = await AsyncStorage.getItem('@user_profile_cache');
-        const locationCache = await AsyncStorage.getItem('@user_location_cache');
-        
-        if (userCache) {
-        }
-        if (locationCache) {
-        }
-      } catch (error) {
-      }
-
-      const splashTimer = setTimeout(() => {
-        setShowSplash(false);
-      }, 3000);
-
-      return () => clearTimeout(splashTimer);
-    };
-
-    initializeApp();
+    const splashTimer = setTimeout(() => setShowSplash(false), 3000);
+    return () => clearTimeout(splashTimer);
   }, []);
 
   return (
     <Provider store={store}>
       <PersistGate loading={<Loader />} persistor={persistor}>
         <I18nextProvider i18n={i18n}>
-          <NavigationContainer>
-            <RootNavigator showSplash={showSplash} />
-          </NavigationContainer>
+          {/* ✅ SafeAreaProvider MUST wrap NavigationContainer */}
+          <SafeAreaProvider>
+            <NavigationContainer>
+              <RootNavigatorWithInsets showSplash={showSplash} />
+            </NavigationContainer>
+          </SafeAreaProvider>
         </I18nextProvider>
       </PersistGate>
     </Provider>

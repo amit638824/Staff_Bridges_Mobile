@@ -49,7 +49,16 @@ interface ProfileData {
   profilePic?: string | number;
   resume?: string;
 }
-
+interface ProfileCompletion {
+  percentage: number;
+  filledCount: number;
+  totalFields: number;
+  missingFields: Array<{
+    field: string;
+    label: string;
+    message: string;
+  }>;
+}
 interface EditModalState {
   visible: boolean;
   fullName: string;
@@ -86,6 +95,7 @@ const formatEducation = (education: string): string => {
 const ProfileScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   const { t } = useTranslation();
 const dispatch = useDispatch<AppDispatch>();
+const [profileCompletion, setProfileCompletion] = useState<ProfileCompletion | null>(null);
 
   const auth = useSelector((state: RootState) => state.auth);
   const userProfile = useSelector((state: RootState) => state.user.profile);
@@ -142,7 +152,6 @@ const [basicDetails, setBasicDetails] = useState({
 });
 
 
-  // ================= FETCH DATA ON MOUNT =================
 useEffect(() => {
   const loadProfileData = async () => {
     try {
@@ -155,20 +164,25 @@ useEffect(() => {
         return;
       }
 
-      // ✅ Add timeout to prevent infinite loading
       const timeoutId = setTimeout(() => {
         console.warn('Profile data loading timeout');
         setDataLoading(false);
-      }, 10000); // 10 second timeout
+      }, 10000);
 
-      // ✅ Fetch user profile data with error handling
       try {
-        await dispatch(fetchUserProfile(userId) as any);
+        // ✅ Fetch and extract profile completion
+        const response = await dispatch(fetchUserProfile(userId) as any);
+        
+        // Check if response has the profile completion data
+        if (response?.payload?.data?.profile) {
+          setProfileCompletion(response.payload.data.profile);
+        } else if (response?.payload?.profile) {
+          setProfileCompletion(response.payload.profile);
+        }
       } catch (err) {
         console.error('Error fetching profile:', err);
       }
 
-      // ✅ Fetch seeker categories with error handling
       try {
         await dispatch(fetchSeekerCategories({ userId, page: 1, limit: 100 }) as any);
       } catch (err) {
@@ -188,7 +202,6 @@ useEffect(() => {
     loadProfileData();
   }
 }, [auth.userId]);
-
 
 const displayLocation = useMemo(() => {
   const city = userProfile?.city || locationState?.city || 'Not set';
@@ -871,7 +884,7 @@ const saveEditedField = async () => {
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       {renderProfileCard(t, validateProfile, profileData, openEditModal, handleProfilePicPress, loading)}
       {renderJobPreferenceCard(t, validateProfile, profileData, navigation)}
-      {renderCompletionSection(t)}
+{renderDynamicCompletionSection(t, profileCompletion)}
       {renderUploadResume(t, handleResumeUpload, resumeLoading, hasResumeUploaded)}
       {renderWorkExperience(t, profileData, handleEditBasicDetails, latestCategory)}
     </ScrollView>
@@ -1107,6 +1120,101 @@ const saveEditedField = async () => {
   );
 };
 
+const renderDynamicCompletionSection = (
+  t: any,
+  completion: ProfileCompletion | null
+) => {
+  if (!completion) {
+    return null;
+  }
+
+  const { percentage, filledCount, totalFields, missingFields } = completion;
+
+  // Field configuration mapping
+  const fieldConfig: Record<string, any> = {
+    user_fullName: { icon: 'person-outline', color: '#2196F3' },
+    user_email: { icon: 'mail-outline', color: '#FF9800' },
+    user_profilePic: { icon: 'image-outline', color: '#E91E63' },
+    user_resume: { icon: 'document-attach-outline', color: '#4CAF50' },
+    user_gender: { icon: 'person-circle-outline', color: '#9C27B0' },
+    user_education: { icon: 'school-outline', color: '#00BCD4' },
+    user_salary: { icon: 'cash-outline', color: '#8BC34A' },
+    user_alternateMobile: { icon: 'call-outline', color: '#F44336' },
+  };
+
+  return (
+    <View style={styles.completionContainer}>
+      {/* Dynamic Title */}
+      <Text style={styles.completionTitle}>
+        {missingFields.length > 0
+          ? `Add ${missingFields.length} missing ${missingFields.length === 1 ? 'detail' : 'details'} to get more job responses`
+          : 'Your profile is 100% complete! 🎉'}
+      </Text>
+
+      <View style={styles.completionRow}>
+        {/* Dynamic Progress Circle */}
+        <View style={styles.progressWrapper}>
+          <View style={styles.progressBase}>
+            <View
+              style={[
+                styles.progressFill,
+                {
+                  transform: [
+                    {
+                      rotate: `${(percentage / 100) * 360}deg`,
+                    },
+                  ],
+                },
+              ]}
+            />
+            <Text style={styles.progressLabel}>
+              {percentage}%{'\n'}done
+            </Text>
+          </View>
+        </View>
+
+        {/* Dynamic Missing Fields Cards */}
+        {missingFields.length > 0 ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
+            {missingFields.map((field, index) => {
+              const config = fieldConfig[field.field] || {
+                icon: 'alert-circle-outline',
+                color: '#FF5722',
+              };
+
+              return (
+                <View key={`${field.field}-${index}`} style={styles.completionCard}>
+                  <View style={[styles.iconBox, { backgroundColor: `${config.color}20` }]}>
+                    <Icon name={config.icon} color={config.color} size={22} />
+                  </View>
+                  <View style={{ marginLeft: 10, flex: 1 }}>
+                    <Text style={styles.completionTitleText}>{field.label}</Text>
+                    <Text style={styles.completionSubText}>{field.message}</Text>
+                  </View>
+                </View>
+              );
+            })}
+          </ScrollView>
+        ) : (
+          <View style={styles.completeMessage}>
+            <Icon name="checkmark-circle-outline" size={32} color="#4CAF50" />
+            <Text style={styles.completionSubText}>All fields completed!</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Statistics Footer */}
+      {totalFields > 0 && (
+        <View style={styles.statsRow}>
+          <Text style={styles.statText}>
+            {filledCount} of {totalFields} fields filled
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+};
+
 // ================= RENDER HELPERS =================
 const renderProfileCard = (
   t: any,
@@ -1208,44 +1316,6 @@ const renderJobPreferenceCard = (
     </View>
   </View>
 );
-
-
-const renderCompletionSection = (t: any) => (
-  <View style={styles.completionContainer}>
-    <Text style={styles.completionTitle}>
-      {t('profile_completion_title') || 'Add 3 missing details to get more job responses'}
-    </Text>
-
-    <View style={styles.completionRow}>
-      <View style={styles.progressWrapper}>
-        <View style={styles.progressBase}>
-          <View style={styles.progressFill} />
-          <Text style={styles.progressLabel}>18%{'\n'}done</Text>
-        </View>
-      </View>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {[
-          { icon: 'briefcase-outline', color: '#E91E63', title: t('profile_add_work') || 'Add work', subtitle: t('profile_let_know_better') || 'Let us know better' },
-          { icon: 'star-outline', color: '#9C27B0', title: t('profile_add_skills') || 'Add skills', subtitle: t('profile_boost_profile') || 'Boost your profile' },
-          { icon: 'document-attach-outline', color: '#4CAF50', title: t('profile_have_resume') || 'Have a resume?', subtitle: t('profile_upload_here') || 'Upload it here' },
-        ].map((item, index) => (
-          <View key={index} style={styles.completionCard}>
-            <View style={[styles.iconBox, { backgroundColor: `${item.color}20` }]}>
-              <Icon name={item.icon} color={item.color} size={22} />
-            </View>
-            <View style={{ marginLeft: 10 }}>
-              <Text style={styles.completionTitleText}>{item.title}</Text>
-              <Text style={styles.completionSubText}>{item.subtitle}</Text>
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-    </View>
-  </View>
-);
-
-
 
 const renderWorkExperience = (
   t: any,
@@ -1629,7 +1699,7 @@ profileImage: {
     borderRadius: moderateScale(16),
     paddingHorizontal: scale(9),
      paddingVertical: verticalScale(4),
-    
+      fontSize: moderateScale(10),
     color: '#555',
   },
 
@@ -1848,6 +1918,31 @@ greyDot: {
     color: '#fff',
     fontWeight: '600',
   },
+  completeMessage: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: scale(12),
+    paddingVertical: verticalScale(8),
+  },
+
+  statsRow: {
+    marginTop: verticalScale(12),
+    paddingTop: verticalScale(10),
+    borderTopWidth: scale(0.5),
+    borderTopColor: '#ddd',
+    alignItems: 'center',
+  },
+
+  statText: {
+    fontSize: moderateScale(10),
+    fontWeight: '600',
+    color: '#666',
+  },
+
+  
 });
+
+
 
 export default ProfileScreen;

@@ -1,23 +1,38 @@
-import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import MaterialCommunityIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useTranslation } from "react-i18next";
 import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 import { AppColors } from "../constants/AppColors";
+import { getJobBenefits } from "../services/jobBenefitsService";
 
 interface JobSuggestionSectionProps {
   jobs: any[];
+  onJobPress?: (job: any) => void;
 }
 
 interface JobCardProps {
+  job: any;
   title: string;
   salary: string;
   company: string;
   location: string;
   badges: string[];
+  benefits: string[];
+  onPress?: () => void;
 }
 
-const JobCard: React.FC<JobCardProps> = ({ title, salary, company, location, badges }) => {
+const JobCard: React.FC<JobCardProps> = ({ 
+  job,
+  title, 
+  salary, 
+  company, 
+  location, 
+  badges,
+  benefits,
+  onPress 
+}) => {
   const { t } = useTranslation();
 
   const renderBadge = (badge: string, index: number) => {
@@ -38,23 +53,34 @@ const JobCard: React.FC<JobCardProps> = ({ title, salary, company, location, bad
     if (badge === "New Job") {
       tagStyle.push(styles.newTag);
       textStyle.push({ color: "#7e93ff" });
+      // icon = (
+      //   <MaterialCommunityIcon
+      //     name="new-box"
+      //     size={moderateScale(10)}
+      //     color="#7e93ff"
+      //   />
+      // );
     }
 
     if (badge === "Verified") {
       icon = (
-        <Ionicons
-          name="checkmark-done-circle"
+        <MaterialCommunityIcon
+          name="check-circle"
           size={moderateScale(11)}
           color="#007BFF"
         />
       );
       tagStyle.push(styles.verifiedTag);
-      textStyle.push({ color: "#000" });
+      textStyle.push({ color: "#080808ff" });
     }
 
     if (badge === "Urgent Hiring") {
       icon = (
-        <Ionicons name="time-outline" size={moderateScale(11)} color="#dc935e" />
+        <MaterialCommunityIcon 
+          name="clock-outline" 
+          size={moderateScale(11)} 
+          color="#dc935e" 
+        />
       );
       tagStyle.push(styles.urgentTag);
       textStyle.push({ color: "#dc935e" });
@@ -69,12 +95,16 @@ const JobCard: React.FC<JobCardProps> = ({ title, salary, company, location, bad
   };
 
   return (
-    <View style={styles.card}>
+    <TouchableOpacity 
+      style={styles.card}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
       <View style={styles.bestBadge}>
         <Text style={styles.bestBadgeText}>{t("card_best_job")}</Text>
       </View>
 
-      <Text style={styles.jobTitle}>{title}</Text>
+      <Text style={styles.jobTitle} numberOfLines={2}>{title}</Text>
       <Text style={styles.salary}>{salary}</Text>
 
       <View style={styles.locationRow}>
@@ -83,7 +113,7 @@ const JobCard: React.FC<JobCardProps> = ({ title, salary, company, location, bad
           size={moderateScale(12)}
           color="#777"
         />
-        <Text style={styles.company}>{company}</Text>
+        <Text style={styles.company} numberOfLines={1}>{company}</Text>
       </View>
 
       <View style={styles.locationRow}>
@@ -92,20 +122,78 @@ const JobCard: React.FC<JobCardProps> = ({ title, salary, company, location, bad
           size={moderateScale(12)}
           color="#777"
         />
-        <Text style={styles.location}>{location}</Text>
+        <Text style={styles.location} numberOfLines={1}>{location}</Text>
       </View>
 
-      <View style={styles.tagContainer}>{badges.map(renderBadge)}</View>
+<ScrollView horizontal showsHorizontalScrollIndicator={false}>
+  <View style={styles.tagContainer}>
+    {badges.map(renderBadge)}
+  </View>
+</ScrollView>
 
       <View style={styles.dividerWrapper}>
         <View style={styles.divider} />
       </View>
-    </View>
+{/* 
+      {benefits && benefits.length > 0 && (
+        <View style={styles.benefitsContainer}>
+          <Text style={styles.benefitsText} numberOfLines={1}>
+            {benefits.slice(0, 2).map(b => `${b} Provided`).join(' | ')}
+          </Text>
+        </View>
+      )} */}
+    </TouchableOpacity>
   );
 };
 
-const JobSuggestionSection: React.FC<JobSuggestionSectionProps> = ({ jobs }) => {
+const JobSuggestionSection: React.FC<JobSuggestionSectionProps> = ({ 
+  jobs,
+  onJobPress 
+}) => {
   const { t } = useTranslation();
+  const [jobBenefits, setJobBenefits] = useState<Record<number, string[]>>({});
+  const [loadingBenefits, setLoadingBenefits] = useState(true);
+
+  // Helper function to check if job is new
+  const isNewJob = (createdAt: string) => {
+    const createdDate = new Date(createdAt);
+    const now = new Date();
+    const diffInDays =
+      (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
+    return diffInDays <= 7;
+  };
+
+  // Fetch benefits for all jobs
+  useEffect(() => {
+    const loadBenefits = async () => {
+      try {
+        setLoadingBenefits(true);
+        const benefitsData: Record<number, string[]> = {};
+
+        await Promise.all(
+          jobs.map(async (job) => {
+            try {
+              const benefits = await getJobBenefits(job.job_id);
+              benefitsData[job.job_id] = benefits || [];
+            } catch (error) {
+              console.error(`Error fetching benefits for job ${job.job_id}:`, error);
+              benefitsData[job.job_id] = [];
+            }
+          })
+        );
+
+        setJobBenefits(benefitsData);
+      } catch (error) {
+        console.error('Error loading benefits:', error);
+      } finally {
+        setLoadingBenefits(false);
+      }
+    };
+
+    if (jobs && jobs.length > 0) {
+      loadBenefits();
+    }
+  }, [jobs]);
 
   // Show empty state if no jobs
   if (!jobs || jobs.length === 0) {
@@ -123,15 +211,18 @@ const JobSuggestionSection: React.FC<JobSuggestionSectionProps> = ({ jobs }) => 
         {jobs.map((job, index) => (
           <JobCard
             key={job.job_id || index}
+            job={job}
             title={job.job_title_name}
-            salary={`₹${job.salary_min} - ${job.salary_max} / Month`}
+            salary={`₹${parseInt(job.salary_min, 10)} - ₹${parseInt(job.salary_max, 10)} / Month`}
             company={job.company}
             location={`${job.locality_name}, ${job.city_name}`}
             badges={[
-              job.status === "NEW" ? "New Job" : "",
-              job.verification_required ? "Verified" : "",
-              job.only_fresher ? "Urgent Hiring" : "",
+              isNewJob(job.created_at) ? "New Job" : "",
+              job.verification_required === 0 ? "Verified" : "",
+              job.openings >= 5 || job.hiring_for_others === 1 ? "Urgent Hiring" : "",
             ].filter(Boolean)}
+            benefits={jobBenefits[job.job_id] || []}
+            onPress={() => onJobPress && onJobPress(job)}
           />
         ))}
       </ScrollView>
@@ -158,8 +249,8 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'center',
   },
-  card: {
-    width: scale(250),
+ card: {
+  width: scale(270), // ✅ ideal
     backgroundColor: "#fff",
     borderRadius: scale(12),
     shadowColor: AppColors.primary,
@@ -206,6 +297,7 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(10),
     color: "#444",
     marginLeft: scale(3),
+    flex: 1,
   },
   locationRow: {
     flexDirection: "row",
@@ -216,12 +308,16 @@ const styles = StyleSheet.create({
     fontSize: moderateScale(10),
     color: "#666",
     marginLeft: scale(3),
+    flex: 1,
   },
-  tagContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: scale(5),
-  },
+ tagContainer: {
+  flexDirection: "row",
+  flexWrap: "nowrap",    
+  alignItems: "center",
+  marginTop: verticalScale(10),
+ 
+},
+
   dividerWrapper: {
     marginHorizontal: -scale(10),
   },
@@ -230,31 +326,46 @@ const styles = StyleSheet.create({
     backgroundColor: '#ddd',
     marginVertical: verticalScale(12),
   },
-  tag: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: scale(4),
-    paddingHorizontal: scale(8),
-    paddingVertical: verticalScale(4),
-    marginTop: verticalScale(10),
-  },
+tag: {
+  flexDirection: "row",
+  alignItems: "center",
+  gap: scale(4),
+  paddingHorizontal: scale(8),
+  paddingVertical: verticalScale(4),
+  textAlign:'center',
+  borderRadius: moderateScale(4),
+  minWidth: scale(70),        // ✅ Ensures consistent width
+   marginRight:scale(10)
+},
+
   tagText: {
     fontSize: moderateScale(10),
+    alignSelf:'center',
     fontWeight: "600",
   },
   newTag: {
     backgroundColor: "#d9dfff",
     borderWidth: scale(1),
+     textAlign:'center',
     borderColor: "#d9dfff",
   },
   verifiedTag: {
     backgroundColor: "#e8e8e8",
     borderWidth: scale(1),
-    borderColor: "#e8e8e8",
+    borderColor: "#e8f5e9",
   },
   urgentTag: {
     backgroundColor: "#ffcca7",
     borderWidth: scale(1),
     borderColor: "#ffcca7",
+  },
+  benefitsContainer: {
+    // marginTop: verticalScale(4),
+    paddingTop: verticalScale(8),
+  },
+  benefitsText: {
+    fontSize: moderateScale(9),
+    fontWeight: "500",
+    color: "#999",
   },
 });

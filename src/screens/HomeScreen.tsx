@@ -28,6 +28,11 @@ import JobApplicationModal from '../components/JobApplicationModal';
 import { AppColors } from '../constants/AppColors';
 import App from '../../App';
 import { getRecruiterJobList, RecruiterJob } from '../services/jobService';
+import { getJobBenefits } from '../services/jobBenefitsService';
+import { useDispatch } from 'react-redux';
+import { fetchUserProfile } from '../redux/slices/userSlice';
+import { AppDispatch } from '../redux/store';
+import { fetchJobRoles } from "../redux/slices/jobRoleSlice";
 
 import { scale, verticalScale, moderateScale } from "react-native-size-matters";
 import {
@@ -42,7 +47,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 
 const { width } = Dimensions.get('window');
-
+ 
 // IMAGE CONSTANTS
 const IMAGES = {
   logo: require('../../assets/images/logo-removebg-preview.png'),
@@ -68,6 +73,40 @@ const IMAGES = {
 
 const HomeScreen: React.FC<{ navigation: any, route: any }> = ({ navigation, route }) => {
   const { t } = useTranslation();
+  const dispatch = useDispatch<AppDispatch>();
+  const [showResumeCard, setShowResumeCard] = useState(true);
+const [searchText, setSearchText] = useState('');
+
+  // Get user data from Redux
+  const userName = useSelector(
+    (state: RootState) => state.user.profile?.fullName
+  );
+  const userResume = useSelector(
+    (state: RootState) => state.user.profile?.resume
+  );
+  const userId = useSelector(
+    (state: RootState) => state.user.profile?.userId || state.user.profile?.id
+  );
+const [modalVisible, setModalVisible] = useState(false);
+
+  // ✅ Make sure this function exists in the same scope
+ const openJobApplicationModal = () => {
+  setShowJobModal(true); // always opens the modal
+};
+
+const closeJobModal = () => {
+  setShowJobModal(false);
+};
+  const displayName = userName?.trim() || "User";
+  const hasResume = !!userResume;
+
+  // ✅ FIX 1: Fetch user profile on component mount
+  useEffect(() => {
+    if (userId) {
+      dispatch(fetchUserProfile(userId));
+    }
+  }, [dispatch, userId]);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showJobModal, setShowJobModal] = useState(false);
   const isMountedRef = useRef(false);
@@ -77,12 +116,8 @@ const [nearbyJobs, setNearbyJobs] = useState<any[]>([]);
 const [jobCategories, setJobCategories] = useState<any[]>([]);
 const [loading, setLoading] = useState(false);
 const [allJobs, setAllJobs] = useState<RecruiterJob[]>([]);
+const [jobBenefits, setJobBenefits] = useState<Record<number, string[]>>({});
 
-const userName = useSelector(
-  (state: RootState) => state.user.profile?.fullName
-);
-
-const displayName = userName?.trim() || "User";
 const groupedNearbyAreas = nearbyJobs.reduce((acc: any, job: any) => {
   // const key = `${job.locality_name}, ${job.city_name}`;
   const key = `${job.city_name}`;
@@ -137,6 +172,26 @@ const newJobsCount = allJobs.filter(job => {
   fetchRecruiterJobs();
 }, []);
 
+useEffect(() => {
+  const loadBenefits = async () => {
+    const allJobs = [...applyJobs, ...similarJobs];
+    const benefitsData: Record<number, string[]> = {};
+
+    await Promise.all(
+      allJobs.map(async (job) => {
+        const benefits = await getJobBenefits(job.job_id);
+        benefitsData[job.job_id] = benefits;
+      })
+    );
+
+    setJobBenefits(benefitsData);
+  };
+
+  if (applyJobs.length || similarJobs.length) {
+    loadBenefits();
+  }
+}, [applyJobs, similarJobs]);
+
   useEffect(() => {
   const fetchHomeData = async () => {
     try {
@@ -168,6 +223,7 @@ const newJobsCount = allJobs.filter(job => {
 
   fetchHomeData();
 }, []);
+
 
 
 useEffect(() => {
@@ -202,44 +258,73 @@ useEffect(() => {
   onNotificationTap={() => console.log("Notifications tapped")}
 />
 
-        <View style={styles.fixedTopContainer}>
-          <View style={styles.resumeCard}>
-            <Ionicons name="information-circle-outline" size={22}  />
-            <View style={{ flex: 1, marginLeft: 8 }}>
-              <Text style={styles.resumeTitle}>{t('home_resume_add')}</Text>
-            </View>
-            <TouchableOpacity>
-              <Text style={styles.resumeLink}>{t('home_resume_add_now')}</Text>
-            </TouchableOpacity>
-            <Ionicons name="close" size={18} color="#999" style={{marginEnd:10}} />
-          </View>
+<View style={styles.fixedTopContainer}>
+  {!hasResume && showResumeCard && (
+    <View style={styles.resumeCard}>
+      <Ionicons name="information-circle-outline" size={22} />
+      <View style={{ flex: 1, marginLeft: 8 }}>
+        <Text style={styles.resumeTitle}>{t('home_resume_add')}</Text>
+      </View>
+      
+      {/* ✅ "Add Now" Button - Navigate to Profile Page */}
+      <TouchableOpacity
+        onPress={() => {
+          // Navigate to your profile/edit profile screen
+          navigation.navigate('ProfileScreen'); // or 'EditProfileScreen' or 'UserProfileScreen'
+        }}
+      >
+        <Text style={styles.resumeLink}>{t('home_resume_add_now')}</Text>
+      </TouchableOpacity>
 
-          <View style={styles.searchBox}>
-            <Ionicons name="search-outline" size={20} color="#999" />
-            <TextInput
-              style={styles.searchInput}
-              placeholder={t('home_search_placeholder')}
-              placeholderTextColor="#666"
-            />
-          </View>
-        </View>
+      {/* ✅ Close Button - Hide the card */}
+      <TouchableOpacity 
+        onPress={() => setShowResumeCard(false)}
+        style={{ marginEnd: 10 }}
+      >
+        <Ionicons name="close" size={18} color="#999" />
+      </TouchableOpacity>
+    </View>
+  )}
+
+  <View style={styles.searchBox}>
+    <Ionicons name="search-outline" size={20} color="#999" />
+   <TextInput
+  style={styles.searchInput}
+  placeholder={t('home_search_placeholder')}
+  placeholderTextColor="#666"
+  value={searchText}
+  returnKeyType="search"
+  onChangeText={setSearchText}
+  onSubmitEditing={() => {
+  if (!searchText.trim()) return;
+
+  navigation.navigate('JobsScreen', {
+    searchQuery: searchText.trim(),
+  });
+}}
+
+/>
+
+  </View>
+</View>
 
         <ScrollView
           contentContainerStyle={{ paddingBottom: 20, paddingTop: 0 }}
           style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
         >
-     <View style={{ paddingHorizontal: 18, marginTop: 0 }}>
-  <Text style={styles.subGreetingText}>
-    {t("home_greeting_hey", { name: displayName })}
-  </Text>
+          {/* ✅ FIX 3: NAME DISPLAYS IMMEDIATELY NOW */}
+          <View style={{ paddingHorizontal: 18, marginTop: 0 }}>
+            <Text style={styles.subGreetingText}>
+              {t("home_greeting_hey", { name: displayName })}
+            </Text>
 
-  <Text style={styles.subGreetingText}>
-    {t("home_greeting_jobs_waiting")}
-  </Text>
-</View>
+            <Text style={styles.subGreetingText}>
+              {t("home_greeting_jobs_waiting")}
+            </Text>
+          </View>
 
-
+          {/* Rest of your screen content */}
           <View style={styles.bannerCard}>
             <View style={styles.bannerHeader}>
               <Image source={IMAGES.logo} style={styles.bannerLogo} />
@@ -284,9 +369,7 @@ useEffect(() => {
             ))}
           </View>
 
-<ViewedJobsSection
-  jobs={similarJobs}
-/>
+<ViewedJobsSection jobs={similarJobs} onViewSimilar={openJobApplicationModal} />
 
    <View style={styles.gridContainer}>
   <Text style={{ width: '100%', fontWeight: '500', fontSize: 14, marginBottom: 12 }}>
@@ -395,20 +478,38 @@ const VideosSection: React.FC<VideosSectionProps> = ({ jobs }) => {
   /**
    * Group jobs by job_title_name
    */
-  const groupedJobs = jobs.reduce((acc: any, job: any) => {
-    const key = job.job_title_name;
+const groupedJobs = jobs.reduce((acc: any, job: any) => {
+  const key = job.job_title_name.toLowerCase();
 
-    if (!acc[key]) {
-      acc[key] = {
-        title: job.job_title_name,
-        count: 0,
-        image: require('../../assets/images/depka.jpg'), // fallback image
-      };
-    }
+  // Map category name to IMAGES property
+  let categoryImage;
+  switch (key) {
+    case 'designer':
+      categoryImage = IMAGES.designer;
+      break;
+    case 'developer':
+      categoryImage = IMAGES.category1; // or use a dedicated image if available
+      break;
+    case 'marketing':
+      categoryImage = IMAGES.category2; // or use a dedicated image if available
+      break;
+    default:
+      categoryImage = IMAGES.video1; // fallback image
+  }
 
-    acc[key].count += 1;
-    return acc;
-  }, {});
+  if (!acc[job.job_title_name]) {
+    acc[job.job_title_name] = {
+      title: job.job_title_name,
+      count: 0,
+      image: categoryImage,
+    };
+  }
+
+  acc[job.job_title_name].count += 1;
+  return acc;
+}, {});
+
+
 
   const videos = Object.values(groupedJobs);
 

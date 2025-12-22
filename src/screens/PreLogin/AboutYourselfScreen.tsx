@@ -281,11 +281,12 @@ export default function AboutYourselfScreen() {
         {/* Gender */}
         <Text style={styles.label}>{t("gender")} </Text>
         <Controller
-          control={control}
-          name="gender"
-          render={({ field: { value, onChange } }) => (
-            <View style={styles.row}>
-              {[
+  control={control}
+  name="gender"
+  render={({ field: { value, onChange } }) => (
+    <View>
+      <View style={styles.row}>
+        {[
                 { key: "male", label: t("male"), icon: "male" },
                 { key: "female", label: t("female"), icon: "female" },
               ].map((item) => (
@@ -301,21 +302,27 @@ export default function AboutYourselfScreen() {
                   <Text style={styles.chipText}>{item.label}</Text>
                 </TouchableOpacity>
               ))}
-              {errors.gender && (
-                <Text style={styles.errorText}>{errors.gender.message}</Text>
-              )}
-            </View>
-          )}
-        />
+      </View>
+
+      {errors.gender && (
+        <Text style={styles.errorText}>
+          {errors.gender.message}
+        </Text>
+      )}
+    </View>
+  )}
+/>
+
 
         {/* Education */}
         <Text style={styles.label}>{t("education")} </Text>
-        <Controller
-          control={control}
-          name="education"
-          render={({ field: { value, onChange } }) => (
-            <View style={styles.wrap}>
-              {educationOptions.map((item) => (
+      <Controller
+  control={control}
+  name="education"
+  render={({ field: { value, onChange } }) => (
+    <View>
+      <View style={styles.wrap}>
+ {educationOptions.map((item) => (
                 <TouchableOpacity
                   key={item.key}
                   style={[
@@ -327,21 +334,28 @@ export default function AboutYourselfScreen() {
                   <Text style={styles.chipText}>{item.label}</Text>
                 </TouchableOpacity>
               ))}
-              {errors.education && (
-                <Text style={styles.errorText}>{errors.education.message}</Text>
-              )}
-            </View>
-          )}
-        />
+                    </View>
+
+      {errors.education && (
+        <Text style={styles.errorText}>
+          {errors.education.message}
+        </Text>
+      )}
+    </View>
+  )}
+/>
+
 
         {/* Experience */}
         <Text style={styles.label}>{t("workExperience")}</Text>
-        <Controller
-          control={control}
-          name="experience"
-          render={({ field: { value, onChange } }) => (
-            <View style={styles.row}>
-              {["experienced", "fresher"].map((item) => (
+     
+<Controller
+  control={control}
+  name="experience"
+  render={({ field: { value, onChange } }) => (
+    <View>
+      <View style={styles.row}>
+     {["experienced", "fresher"].map((item) => (
                 <TouchableOpacity
                   key={item}
                   style={[
@@ -353,23 +367,27 @@ export default function AboutYourselfScreen() {
                   <Text style={styles.chipText}>{t(item)}</Text>
                 </TouchableOpacity>
               ))}
-              {errors.experience && (
-                <Text style={styles.errorText}>
-                  {errors.experience.message}
-                </Text>
-              )}
-            </View>
-          )}
-        />
+                    </View>
+
+      {errors.experience && (
+        <Text style={styles.errorText}>
+          {errors.experience.message}
+        </Text>
+      )}
+    </View>
+  )}
+/>
 
         {/* Salary */}
         <Text style={styles.label}>{t("monthlySalary")}</Text>
+       
         <Controller
-          control={control}
-          name="salary"
-          render={({ field: { value, onChange } }) => (
-            <View style={styles.salaryBox}>
-              <TextInput
+  control={control}
+  name="salary"
+  render={({ field: { value, onChange } }) => (
+    <View>
+      <View style={styles.salaryBox}>
+  <TextInput
                 style={styles.salaryInputField}
                 placeholder={t("salaryPlaceholder")}
                 placeholderTextColor="#888"
@@ -377,13 +395,18 @@ export default function AboutYourselfScreen() {
                 value={value || ""}
                 onChangeText={onChange}
               />
-              <Text style={styles.suffixText}>{t("perMonth")}</Text>
-              {errors.salary && (
-                <Text style={styles.errorText}>{errors.salary.message}</Text>
-              )}
-            </View>
-          )}
-        />
+                      <Text style={styles.suffixText}>{t("perMonth")}</Text>
+      </View>
+
+      {errors.salary && (
+        <Text style={styles.errorText}>
+          {errors.salary.message}
+        </Text>
+      )}
+    </View>
+  )}
+/>
+
       </ScrollView>
 
       {/* Submit Button */}
@@ -535,9 +558,12 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
 
-  errorText: {
-    color: "red",
-    fontSize: moderateScale(10),
-    marginTop: verticalScale(2),
-  },
+errorText: {
+  color: 'red',
+  fontSize: moderateScale(10),
+  marginTop: verticalScale(4),
+  marginLeft: scale(4), // aligns nicely under field
+  textAlign: 'left',
+},
+
 });

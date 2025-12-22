@@ -170,7 +170,7 @@ export const styles = StyleSheet.create({
     paddingVertical: verticalScale(10),
     borderRadius: scale(20),
     marginTop: verticalScale(10),
-    marginBottom: verticalScale(16),
+    marginBottom: verticalScale(25),
     height: verticalScale(36),
     justifyContent: 'center',
   },

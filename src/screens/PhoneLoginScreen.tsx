@@ -405,11 +405,13 @@ const styles = StyleSheet.create({
   },
 
   errorText: {
-    color: 'red',
-    fontSize: moderateScale(11),
-    textAlign: 'center',
-    marginBottom: 6,
-  },
+  color: 'red',
+  fontSize: moderateScale(11),
+  textAlign: 'left',          // ✅ left aligned
+  marginTop: 4,
+  marginLeft: scale(6),       // aligns nicely under input
+  marginBottom: 6,
+},
 
   verifyOtpButton: {
     backgroundColor: AppColors.themeColor,

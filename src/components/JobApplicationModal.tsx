@@ -16,6 +16,7 @@ import { AppColors } from '../constants/AppColors';
 import { useTranslation } from 'react-i18next';
 import { scale, moderateScale, verticalScale } from 'react-native-size-matters';
 import { getRecruiterJobList, RecruiterJob } from '../services/jobService';
+import { getJobBenefits } from '../services/jobBenefitsService';
 
 const { height } = Dimensions.get('window');
 
@@ -57,6 +58,7 @@ const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
 
   const [jobsData, setJobsData] = useState<RecruiterJob[]>([]);
   const [loading, setLoading] = useState(false);
+const [jobBenefits, setJobBenefits] = useState<Record<number, string[]>>({});
 
   /* ---------------- Slide Animation ---------------- */
   useEffect(() => {
@@ -68,23 +70,40 @@ const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
   }, [visible]);
 
   /* ---------------- Fetch Jobs ---------------- */
-  useEffect(() => {
-    if (!visible) return;
+useEffect(() => {
+  if (!visible) return;
 
-    const fetchJobs = async () => {
-      try {
-        setLoading(true);
-        const jobs = await getRecruiterJobList();
-        setJobsData(jobs);
-      } catch (error) {
-        console.log('Failed to load jobs', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchJobs = async () => {
+    try {
+      setLoading(true);
+      const jobs = await getRecruiterJobList();
+      setJobsData(jobs);
 
-    fetchJobs();
-  }, [visible]);
+      // 🔹 Fetch benefits for each job
+      const benefitsMap: Record<number, string[]> = {};
+
+      await Promise.all(
+        jobs.map(async (job) => {
+          try {
+            const benefits = await getJobBenefits(job.job_id);
+            benefitsMap[job.job_id] = benefits || [];
+          } catch {
+            benefitsMap[job.job_id] = [];
+          }
+        })
+      );
+
+      setJobBenefits(benefitsMap);
+    } catch (error) {
+      console.log('Failed to load jobs', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchJobs();
+}, [visible]);
+
 
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
@@ -167,7 +186,7 @@ const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
                       color="#6b6b6b"
                     />
                     <Text style={styles.salary}>
-                      ₹{job.salary_min} - ₹{job.salary_max}
+                      ₹{parseInt(job.salary_min)} - ₹{parseInt(job.salary_max)} \ Month
                     </Text>
                   </View>
 
@@ -209,8 +228,20 @@ const JobApplicationModal: React.FC<JobApplicationModalProps> = ({
                       </View>
                     )}
                   </View>
+<View style={styles.divider}></View>
+{/* ---- Benefits Section ---- */}
+{jobBenefits[job.job_id]?.length > 0 && (
+  <View style={styles.benefitsContainer}>
+    <Text style={styles.benefitsText} numberOfLines={1}>
+      {jobBenefits[job.job_id]
+        .slice(0, 2)
+        .map(b => `${b} Provided`)
+        .join(' | ')}
+    </Text>
+  </View>
+)}
+<View style={styles.divider}></View>
 
-                  <View style={styles.divider} />
 
                   {/* ---- Job Details Section ---- */}
                   <Text style={styles.sectionTitle}>Job Highlights</Text>
@@ -394,10 +425,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  scrollContent: {
-    paddingHorizontal: scale(8),
-    paddingBottom: verticalScale(20),
-  },
+ scrollContent: {
+  paddingHorizontal: scale(8),
+  paddingBottom: verticalScale(80), // ✅ space for buttons
+},
+
 
   card: {
     borderWidth: scale(1),
@@ -485,6 +517,19 @@ const styles = StyleSheet.create({
     color: '#444',
     fontWeight: '500',
   },
+benefitsContainer: {
+  marginTop: verticalScale(6),
+  paddingHorizontal: scale(12),
+  // paddingTop: verticalScale(8),
+  // borderTopWidth: scale(0.6),
+  // borderTopColor: '#e6e6e6',
+},
+
+benefitsText: {
+  fontSize: moderateScale(9),
+  fontWeight: '500',
+  color: '#8a8a8a',
+},
 
   divider: {
     height: scale(0.8),
@@ -534,9 +579,10 @@ const styles = StyleSheet.create({
     color: '#000',
   },
 
-  bottomSpacing: {
-    height: verticalScale(40),
-  },
+ bottomSpacing: {
+  height: verticalScale(80), // ✅ ensures last card border is visible
+},
+
 
   bottomButtons: {
     position: 'absolute',
@@ -546,7 +592,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingTop: verticalScale(12),
-    paddingBottom: Platform.OS === 'ios' ? verticalScale(28) : verticalScale(23),
+    paddingBottom: Platform.OS === 'ios' ? verticalScale(50) : verticalScale(50),
     backgroundColor: '#fff',
     paddingHorizontal: scale(16),
     gap: scale(10),

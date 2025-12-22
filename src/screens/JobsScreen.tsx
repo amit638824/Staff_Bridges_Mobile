@@ -20,6 +20,23 @@ import { AppColors } from '../constants/AppColors';
 import ViewedJobsSection from '../components/ViewedJobSection';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { useTranslation } from 'react-i18next';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchJobRoles } from '../redux/slices/jobRoleSlice';
+import { RootState,AppDispatch } from '../redux/store';
+import { getJobBenefits } from '../services/jobBenefitsService';
+
+import { 
+  getApplyToJobs, 
+  getSimilarJobs
+} from '../services/homeJobsService'; // adjust path
+
+import { 
+  getRecruiterJobList,
+  getRecruiterJobDetails,
+  RecruiterJob 
+} from '../services/jobService';
+import { useRoute } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -28,6 +45,252 @@ const JobsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [currentIndex, setCurrentIndex] = useState(1);
   const [searchText, setSearchText] = useState('');
 const [similarJobs, setSimilarJobs] = useState<any[]>([]);
+const [bestJobs, setBestJobs] = useState<RecruiterJob[]>([]);
+const [moreJobs, setMoreJobs] = useState<RecruiterJob[]>([]);
+const [loading, setLoading] = useState(true);
+const [jobImages, setJobImages] = useState<Record<number, string>>({});
+const [totalJobsCount, setTotalJobsCount] = useState(0);
+const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+const [jobBenefits, setJobBenefits] = useState<Record<number, string[]>>({});
+const [modalVisible, setModalVisible] = useState(false);
+  const [showJobModal, setShowJobModal] = useState(false);
+const route = useRoute<any>();
+
+  // ✅ Make sure this function exists in the same scope
+ const openJobApplicationModal = () => {
+  setShowJobModal(true); // always opens the modal
+};
+
+const closeJobModal = () => {
+  setShowJobModal(false);
+};
+const dispatch = useDispatch<AppDispatch>();
+const {
+  roles: exploreCategories,
+  loading: categoriesLoading,
+} = useSelector((state: RootState) => state.jobRoles);
+
+
+useEffect(() => {
+  if (route?.params?.searchQuery) {
+    setSearchText(route.params.searchQuery);
+  }
+}, [route?.params?.searchQuery]);
+
+useEffect(() => {
+  dispatch(fetchJobRoles({ page: 1, limit: 10 }));
+}, [dispatch]);
+
+const filterBySearch = (jobs: RecruiterJob[]) => {
+  if (!searchText.trim()) return jobs;
+
+  const keyword = searchText.toLowerCase();
+
+  return jobs.filter(job =>
+    job.job_title_name?.toLowerCase().includes(keyword) ||
+    job.company?.toLowerCase().includes(keyword) ||
+    job.city_name?.toLowerCase().includes(keyword) ||
+    job.locality_name?.toLowerCase().includes(keyword)
+  );
+};
+
+
+interface UIJob {
+  id: number;
+  title: string;
+  company: string;
+  salary: string;
+  location: string;
+  isBestJob: boolean;
+  originalJob: RecruiterJob;
+}
+
+useEffect(() => {
+  const fetchSimilarJobs = async () => {
+    try {
+      const similarJobsRes = await getSimilarJobs();
+      setSimilarJobs(similarJobsRes || []);
+    } catch (err) {
+      console.error('Similar jobs fetch error', err);
+    }
+  };
+
+  fetchSimilarJobs();
+}, []);
+
+useEffect(() => {
+  const loadBenefits = async () => {
+    const allJobs = [...bestJobs, ...moreJobs];
+    const benefitsData: Record<number, string[]> = {};
+
+    await Promise.all(
+      allJobs.map(async (job) => {
+        const benefits = await getJobBenefits(job.job_id);
+        benefitsData[job.job_id] = benefits;
+      })
+    );
+
+    setJobBenefits(benefitsData);
+  };
+
+  if (bestJobs.length || moreJobs.length) {
+    loadBenefits();
+  }
+}, [bestJobs, moreJobs]);
+
+useEffect(() => {
+  const fetchJobs = async () => {
+    try {
+      const [bestJobsRes, allJobsRes] = await Promise.all([
+        getApplyToJobs(),
+        
+        getRecruiterJobList(),
+      ]);
+
+      setBestJobs(bestJobsRes);
+      setMoreJobs(allJobsRes);
+      setTotalJobsCount(allJobsRes.length);
+    } catch (err) {
+      console.error('Job fetch error', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchJobs();
+}, []);
+
+
+useEffect(() => {
+  const preloadImages = async () => {
+    const allJobs = [...bestJobs, ...moreJobs];
+
+    for (const job of allJobs) {
+      if (!jobImages[job.job_id]) {
+        const details = await getRecruiterJobDetails(job.job_id);
+
+        if (details && typeof details.companylogo === 'string') {
+          setJobImages(prev => ({
+            ...prev,
+            [job.job_id]: details.companylogo as string,
+          }));
+        }
+      }
+    }
+  };
+
+  if (bestJobs.length || moreJobs.length) {
+    preloadImages();
+  }
+}, [bestJobs, moreJobs]);
+
+
+const getFilteredJobs = (jobs: RecruiterJob[]) => {
+  let filtered = [...jobs];
+
+  // 🔍 SEARCH FILTER
+  if (searchText.trim()) {
+    const keyword = searchText.toLowerCase();
+
+    filtered = filtered.filter(job =>
+      job.job_title_name?.toLowerCase().includes(keyword) ||
+      job.company?.toLowerCase().includes(keyword) ||
+      job.city_name?.toLowerCase().includes(keyword) ||
+      job.locality_name?.toLowerCase().includes(keyword)
+    );
+  }
+
+  // 🎯 CHIP FILTERS
+  if (!selectedFilter) return filtered;
+
+  switch (selectedFilter) {
+    case t('jobs_filter_new'):
+      return filtered.filter(job => isNewJob(job.created_at));
+
+    case t('jobs_filter_high_paying'):
+      return filtered.filter(job => Number(job.salary_max) >= 20000);
+
+    case t('jobs_filter_part_time'):
+      return filtered.filter(job => job.job_type === 'Part-time');
+
+    case t('jobs_filter_education'):
+      return filtered.filter(job => job.qualification === 'graduate');
+
+    default:
+      return filtered;
+  }
+};
+
+
+
+const mapRecruiterJobToUI = (job: RecruiterJob): UIJob => ({
+  id: job.job_id,
+  title: job.job_title_name,
+  company: job.company,
+salary: `₹${parseInt(job.salary_min, 10)} - ₹${parseInt(job.salary_max, 10)} / Month`,
+  location: `${job.locality_name}, ${job.city_name}`,
+  isBestJob: true,
+  originalJob: job,
+});
+
+
+
+const fetchJobImage = async (jobId: number) => {
+  if (jobImages[jobId]) return;
+
+  const details = await getRecruiterJobDetails(jobId);
+  if (details?.companylogo) {
+    setJobImages(prev => ({
+      ...prev,
+      [jobId]: details.companylogo!,
+    }));
+  }
+};
+
+const isNewJob = (createdAt: string) => {
+  const createdDate = new Date(createdAt);
+  const now = new Date();
+  const diffInDays =
+    (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
+
+  return diffInDays <= 7;
+};
+
+const getJobNeedsCounts = (jobs: RecruiterJob[]) => {
+  return {
+    highPaying: jobs.filter(
+      job => Number(job.salary_max) >= 20000
+    ).length,
+
+    newJobs: jobs.filter(
+      job => isNewJob(job.created_at)
+    ).length,
+
+    graduateJobs: jobs.filter(
+      job => job.qualification === 'graduate'
+    ).length,
+
+    workFromHome: jobs.filter(
+      job => job.work_location === 'Work From Home'
+    ).length,
+
+    partTime: jobs.filter(
+      job => job.job_type === 'Part-time'
+    ).length,
+
+    fieldJobs: jobs.filter(
+      job => job.work_location === 'Field'
+    ).length,
+  };
+};
+
+const jobNeedsCounts = getJobNeedsCounts(moreJobs);
+
+const isHighDemandJob = (job: RecruiterJob) => {
+  // You can tweak this logic later
+  return job.openings >= 5 || job.hiring_for_others === 1;
+};
+
 
   const handleFooterTap = (index: number) => {
     setCurrentIndex(index);
@@ -37,52 +300,54 @@ const [similarJobs, setSimilarJobs] = useState<any[]>([]);
     navigation.goBack();
   };
 
-  const filterChips = [t('jobs_filter_new'), t('jobs_filter_distance'), t('jobs_filter_part_time'), t('jobs_filter_education')];
+  const filterChips = [t('jobs_filter_new'), t('jobs_filter_high_paying'), t('jobs_filter_part_time'), t('jobs_filter_education')];
 
-  const jobCategories = [
-    {
-      icon: 'trending-up',
-      color: '#FFEBEE',
-      iconColor: '#E91E63',
-      title: t('jobs_category_high_paying'),
-      subtitle: t('jobs_category_high_paying_count'),
-    },
-    {
-      icon: 'new-box',
-      color: '#FFF4E5',
-      iconColor: '#FF7043',
-      title: t('jobs_category_new'),
-      subtitle: t('jobs_category_new_count'),
-    },
-    {
-      icon: 'school',
-      color: '#E8F4FF',
-      iconColor: '#2196F3',
-      title: t('jobs_category_graduate'),
-      subtitle: t('jobs_category_graduate_count'),
-    },
-    {
-      icon: 'home',
-      color: '#FFF8E1',
-      iconColor: '#FFC107',
-      title: t('jobs_category_work_from_home'),
-      subtitle: t('jobs_category_work_from_home_count'),
-    },
-    {
-      icon: 'clock',
-      color: '#E3F2FD',
-      iconColor: '#2196F3',
-      title: t('jobs_category_part_time'),
-      subtitle: t('jobs_category_part_time_count'),
-    },
-    {
-      icon: 'road',
-      color: '#E3F2FD',
-      iconColor: '#4CAF50',
-      title: t('jobs_category_field'),
-      subtitle: t('jobs_category_field_count'),
-    },
-  ];
+const jobCategories = [
+  {
+    icon: 'trending-up',
+    color: '#FFEBEE',
+    iconColor: '#E91E63',
+    title: t('jobs_category_high_paying'),
+    subtitle: t('view_jobs', { count: jobNeedsCounts.highPaying }),
+  },
+  {
+    icon: 'new-box',
+    color: '#FFF4E5',
+    iconColor: '#FF7043',
+    title: t('jobs_category_new'),
+    subtitle: t('view_jobs', { count: jobNeedsCounts.newJobs }),
+  },
+  {
+    icon: 'school',
+    color: '#E8F4FF',
+    iconColor: '#2196F3',
+    title: t('jobs_category_graduate'),
+    subtitle: t('view_jobs', { count: jobNeedsCounts.graduateJobs }),
+  },
+  {
+    icon: 'home',
+    color: '#FFF8E1',
+    iconColor: '#FFC107',
+    title: t('jobs_category_work_from_home'),
+    subtitle: t('view_jobs', { count: jobNeedsCounts.workFromHome }),
+  },
+  {
+    icon: 'clock',
+    color: '#E3F2FD',
+    iconColor: '#2196F3',
+    title: t('jobs_category_part_time'),
+    subtitle: t('view_jobs', { count: jobNeedsCounts.partTime }),
+  },
+  {
+    icon: 'road',
+    color: '#E3F2FD',
+    iconColor: '#4CAF50',
+    title: t('jobs_category_field'),
+    subtitle: t('view_jobs', { count: jobNeedsCounts.fieldJobs }),
+  },
+];
+
+
 
   const categoryChips = [
     t('jobs_chip_telesales'),
@@ -92,61 +357,66 @@ const [similarJobs, setSimilarJobs] = useState<any[]>([]);
     t('jobs_chip_field_sales'),
   ];
 
-  const jobsData = [
-    {
-      id: 1,
-      title: t('jobs_title_email_support'),
-      company: 'RJS Tech Solutions',
-      salary: t("job1_salary"),
-      location: t('job_1_location'),
-      badges: ['New', 'High Demand', 'Urgent Hiring'],
-      isBestJob: true,
-    },
-    {
-      id: 2,
-      title: t('jobs_title_bpo_executive'),
-      company: 'Prime Communications',
-       salary: t("job2_salary"),
-      location: t('job_2_location'),
-      badges: ['Urgent Hiring'],
-      isBestJob: true,
-    },
-    {
-      id: 3,
-      title: t('jobs_title_bpo_executive'),
-      company: 'Prime Communications',
-  salary: t("job3_salary"),
-      location: t('job_3_location'),
-      badges: ['Urgent Hiring'],
-      isBestJob: true,
-    },
-    {
-      id: 4,
-      title: t('jobs_title_bpo_telecaller'),
-      company: 'Sunshine Infotech',
- salary: t("job1_salary"),
-      location: t('job_1_location'),
-      badges: [],
-      isBestJob: false,
-    },
-    {
-      id: 5,
-      title: t('jobs_title_hindi_telecaller'),
-      company: 'Bright Minds Pvt Ltd',
- salary: t("job2_salary"),
-      location: t('job_2_location'),
-      badges: [],
-      isBestJob: false,
-    },
-  ];
+  
+ const renderJobTags = (job: RecruiterJob) => {
+  const tags: { label: string; type: 'new' | 'vacancy' | 'demand' }[] = [];
 
-  const handleJobCardPress = (job: typeof jobsData[0]) => {
-    navigation.navigate('JobInfoScreen', {
-      jobData: job,
+  if (isNewJob(job.created_at)) {
+    tags.push({ label: t('jobs_tag_new'), type: 'new' });
+  }
+
+  if (job.openings > 0) {
+    tags.push({
+      label: `${job.openings} ${t('jobs_tag_vacancies')}`,
+      type: 'vacancy',
     });
-  };
+  }
 
-  const renderJobCard = (job: typeof jobsData[0]) => (
+  if (isHighDemandJob(job)) {
+    tags.push({ label: t('jobs_tag_high_demand'), type: 'demand' });
+  }
+
+  return (
+    <View style={styles.tagsContainer}>
+      {tags.map((tag, index) => (
+        <View
+          key={index}
+          style={[
+            styles.tag,
+            {
+              backgroundColor: tag.type === 'new' ? '#d9dfff' : '#fff',
+              borderColor: tag.type === 'new' ? '#d9dfff' : '#ccc',
+            },
+          ]}
+        >
+          {tag.type === 'demand' && (
+            <Icon name="flash-outline" size={10} color="#000" />
+          )}
+
+          <Text
+            style={[
+              styles.tagText,
+              {
+                color: tag.type === 'new' ? '#6c83ff' : '#979797',
+                marginLeft: tag.type === 'demand' ? 2 : 0,
+              },
+            ]}
+          >
+            {tag.label}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+};
+ const handleJobCardPress = (job: UIJob) => {
+  navigation.navigate('JobInfoScreen', {
+    jobData: job.originalJob,
+  });
+};
+
+
+const renderJobCard = (job: UIJob) => (
     <TouchableOpacity 
       key={job.id}
       onPress={() => handleJobCardPress(job)}
@@ -172,10 +442,15 @@ const [similarJobs, setSimilarJobs] = useState<any[]>([]);
         )}
 
         <View style={styles.jobRow}>
-          <Image
-            source={require('../../assets/images/residential.png')}
-            style={styles.jobIcon}
-          />
+        <Image
+  source={
+    jobImages[job.id]
+      ? { uri: jobImages[job.id] }
+      : require('../../assets/images/residential.png')
+  }
+  style={styles.jobIcon}
+/>
+
 
           <View style={{ flex: 1 }}>
             <Text style={styles.jobTitle}>{job.title}</Text>
@@ -193,44 +468,15 @@ const [similarJobs, setSimilarJobs] = useState<any[]>([]);
           <Text style={styles.jobMeta}>{job.location}</Text>
         </View>
 
-        <View style={styles.tagsContainer}>
-          {[t('jobs_tag_new'), t('jobs_tag_vacancies'), t('jobs_tag_high_demand')].map((tag, index) => {
-            const isNewJob = tag === t('jobs_tag_new');
-
-            return (
-              <View
-                key={index}
-                style={[
-                  styles.tag,
-                  {
-                    backgroundColor: isNewJob ? '#d9dfff' : '#fff',
-                    borderColor: isNewJob ? '#d9dfff' : '#ccc',
-                  },
-                ]}
-              >
-                {tag === t('jobs_tag_high_demand') && (
-                  <Icon name="flash-outline" size={10} color={!isNewJob ? '#000' : '#fff'} />
-                )}
-
-                <Text
-                  style={[
-                    styles.tagText,
-                    {
-                      color: isNewJob ? '#6c83ff' : '#979797',
-                      marginLeft: tag === t('jobs_tag_high_demand') ? 2 : 0,
-                    },
-                  ]}
-                >
-                  {tag}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
+{renderJobTags(job.originalJob)}
 
         <View style={styles.tagDivider} />
 
-        <Text style={styles.pfText}>{t('jobs_pf_provided')}</Text>
+{jobBenefits[job.id] && jobBenefits[job.id].length > 0 && (
+  <Text style={styles.pfText}>
+    {jobBenefits[job.id].map(b => `${b} Provided`).join(' | ')}
+  </Text>
+)}
       </View>
     </TouchableOpacity>
   );
@@ -245,20 +491,24 @@ const [similarJobs, setSimilarJobs] = useState<any[]>([]);
           showBackArrow={true}
           onBackPressed={handleBackPress}
           customLeftWidget={
-            <Text style={styles.headerTitle}>{t('jobs_header_title')}</Text>
+<Text style={styles.headerTitle}>
+  {totalJobsCount} {t('jobs_header_title')} 
+</Text>
           }
         />
       </View>
 
       <View style={styles.searchContainer}>
         <Icon name="search-outline" size={20} color="#999" />
-        <TextInput
-          style={styles.searchInput}
-          placeholder={t('jobs_search_placeholder')}
-          placeholderTextColor="#666"
-          value={searchText}
-          onChangeText={setSearchText}
-        />
+    <TextInput
+  style={styles.searchInput}
+  placeholder={t('jobs_search_placeholder')}
+  placeholderTextColor="#666"
+  value={searchText}
+  onChangeText={setSearchText}
+  returnKeyType="search"
+/>
+
       </View>
 
       <View style={styles.filterRow}>
@@ -272,17 +522,34 @@ const [similarJobs, setSimilarJobs] = useState<any[]>([]);
             {' '}{t('jobs_filter_button')}
           </Text>
         </TouchableOpacity>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ flex: 1 }}
-        >
-          {filterChips.map((chip, index) => (
-            <TouchableOpacity key={index} style={styles.filterChipOption}>
-              <Text style={styles.filterChipOptionText}>{chip}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+ <ScrollView
+  horizontal
+  showsHorizontalScrollIndicator={false}
+  style={{ flex: 1 }}
+>
+  {filterChips.map((chip, index) => (
+    <TouchableOpacity
+      key={index}
+      style={[
+        styles.filterChipOption,
+        selectedFilter === chip && styles.filterChipOptionActive,
+      ]}
+      onPress={() =>
+        setSelectedFilter(selectedFilter === chip ? null : chip)
+      }
+    >
+      <Text
+        style={[
+          styles.filterChipOptionText,
+          selectedFilter === chip && styles.filterChipOptionTextActive,
+        ]}
+      >
+        {chip}
+      </Text>
+    </TouchableOpacity>
+  ))}
+</ScrollView>
+
       </View>
 
       <ScrollView
@@ -341,7 +608,9 @@ const [similarJobs, setSimilarJobs] = useState<any[]>([]);
             />
           </View>
 
-          {jobsData.slice(0, 2).map((job) => renderJobCard(job))}
+{getFilteredJobs(bestJobs)
+  .slice(0, 2)
+  .map((job) => renderJobCard(mapRecruiterJobToUI(job)))}
 
           <LinearGradient
             colors={['#d7dff1', '#9ab1e2']}
@@ -366,7 +635,9 @@ const [similarJobs, setSimilarJobs] = useState<any[]>([]);
               />
             </View>
           </LinearGradient>
-          {renderJobCard(jobsData[2])}
+{getFilteredJobs(bestJobs)
+  .slice(2)
+  .map((job) => renderJobCard(mapRecruiterJobToUI(job)))}
         </View>
 
         <View style={styles.moreJobsHeader}>
@@ -374,12 +645,16 @@ const [similarJobs, setSimilarJobs] = useState<any[]>([]);
           <Text style={styles.moreJobsTitle}>{t('jobs_more_jobs_title')}</Text>
         </View>
 
-        {jobsData.slice(3).map((job) => renderJobCard(job))}
+{getFilteredJobs(moreJobs).map((job) =>
+  renderJobCard({
+    ...mapRecruiterJobToUI(job),
+    isBestJob: false,
+  })
+)}
 
         <View style={styles.spaceContainer}></View>
-<ViewedJobsSection
-  jobs={similarJobs}
-/>
+<ViewedJobsSection jobs={similarJobs} onViewSimilar={openJobApplicationModal} />
+
         <View style={styles.jobsNeedsContainer}>
           <Text style={styles.jobsNeedsTitle}>{t('jobs_needs_title')}</Text>
 
@@ -416,21 +691,33 @@ const [similarJobs, setSimilarJobs] = useState<any[]>([]);
             })}
           </ScrollView>
         </View>
+<View style={styles.exploreContainer}>
+  <View style={styles.exploreHeader}>
+    <Icon name="compass-outline" size={24} color="#0072BC" />
+    <Text style={styles.exploreTitle}>{t('jobs_explore_title')}</Text>
+  </View>
 
-        <View style={styles.exploreContainer}>
-          <View style={styles.exploreHeader}>
-            <Icon name="compass-outline" size={24} color="#0072BC" />
-            <Text style={styles.exploreTitle}>{t('jobs_explore_title')}</Text>
-          </View>
-
-          <View style={styles.chipsContainer}>
-            {categoryChips.map((chip, index) => (
-              <TouchableOpacity key={index} style={styles.chip}>
-                <Text style={styles.chipText}>{chip}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+  <View style={styles.chipsContainer}>
+    {categoriesLoading ? (
+      <Text style={styles.chipText}>{t('loading')}</Text>
+    ) : (
+      exploreCategories.map((category) => (
+        <TouchableOpacity
+          key={category.id}
+          style={styles.chip}
+          onPress={() =>
+            navigation.navigate('JobsByCategoryScreen', {
+              categoryId: category.id,
+              categoryName: category.name,
+            })
+          }
+        >
+          <Text style={styles.chipText}>{category.name}</Text>
+        </TouchableOpacity>
+      ))
+    )}
+  </View>
+</View>
       </ScrollView>
 
       <AppFooter currentIndex={currentIndex} onTap={handleFooterTap} />
@@ -513,6 +800,13 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     marginRight: scale(8) * 0.8,
   },
+  filterChipOptionActive: {
+  backgroundColor: '#0072BC',
+},
+filterChipOptionTextActive: {
+  color: '#fff',
+},
+
   filterChipOptionText: {
     fontSize: moderateScale(12) * 0.8,
     fontWeight: '600',

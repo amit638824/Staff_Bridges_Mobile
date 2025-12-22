@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,9 +16,9 @@ import { AppColors } from "../constants/AppColors";
 import { useTranslation } from "react-i18next";
 import LanguageSelectorBottomSheet from "../components/LanguageSelectorBottomSheet";
 import { scale, verticalScale, moderateScale } from "react-native-size-matters";
-
 import { useSelector } from "react-redux";
-import { RootState } from "../redux/store"; 
+import { RootState } from "../redux/store";
+import { getNotifications, NotificationJob } from "../services/notificationService";
 
 interface AppHeaderProps {
   location?: string;
@@ -50,16 +50,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const { t } = useTranslation();
 
   const [showLangModal, setShowLangModal] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
 
-  // ✅ GET LOCATION FROM REDUX
-  const { city, locality } = useSelector(
-    (state: RootState) => state.location
-  );
+  const { city, locality } = useSelector((state: RootState) => state.location);
 
-  // ✅ FINAL LOCATION LABEL
   const locationLabel =
     locality && city
-      // ? `${locality}, ${city}`
       ? `${locality}`
       : locality
       ? locality
@@ -70,6 +66,20 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const handleNotificationTap = () => {
     navigation.navigate("NotificationsScreen");
   };
+
+  // ✅ Fetch notifications on mount
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const notifications: NotificationJob[] = await getNotifications();
+        setNotificationCount(notifications.length);
+      } catch (err) {
+        console.error("Failed to fetch notifications:", err);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
 
   return (
     <>
@@ -124,6 +134,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               </View>
             )}
           </View>
+
           {/* RIGHT */}
           {showRightSection && (
             <View style={headerStyles.rightSection}>
@@ -138,9 +149,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     <Icon name="notifications" size={moderateScale(22)} color={AppColors.buttons} />
                   </TouchableOpacity>
 
-                  <View style={headerStyles.badge}>
-                    <Text style={headerStyles.badgeText}>2</Text>
-                  </View>
+                  {notificationCount > 0 && (
+                    <View style={headerStyles.badge}>
+                      <Text style={headerStyles.badgeText}>{notificationCount}</Text>
+                    </View>
+                  )}
                 </View>
               )}
 
